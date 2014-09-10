@@ -30,7 +30,7 @@ from deluge.log import setupLogger
 
 import media.tv, media.movies, media.music, media.audiobooks
 import notify.email, notify.pushover
-import config, extras.extract
+import config, textras.extract
 
 
 # ======== SET GLOBAL HANDLER OPTIONS ======== #
