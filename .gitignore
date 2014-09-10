@@ -1,0 +1,13 @@
+
+*.DS_Store
+*.svn
+
+mediaHandler.sublime-project
+
+mediaHandler.sublime-workspace
+
+*.sublime-project
+
+*.sublime-workspace
+
+TO DOs
