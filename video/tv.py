@@ -35,10 +35,6 @@ class Rename:
 		self.analytics = "-no-analytics"
 		# Local paths
 		self.tvPath = 'Television'
-		self.movPath = 'Movies'
-		# Beet Options
-		self.beet = "/usr/local/bin/beet"
-		self.beetslog = "beetslog.log"
 
 
 	def __getInfo(self, mFormat, mDB):
@@ -99,97 +95,3 @@ class Rename:
 		ep_title = "%s (%s, %s)" % (show_name, season, episode)
 		# Return Show Name, Season, Episode (file)
 		return ep_title, new_file
-
-
-	def movieHandler(self):
-		logging.info("Starting movie information handler")
-		# Set Variables
-		movFormat = "%s/{n} ({y})" % self.movPath
-		movDB = "themoviedb"
-		# Get info
-		new_file = self.__getInfo(movFormat, movDB)
-		logging.debug("New file: %s", new_file)
-		# Check for failure
-		if new_file == None:
-			return None
-		# Set search query
-		ePath = re.escape(self.movPath)
-		movFind = "%s\/(.*\(\d{4}\))\.\w{3}" % ePath
-		logging.debug("Search query: %s", movFind)
-		# Extract info
-		movie = re.search(movFind, new_file)
-		if movie == None:
-			return None
-		# Set title
-		mov_title = movie.group(1)
-		# Return Movie Title
-		return mov_title, new_file
-
-
-	def musicHandler(self, isSingle=False):
-		logging.info("Starting music information handler")
-		# Set Variables
-		if isSingle:
-			mType = "Song"
-			mTags = "-sql"
-			mQuery = "Tagging track\:\s(.*)\nURL\:\n\s{1,4}(.*)\n\((Similarity\: .*%)\)"
-		else:
-			mType = "Album"
-			mTags = "-ql"
-			mQuery = "(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n\((Similarity\: .*%)\)"
-		# Set up query
-		mCMD = [self.beet,
-			"import", self.file,
-			mTags, self.beetslog,
-		]
-		logging.debug("Query: %s", mCMD)
-		# Process query
-		p = Popen(mCMD, stdout=PIPE, stderr=PIPE)
-		# Get output
-		(output, err) = p.communicate()
-		logging.debug("Query output: %s", output)
-		logging.debug("Query return errors: %s", err)
-		# Process output
-		if err != '':
-			return True, err
-		# Extract Info 
-		musicFind = re.compile(mQuery)
-		logging.debug("Search query: %s", mQuery)
-		# Format data
-		musicData = musicFind.search(output)
-		musicInfo = "%s: %s" % (mType, musicData.group(2))
-		logging.info("MusicBrainz URL: %s" % musicData.group(3))
-		logging.info(musicData.group(4))
-		# Return music data
-		return False, musicInfo
-
-
-class Extract:
-	def __init__(self, filename):
-		logging.info("Initializing extraction class")
-		self.file = filename
-		self.filebot = "/usr/bin/filebot"
-
-
-	def fileHandler(self):
-		logging.info("Getting files from compressed folder")
-		# Set up query
-		mCMD = [self.filebot, 
-			"-extract", self.file
-		]
-		logging.debug("Query: %s", mCMD)
-		# Process query
-		p = Popen(mCMD, stdout=PIPE)
-		# Get output
-		(output, err) = p.communicate()
-		logging.debug("Query output: %s", output)
-		logging.debug("Query return errors: %s", err)
-		# Process output
-		fileinfo = re.search(r"Extracting files \[(.*)\]\n", output)
-		if fileinfo == None:
-			return None
-		extracted = fileinfo.group(1)
-		# Break into array
-		new_files = extracted.split(", ")
-		# Return array of extracted files
-		return new_files
