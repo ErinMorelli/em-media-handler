@@ -22,12 +22,15 @@ __author__ = 'Erin Morelli'
 
 import sys, re
 import shutil, logging
-import notify, naming, audiobooks
-from os import path, listdir, makedirs
 
+from os import path, listdir, makedirs
 from twisted.internet import reactor
 from deluge.ui.client import client
 from deluge.log import setupLogger
+
+import media.tv, media.movies, media.music, media.audiobooks
+import notify.email, notify.pushover
+import config, extras.extract
 
 
 # ======== SET GLOBAL HANDLER OPTIONS ======== #
