@@ -17,62 +17,95 @@
 
 # ======== IMPORT MODULES ======== #
 
-import ConfigParser, pkgutil
+import ConfigParser, pkgutil, imp
+
+from twisted.internet import reactor
+#from deluge.ui.client import client
+#from deluge.log import setupLogger
 
 
+def __getConfig(configFile):
+	# Read config file
+	Config = ConfigParser.ConfigParser()
+	Config.read(configFile)
+	# Loop through sections
+	settings = {}
+	sections = Config.sections()
+	for section in sections:
+		# Loop through options
+		options = Config.options(section)
+		newOptions = {}
+		for option in options:
+			try:
+				if option == "enabled":
+					newOptions[option] = Config.getboolean(section, option)
+				else:
+					newOptions[option] = Config.get(section, option)
+				if newOptions[option] == -1:
+					print "skip: %s" % option
+
+			except:
+				print "exception on %s!" % option
+				newOptions[option] = None
+		# Populate hash
+		settings[section] = newOptions
+	# Make bools
+	settings['General']['deluge'] = Config.getboolean('General', 'deluge')
+	settings['General']['logging'] = Config.getboolean('General', 'logging')
+	settings['General']['keepFiles'] = Config.getboolean('General', 'keepFiles')
+	settings['Audiobooks']['makeChapters'] = Config.getboolean('Audiobooks', 'makeChapters')
+	# Return setting hash
+	return settings
 
 
-Config = ConfigParser.ConfigParser()
-Config.read('mediaHandler.conf')
+def __findModule(parentMod, subMod):
+	try:
+		modInfo = imp.find_module(parentMod)
+		mod = imp.load_module(parentMod, *modInfo)
+		imp.find_module(subMod, mod.__path__) # __path__ is already a list
+		return True
+	except ImportError:
+		return False
 
 
-settings = {}
-sections = Config.sections()
-for section in sections:
-	options = Config.options(section)
-	newOptions = {}
-	for option in options:
-		try:
-			if option == "enabled":
-				newOptions[option] = Config.getboolean(section, option)
-			else:
-				newOptions[option] = Config.get(section, option)
-			if newOptions[option] == -1:
-				print "skip: %s" % option
+def __checkModules(settings):
+	# Check required modules
+	if settings['General']['deluge']:
+		print 'deluge'
+		# Check for Twisted
+		if __findModule('twisted', 'internet'):
+			print "FOUND: twisted"
+		# Check for Deluge
+		if __findModule('deluge', 'ui') and __findModule('deluge', 'log'):
+			print "FOUND: deluge"
 
-		except:
-			print "exception on %s!" % option
-			newOptions[option] = None
-	settings[section] = newOptions
+	if settings['TV']['enabled'] or settings['Movies']['enabled']:
+		# check for filebot
+		print 'tv or movie'
 
-# Make bools
-settings['General']['deluge'] = Config.getboolean('General', 'deluge')
-settings['General']['logging'] = Config.getboolean('General', 'logging')
-settings['General']['keepFiles'] = Config.getboolean('General', 'keepFiles')
-settings['Audiobooks']['makeChapters'] = Config.getboolean('Audiobooks', 'makeChapters')
+	if settings['Music']['enabled']:
+		# check for beets
+		print 'music'
 
+	if settings['Audiobooks']['enabled']:
+		print 'books'
+		# check for google api
+		if __findModule('apiclient', 'discovery'):
+			print "FOUND: apiclient"
 
-# Check required modules
-if settings['General']['deluge']:
-	# check for deluge, twisted
-	print 'deluge'
-
-if settings['TV']['enabled'] or settings['Movies']['enabled']:
-	# check for filebot
-	print 'tv or movie'
-
-if settings['Music']['enabled']:
-	# check for beets
-	print 'music'
-
-if settings['Audiobooks']['enabled']:
-	# check for google api
-	print 'books'
-	if settings['Audiobooks']['makeChapters']:
-		# check for abc, mutagen
-		print 'chapters'
+		if settings['Audiobooks']['makeChapters']:
+			# check for abc, mutagen
+			print 'chapters'
+			if __findModule('mutagen', 'mp3') and __findModule('mutagen', 'ogg'):
+				print "FOUND: mutagen"
+	return
 
 
+# If this is commandline, get args & run
+if __name__=='__main__':
+	settings = __getConfig('mediaHandler.conf')
+	__checkModules(settings)
+  
 
 '''
 try:
