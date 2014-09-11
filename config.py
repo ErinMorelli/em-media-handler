@@ -17,19 +17,69 @@
 
 # ======== IMPORT MODULES ======== #
 
-import ConfigParser as cp
+import ConfigParser, pkgutil
 
 
-# ======== CONFIG CLASS DECLARTION ======== #
 
-class mhConfig:
 
-	# ======== SET GLOBAL CLASS OPTIONS ======== #
+Config = ConfigParser.ConfigParser()
+Config.read('mediaHandler.conf')
 
-	def __init__(self):
-		config = cp.SafeConfigParser()
-		config.read('mediaHandler.conf')
-		print config.get('My Section', 'foodir')
-		return
 
-c = mhConfig()
+settings = {}
+sections = Config.sections()
+for section in sections:
+	options = Config.options(section)
+	newOptions = {}
+	for option in options:
+		try:
+			if option == "enabled":
+				newOptions[option] = Config.getboolean(section, option)
+			else:
+				newOptions[option] = Config.get(section, option)
+			if newOptions[option] == -1:
+				print "skip: %s" % option
+
+		except:
+			print "exception on %s!" % option
+			newOptions[option] = None
+	settings[section] = newOptions
+
+# Make bools
+settings['General']['deluge'] = Config.getboolean('General', 'deluge')
+settings['General']['logging'] = Config.getboolean('General', 'logging')
+settings['General']['keepFiles'] = Config.getboolean('General', 'keepFiles')
+settings['Audiobooks']['makeChapters'] = Config.getboolean('Audiobooks', 'makeChapters')
+
+
+# Check required modules
+if settings['General']['deluge']:
+	# check for deluge, twisted
+	print 'deluge'
+
+if settings['TV']['enabled'] or settings['Movies']['enabled']:
+	# check for filebot
+	print 'tv or movie'
+
+if settings['Music']['enabled']:
+	# check for beets
+	print 'music'
+
+if settings['Audiobooks']['enabled']:
+	# check for google api
+	print 'books'
+	if settings['Audiobooks']['makeChapters']:
+		# check for abc, mutagen
+		print 'chapters'
+
+
+
+'''
+try:
+    imp.find_module('eggs')
+    found = True
+except ImportError:
+    found = False
+
+twisted.internet, deluge.ui.client, deluge.log, apiclient.discovery, mutagen.mp3, mutagen.ogg
+'''
