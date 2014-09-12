@@ -17,14 +17,91 @@
 
 # ======== IMPORT MODULES ======== #
 
-import ConfigParser, pkgutil, imp
-
-from twisted.internet import reactor
-#from deluge.ui.client import client
-#from deluge.log import setupLogger
+import ConfigParser
+import imp, os, logging
 
 
-def __getConfig(configFile):
+# ======== LOOK FOR MODULE ======== #
+
+def __findModule(parentMod, subMod):
+	try:
+		modInfo = imp.find_module(parentMod)
+		mod = imp.load_module(parentMod, *modInfo)
+		imp.find_module(subMod, mod.__path__) # __path__ is already a list
+		return True
+	except ImportError:
+		errMsg = 'Module %s.%s is not installed' % (parentMod,subMod)
+		raise ImportError(errMsg)
+
+
+# ======== LOGGING ======== #
+
+def __initLogging(settings):
+	# Set defaults
+	logFile = '~/log/mediaHandler.log'
+	logLevel = 40
+	# Look for exceptions
+	if settings['General']['logfile'] != None:
+		logFile = settings['General']['logfile']
+	if settings['General']['loglevel'] != None:
+		logLevel =  int(settings['General']['loglevel'])
+	# Config logging
+	logging.basicConfig(
+		filename=logFile,
+		format='%(asctime)s - %(filename)s - %(levelname)s - %(message)s',
+		level=logLevel,
+	)
+	# Enable deluge logging
+	if settings['General']['deluge']:
+		from deluge.log import setupLogger
+		setupLogger()
+	return
+
+
+# ======== CHECK MODULES ======== #
+
+def __checkModules(settings):
+	# Check for logging
+	if settings['General']['logging']:
+		__initLogging(settings)
+		logging.info('Logging enabled')
+	# Check deluge requirements
+	if settings['General']['deluge']:
+		# Check for Twisted
+		if __findModule('twisted', 'internet'):
+			logging.debug('Twisted.internet module found')
+		# Check for Deluge
+		if __findModule('deluge', 'ui') and __findModule('deluge', 'log'):
+			logging.debug('Deluge modules found')
+	# Check video requirements
+	if settings['TV']['enabled'] or settings['Movies']['enabled']:
+		# Check for Filebot
+		if os.path.isfile('/usr/bin/filebot'):
+			logging.debug('Filebot application found')
+	# Check music requirements
+	if settings['Music']['enabled']:
+		# Check for Beets
+		if __findModule('beets', 'util'):
+			logging.debug('Beets.util module found')
+	# Check audiobook requirements
+	if settings['Audiobooks']['enabled']:
+		# Check for Google API
+		if __findModule('apiclient', 'discovery'):
+			logging.debug('Apiclient.discovery module found')
+		# Is chaptering enabled
+		if settings['Audiobooks']['makechapters']:
+			# Check for Mutagen
+			if __findModule('mutagen', 'mp3') and __findModule('mutagen', 'ogg'):
+				logging.debug('Mutagen modules found')
+			# Check fo ABC
+			if os.path.isfile('/usr/bin/abc.php'):
+				logging.debug('ABC applciation found')
+	return
+
+
+# ======== PARSE CONFIG FILE ======== #
+
+def getConfig(configFile):
 	# Read config file
 	Config = ConfigParser.ConfigParser()
 	Config.read(configFile)
@@ -41,69 +118,16 @@ def __getConfig(configFile):
 					newOptions[option] = Config.getboolean(section, option)
 				else:
 					newOptions[option] = Config.get(section, option)
-				if newOptions[option] == -1:
-					print "skip: %s" % option
-
 			except:
-				print "exception on %s!" % option
 				newOptions[option] = None
 		# Populate hash
 		settings[section] = newOptions
 	# Make bools
 	settings['General']['deluge'] = Config.getboolean('General', 'deluge')
 	settings['General']['logging'] = Config.getboolean('General', 'logging')
-	settings['General']['keepFiles'] = Config.getboolean('General', 'keepFiles')
-	settings['Audiobooks']['makeChapters'] = Config.getboolean('Audiobooks', 'makeChapters')
+	settings['General']['keepfiles'] = Config.getboolean('General', 'keepFiles')
+	settings['Audiobooks']['makechapters'] = Config.getboolean('Audiobooks', 'makeChapters')
+	# Check that appropriate modules are installed
+	__checkModules(settings)
 	# Return setting hash
 	return settings
-
-
-def __findModule(parentMod, subMod):
-	try:
-		modInfo = imp.find_module(parentMod)
-		mod = imp.load_module(parentMod, *modInfo)
-		imp.find_module(subMod, mod.__path__) # __path__ is already a list
-		return True
-	except ImportError:
-		return False
-
-
-def __checkModules(settings):
-	# Check required modules
-	if settings['General']['deluge']:
-		print 'deluge'
-		# Check for Twisted
-		if __findModule('twisted', 'internet'):
-			print "FOUND: twisted"
-		# Check for Deluge
-		if __findModule('deluge', 'ui') and __findModule('deluge', 'log'):
-			print "FOUND: deluge"
-
-	if settings['TV']['enabled'] or settings['Movies']['enabled']:
-		print 'filebot'
-		# Check for Filebot
-
-	if settings['Music']['enabled']:
-		print 'beets'
-		# check for Beets
-		if __findModule('beets', 'util'):
-			print "FOUND: beets"
-
-	if settings['Audiobooks']['enabled']:
-		print 'books'
-		# check for google api
-		if __findModule('apiclient', 'discovery'):
-			print "FOUND: apiclient"
-
-		if settings['Audiobooks']['makeChapters']:
-			# check for abc, mutagen
-			print 'chapters'
-			if __findModule('mutagen', 'mp3') and __findModule('mutagen', 'ogg'):
-				print "FOUND: mutagen"
-	return
-
-
-# If this is commandline, get args & run
-if __name__=='__main__':
-	settings = __getConfig('mediaHandler.conf')
-	__checkModules(settings)

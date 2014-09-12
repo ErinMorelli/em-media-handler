@@ -14,16 +14,18 @@
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
 
+__version__ = '1.0'
+__author__ = 'Erin Morelli <erin@erinmorelli.com>'
+
 
 # ======== IMPORT MODULES ======== #
 
-import sys, re
-import shutil, logging
+import sys, re, os
+import shutil, logging, getopt
 
 from os import path, listdir, makedirs
 from twisted.internet import reactor
 from deluge.ui.client import client
-from deluge.log import setupLogger
 
 import media.tv, media.movies, media.music, media.audiobooks
 import notify.email, notify.pushover
@@ -45,6 +47,33 @@ handler = {
 		'password': 'deluge'
 	},
 }
+
+typesList = ['TV', 'Television', 'Movies', 'Music', 'Books', 'Audiobooks']
+
+
+# ======== COMMAND LINE USAGE ======== #
+
+def __showUsage(code):
+	usageText = '''
+EM Media Handler v%s / by %s
+
+Usage: 
+	mediaHandler.py -f /path/to/file [..options]
+
+
+Options:
+	-f 	: (required) Set path to media files, assumes path structure /path/to/<media type>/<media name>
+	-c 	: Set a custom config file path
+	-t 	: Force a specific media type for processing
+
+
+Media types:
+	%s
+	''' % (__version__, __author__, '\n\t'.join(typesList))
+	# Output text
+	print usageText
+	# Exit program
+	sys.exit(int(code))
 
 
 # ======== NOTIFY ======== #
@@ -166,7 +195,7 @@ def extract_files(raw):
 
 # ======== MAIN FILE FUNCTION ======== #
 
-def file_handler(files):
+def __fileHandler(files):
 	logging.info("Starting files handler")
 	added_files = []
 	# Process books first
@@ -232,12 +261,12 @@ def file_handler(files):
 	# Send notification
 	Success(added_files)
 	# Finish
-	return
+	return added_files
 
 
 # ======== REMOVE TORRENT ======== #
 
-def remove_torrent():
+def __removeTorrent():
 	logging.info("Removing torrent from Deluge")
 	# Connect to Deluge daemon
 	d = client.connect(
@@ -285,57 +314,143 @@ def remove_torrent():
 	reactor.run()
 
 
+# ======== GET ARGUMENTS ======== #
+
+def __getArguments():
+	useDeluge = False
+	# Parse args
+	try:
+		(optlist, args) = getopt.getopt(sys.argv[1:], 'f:c:t:')
+	except getopt.GetoptError as err:
+		print str(err)
+		__showUsage(2)
+	# Check for failure conditions
+	if len(optlist) > 0 and len(args) > 0:
+		__showUsage(2)
+	if len(optlist) == 0 and len(args) == 0:
+		__showUsage(2)
+	# Check for deluge
+	if len(args) == 3:
+		# Treat like deluge
+		useDeluge = True
+		args = {
+			'hash' : args[0],
+			'name' : args[1],
+			'path' : args[2]
+		}
+	elif len(args) > 0:
+		__showUsage(2)
+	# Check for CLI
+	if len(optlist) > 0:
+		args = {}
+		f = False
+		for o,a in optlist:
+			if o == '-f':
+				f = True
+				args['media'] = a 
+			if o == '-c':
+				args['config'] = a 
+			if o == '-t':
+				if a not in typesList:
+					raise Warning('Media type %s not recognized' % a)
+				args['type'] = a
+		if not f:
+			print 'option -f not specified'
+			__showUsage(2)
+	return useDeluge, args
+
+
+# ======== HANDLE CLI MEDIA ======== #
+
+def __handleMedia():
+	logging.info("Processing from command line")
+	logging.debug("Inputs: %s, %s, %s", args)
+	# Extract info from path
+	parsePath = re.search(r"^((.*)?\/(.*))\/(.*)$", args['media'], re.I)
+	if parsePath:
+		args['path'] = parsePath.group(1)
+		args['name'] = parsePath.group(4)
+		# Look for custom type
+		if 'type' not in args.keys():
+			args['type'] = parsePath.group(3)
+			if args['type'] not in typesList:
+					raise Warning('Media type %s not recognized' % args['type'])
+		logging.debug("Detected: %s", args)
+	else:
+		# Notify about failure
+		raise Warning("No type or name specified for media")
+	print args
+	return
+	# Check that file was downloaded
+	if path.exists(args['media']):
+		# Send to handler
+		newFiles = __fileHandler(args['media'])
+	else:
+		# There was a problem, no files found
+		raise Warning("No media files found")
+	return newFiles
+
+
+# ======== HANDLE DELUGE MEDIA ======== #
+
+def __handleDeluge():
+	logging.info("Processing from deluge")
+	logging.debug("Inputs: %s", args)
+	# Extract media type from path
+	findType = re.search(r"^\/([a-z]+)$", args['path'], re.I)
+	if findType and findType.group(1):
+		args['type'] = findType.group(1)
+		logging.debug("Type detected: %s", args['type'])
+	else:
+		# Remove torrent
+		__removeTorrent()
+		# Notify about failure
+		raise Warning("No type specified for download: %s" % args['name'])
+	# Check that file was downloaded
+	filePath = args['path']+"/"+args['name']
+	if path.exists(filePath):
+		# Remove torrent
+		__removeTorrent()
+		# Send to handler
+		newFiles = __fileHandler(filePath)
+	else:
+		# There was a problem, no files found
+		raise Warning("No downloaded files found: %s" % args['name'])
+	return newFiles
+
+
 # ======== MAIN FUNCTION WRAPPER ======== #
 
 def main():
 	logging.info("Starting main function")
-	# Get arguments from Deluge
-	global thash, tname, tpath
-	thash = sys.argv[1]
-	tname = sys.argv[2]
-	tpath = sys.argv[3]
-	logging.critical("Processing: %s", tname)
-	logging.debug("Inputs: %s, %s, %s", thash, tname, tpath)
-	# Extract media type from path
-	global ttype
-	find_type = re.search(r"^\/([a-z]+)$", tpath, re.I)
-	if find_type and find_type.group(1):
-		ttype = find_type.group(1)
-		logging.debug("Type detected: %s", ttype)
-	else:
-		# Remove torrent
-		remove_torrent()
-		# Notify about failure
-		Failure("No type specified for download: %s" % tname)
-		return
-	# Check that file was downloaded
-	files = tpath+"/"+tname
-	if path.exists(files):
-		# Remove torrent
-		remove_torrent()
-		# Send to handler
-		file_handler(files)
-	else:
-		# There was a problem, no files found
-		Failure("No downloaded files found: %s" % tname)
+	# Get arguments
+	global args
+	(useDeluge, args) = __getArguments()
+	# Set paths
+	__userHome = path.expanduser("~")
+	__configPath = '%s/.config/mediaHandler/mediaHandler.conf' % __userHome
+	# Check for user-specified config
+	if 'config' in args.keys():
+		__configPath = args['config']
+	# Check that config exists
+	if not os.path.isfile(__configPath):
+		raise Warning('Configuration file does not exist')
+	# Check config file permissions
+	if not os.access(__configPath, os.R_OK):
+		raise Warning('Configuration file cannot be opened')
+	# Get settings from config
+	global settings
+	settings = config.getConfig(__configPath)
+	# If deluge, start processor
+	if useDeluge:
+		__handleDeluge()
+	# Start main function
+	else: 
+		__handleMedia()
 	return
 
 
-# ======== LOGGING ======== #
+# ======== COMMAND LINE ======== #
 
-def init_logging():
-	logging.basicConfig(
-		filename=handler['logging']['file'],
-		format='%(asctime)s - %(filename)s - %(levelname)s - %(message)s',
-		level=handler['logging']['level'],
-	)
-	setupLogger()
-	return
-
-
-# ======== RUN THINGS ======== #
-
-# If this is commandline, get args & run
 if __name__=='__main__':
-	init_logging()
-    	main()
+	main()

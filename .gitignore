@@ -1,6 +1,7 @@
-
+*.pyc
 *.DS_Store
 *.svn
+*.tmp
 
 mediaHandler.sublime-project
 
@@ -15,3 +16,5 @@ TO DOs
 test.py
 
 mediaHandler.conf
+
+._mediaHandler.conf
