@@ -33,8 +33,8 @@ def __getConfig(configFile):
 	sections = Config.sections()
 	for section in sections:
 		# Loop through options
-		options = Config.options(section)
 		newOptions = {}
+		options = Config.options(section)
 		for option in options:
 			try:
 				if option == "enabled":
@@ -108,11 +108,5 @@ if __name__=='__main__':
   
 
 '''
-try:
-    imp.find_module('eggs')
-    found = True
-except ImportError:
-    found = False
-
 twisted.internet, deluge.ui.client, deluge.log, apiclient.discovery, mutagen.mp3, mutagen.ogg
 '''
