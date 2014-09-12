@@ -80,12 +80,14 @@ def __checkModules(settings):
 			print "FOUND: deluge"
 
 	if settings['TV']['enabled'] or settings['Movies']['enabled']:
-		# check for filebot
-		print 'tv or movie'
+		print 'filebot'
+		# Check for Filebot
 
 	if settings['Music']['enabled']:
-		# check for beets
-		print 'music'
+		print 'beets'
+		# check for Beets
+		if __findModule('beets', 'util'):
+			print "FOUND: beets"
 
 	if settings['Audiobooks']['enabled']:
 		print 'books'
@@ -105,8 +107,3 @@ def __checkModules(settings):
 if __name__=='__main__':
 	settings = __getConfig('mediaHandler.conf')
 	__checkModules(settings)
-  
-
-'''
-twisted.internet, deluge.ui.client, deluge.log, apiclient.discovery, mutagen.mp3, mutagen.ogg
-'''
