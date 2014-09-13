@@ -41,10 +41,10 @@ def __initLogging(settings):
 	logFile = '~/log/mediaHandler.log'
 	logLevel = 40
 	# Look for exceptions
-	if settings['General']['logfile'] != None:
-		logFile = settings['General']['logfile']
-	if settings['General']['loglevel'] != None:
-		logLevel =  int(settings['General']['loglevel'])
+	if settings['General']['log_file'] != None:
+		logFile = settings['General']['log_file']
+	if settings['General']['log_level'] != None:
+		logLevel =  int(settings['General']['log_level'])
 	# Config logging
 	logging.basicConfig(
 		filename=logFile,
@@ -68,34 +68,31 @@ def __checkModules(settings):
 	# Check deluge requirements
 	if settings['General']['deluge']:
 		# Check for Twisted
-		if __findModule('twisted', 'internet'):
-			logging.debug('Twisted.internet module found')
+		__findModule('twisted', 'internet')
 		# Check for Deluge
-		if __findModule('deluge', 'ui') and __findModule('deluge', 'log'):
-			logging.debug('Deluge modules found')
+		__findModule('deluge', 'ui')
+		__findModule('deluge', 'log')
 	# Check video requirements
 	if settings['TV']['enabled'] or settings['Movies']['enabled']:
 		# Check for Filebot
-		if os.path.isfile('/usr/bin/filebot'):
-			logging.debug('Filebot application found')
+		if not os.path.isfile('/usr/bin/filebot'):
+			raise ImportError('Filebot application not found')
 	# Check music requirements
 	if settings['Music']['enabled']:
 		# Check for Beets
-		if __findModule('beets', 'util'):
-			logging.debug('Beets.util module found')
+		__findModule('beets', 'util')
 	# Check audiobook requirements
 	if settings['Audiobooks']['enabled']:
 		# Check for Google API
-		if __findModule('apiclient', 'discovery'):
-			logging.debug('Apiclient.discovery module found')
+		__findModule('apiclient', 'discovery')
 		# Is chaptering enabled
-		if settings['Audiobooks']['makechapters']:
+		if settings['Audiobooks']['make_chapters']:
 			# Check for Mutagen
-			if __findModule('mutagen', 'mp3') and __findModule('mutagen', 'ogg'):
-				logging.debug('Mutagen modules found')
+			__findModule('mutagen', 'mp3')
+			__findModule('mutagen', 'ogg')
 			# Check fo ABC
-			if os.path.isfile('/usr/bin/abc.php'):
-				logging.debug('ABC applciation found')
+			if not os.path.isfile('/usr/bin/abc.php'):
+				raise ImportError('ABC applciation not found')
 	return
 
 
@@ -125,8 +122,8 @@ def getConfig(configFile):
 	# Make bools
 	settings['General']['deluge'] = Config.getboolean('General', 'deluge')
 	settings['General']['logging'] = Config.getboolean('General', 'logging')
-	settings['General']['keepfiles'] = Config.getboolean('General', 'keepFiles')
-	settings['Audiobooks']['makechapters'] = Config.getboolean('Audiobooks', 'makeChapters')
+	settings['General']['keep_files'] = Config.getboolean('General', 'keep_files')
+	settings['Audiobooks']['make_chapters'] = Config.getboolean('Audiobooks', 'make_chapters')
 	# Check that appropriate modules are installed
 	__checkModules(settings)
 	# Return setting hash

@@ -22,31 +22,12 @@ __author__ = 'Erin Morelli <erin@erinmorelli.com>'
 
 import sys, re, os
 import shutil, logging, getopt
+import config
 
 from os import path, listdir, makedirs
-from twisted.internet import reactor
-from deluge.ui.client import client
-
-import media.tv, media.movies, media.music, media.audiobooks
-import notify.email, notify.pushover
-import extras.extract, config
 
 
-# ======== SET GLOBAL HANDLER OPTIONS ======== #
-
-handler = {
-	'rmFiles': False,
-	'logging': {
-		'file': 'logs/handler.log', # Path to debugging log
-		'level': logging.DEBUG, # default: error (debug, info, warning, error, critical)
-	}, 
-	'deluge': {
-		'host': '127.0.0.1',
-		'port': 58846,
-		'username': 'deluge',
-		'password': 'deluge'
-	},
-}
+# ======== SET GLOBAL OPTIONS ======== #
 
 typesList = ['TV', 'Television', 'Movies', 'Music', 'Books', 'Audiobooks']
 
@@ -76,74 +57,70 @@ Media types:
 	sys.exit(int(code))
 
 
-# ======== NOTIFY ======== #
+# ======== MOVE VIDEO FILES ======== #
 
-def Success(msg):
-	logging.info("Notifying successful")
-	n = notify.Notification(msg)
-	n.notifySuccess()
-	return
-
-def Failure(msg):
-	logging.error(msg)
-	logging.info("Notifying failure")
-	n = notify.Notification(msg)
-	n.notifyFailure()
-	return
-
-# ======== MOVE ANY FILE ======== #
-
-def move_file(src):
+def __addVideo(src):
 	logging.info("Moving file(s)")
 	# Set metadata options
 	metadata = {
-		"TV" : get_episode_info,
-		"Movies" : get_movie_info,
+		"TV" : __addEpisode,
+		"Television" : __addEpisode,
+		"Movies" : __addMovie,
 	}
 	# Get paths
-	fileinfo = metadata[ttype](src) 
+	fileInfo = metadata[ttype](src) 
 	# Check for errors
-	if fileinfo == None:
+	if fileInfo == None:
 		return None
 	# Extract info
-	(new_name, dst) = fileinfo
-	logging.debug("Name: %s", new_name)
+	(newName, dst) = fileInfo
+	logging.debug("Name: %s", newName)
 	logging.debug("DST: %s", dst)
 	# Check that new file exists
 	if not path.isfile(dst):
-		Failure("File failed to move %s" % dst)
+		#Failure("File failed to move %s" % dst)
 		return None
-	# Return destination path
-	return dst, new_name
+	# Return new file name
+	return newName
 
 
 # ======== TELEVISION ======== #
 
 # GET EPISODE INFO
-def get_episode_info(raw):
+def __addEpisode(raw):
 	logging.info("Getting TV episode information")
+	# Check that TV is enabled
+	if not settings['TV']['enabled']:
+		logging.warning("TV type is not enabled")
+		raise Warning("TV type is not enabled")
+	# Import TV module
+	import media.tv as TV
 	# Send info to handler
-	r = naming.Rename(raw)
-	epInfo = r.episodeHandler()
+	e = TV.Episode(settings['TV'])
+	epInfo = e.getEpisode(raw)
 	if epInfo == None:
-		Failure("Unable to match episode: %s" % raw)
+		#Failure("Unable to match episode: %s" % raw)
 		return None
 	# Extract info
-	(ep_title, new_file) = epInfo
+	(epTitle, newFile) = epInfo
 	# return folder and file paths
-	return ep_title, new_file
+	return epTitle, newFile
 
 
 # ======== MOVIES ======== #
 
 # GET MOVIE INFO
-def get_movie_info(raw):
+def __addMovie(raw):
 	logging.info("Getting movie information")
+	# Check that Movies are enabled
+	if not settings['Movies']['enabled']:
+		logging.warning("Movies type is not enabled")
+		raise Warning("Movies type is not enabled")
 	# Send info to handler
 	r = naming.Rename(raw)
 	movInfo = r.movieHandler()
 	if movInfo == None:
-		Failure("Unable to match movie: %s" % raw)
+		#Failure("Unable to match movie: %s" % raw)
 		return None
 	# Extract info
 	(mov_title, new_file) = movInfo
@@ -154,12 +131,12 @@ def get_movie_info(raw):
 # ======== MUSIC ======== #
 
 # ADD MUSIC TO COLLETION
-def add_music(raw, isSingle=False):
+def __addMusic(raw, isSingle=False):
 	logging.info("Getting music information")
 	r = naming.Rename(raw)
 	(err, musicInfo) = r.musicHandler(isSingle)
 	if err:
-		Failure("Unable to match music: %s\n%s" % (raw, musicInfo))
+		#Failure("Unable to match music: %s\n%s" % (raw, musicInfo))
 		return None
 	# return album info
 	return musicInfo
@@ -168,12 +145,19 @@ def add_music(raw, isSingle=False):
 # ======== AUDIOBOOKS ======== #
 
 # GET BOOK INFO
-def add_book(raw):
+def __addBook(raw):
 	logging.info("Getting audiobook information")
-	b = audiobooks.Book()
+	# Check that Movies are enabled
+	if not settings['Audiobooks']['enabled']:
+		logging.warning("Audiobooks type is not enabled")
+		raise Warning("Audiobooks type is not enabled")
+	# Import audiobooks module
+	import media.audiobooks as Audiobooks
+	# Send to handler
+	b = Audiobooks.Book(settings['Audiobooks'])
 	bookInfo = b.getBook(raw)
 	if bookInfo == None:
-		Failure("Unable to match book: %s\n%s" % raw, bookInfo)
+		#Failure("Unable to match book: %s\n%s" % raw, bookInfo)
 		return None
 	# return book info
 	return bookInfo
@@ -181,7 +165,7 @@ def add_book(raw):
 
 # ======== EXTRACTION FUNCTION ======== #
 
-def extract_files(raw):
+def __extractFiles(raw):
 	logging.info("Extracting files from compressed file")
 	# Send info to handler
 	e = naming.Extract(file)
@@ -197,11 +181,11 @@ def extract_files(raw):
 
 def __fileHandler(files):
 	logging.info("Starting files handler")
-	added_files = []
+	addedFiles = []
 	# Process books first
-	if ttype == "Books":
-		added_file = add_book(files)
-		added_files.append(added_file)
+	if args['type'] == "Books" or args['type'] == "Audiobooks":
+		addedFile = __addBook(files)
+		addedFiles.append(addedFile)
 	# Then check for folders/files
 	elif path.isfile(files):
 		# Single file, treat differently
@@ -210,108 +194,58 @@ def __fileHandler(files):
 		if re.search(r".(zip|rar|7z)$", files, re.I):
 			logging.debug("Zipped file type detected")
 			# Send to extractor
-			get_files = extract_files(src)
+			getFiles = __extractFiles(src)
 			# Check for failure
-			if get_files == None:
+			if getFiles == None:
 				return None
 			# Rescan files
-			file_handler(get_files)
+			__fileHandler(getFiles)
 		# otherwise treat like other files
-		if ttype == "Music":
-			added_file = add_music(files, True)
-			added_files.append(added_file)
+		if args['type'] == "Music":
+			addedFile = __addMusic(files, True)
+			addedFiles.append(addedFile)
 		else: 
 			# Set single file as source
 			src = files
 			# Move file
-			moveinfo = move_file(src)
+			videoInfo = __addVideo(src)
 			# Check for problems 
-			if moveinfo == None:
+			if videoInfo == None:
 				return
-			(dst, added_file) = moveinfo
-			added_files.append(added_file)
+			addedFile = videoInfo
+			addedFiles.append(addedFile)
 	else:
 		# Otherwise process as folder
 		logging.debug("Proecessing as a folder")
-		if ttype == "Music":
-			added_file = add_music(files)
-			added_files.append(added_file)
+		if args['type'] == "Music":
+			addedFile = __addMusic(files)
+			addedFiles.append(addedFile)
 		else: 
 			# Get a list of files
-			file_list = listdir(files)
+			fileList = listdir(files)
 			# Locate video file in folder
-			for f in file_list:
+			for f in fileList:
 				# Look for file types we want
 				if re.search(r"\.(mkv|avi|m4v|mp4)$", f, re.I):
 					# Set info
-					filename = f
-					src = files+'/'+filename
+					fileName = f
+					src = files+'/'+fileName
 					# Move file
-					moveinfo = move_file(src)
+					videoInfo = __addVideo(src)
 					# Check for problems 
-					if moveinfo == None:
+					if videoInfo == None:
 						return
-					(dst, added_file) = moveinfo
-					added_files.append(added_file)
+					addedFile = videoInfo
+					addedFiles.append(addedFile)
 	# Remove old files
-	if handler['rmFiles']:
+	if not settings['General']['keep_files']:
 		if path.exists(files):
 			logging.debug("Removing extra files")
 			shutil.rmtree(files)
 	# Send notification
-	Success(added_files)
+	#Success(added_files)
 	# Finish
-	return added_files
-
-
-# ======== REMOVE TORRENT ======== #
-
-def __removeTorrent():
-	logging.info("Removing torrent from Deluge")
-	# Connect to Deluge daemon
-	d = client.connect(
-		host = handler['deluge']['host'],
-		port = handler['deluge']['port'],
-		username = handler['deluge']['username'],
-		password = handler['deluge']['password']
-	)
-	# We create a callback function to be called upon a successful connection
-	def on_connect_success(result):
-		logging.debug("Connection was successful!")
-		def on_remove_torrent(success):
-			if success:
-				logging.debug("Remove successful: %s", tname)
-			else:
-				logging.warning("Remove unsuccessful: %s", tname)
-			# Disconnect from the daemon & exit
-			client.disconnect()
-			reactor.stop()
-		def on_get_session_state(torrents):
-			found = False
-			# Look for completed torrent in list
-			for t in torrents:
-				if t == thash:
-					# Set as found and call remove function
-					logging.debug("Torrent found: %s", tname)
-					found = True
-					client.core.remove_torrent(thash, False).addCallback(on_remove_torrent)
-					break
-			if not found:
-				logging.warning("Torrent not found: %s", tname)
-				# Disconnect from the daemon & exit
-				client.disconnect()
-				reactor.stop()
-		# Get list of current torrent hashes
-		client.core.get_session_state().addCallback(on_get_session_state)
-	# We add the callback to the Deferred object we got from connect()
-	d.addCallback(on_connect_success)
-	# We create another callback function to be called when an error is encountered
-	def on_connect_fail(result):
-		logging.error("Connection failed: %s", result)
-	# We add the callback (in this case it's an errback, for error)
-	d.addErrback(on_connect_fail)
-	# Run the twisted main loop to make everything go
-	reactor.run()
+	return addedFiles
 
 
 # ======== GET ARGUMENTS ======== #
@@ -333,7 +267,7 @@ def __getArguments():
 	if len(args) == 3:
 		# Treat like deluge
 		useDeluge = True
-		args = {
+		newArgs = {
 			'hash' : args[0],
 			'name' : args[1],
 			'path' : args[2]
@@ -342,22 +276,22 @@ def __getArguments():
 		__showUsage(2)
 	# Check for CLI
 	if len(optlist) > 0:
-		args = {}
+		newArgs = {}
 		f = False
 		for o,a in optlist:
 			if o == '-f':
 				f = True
-				args['media'] = a 
+				newArgs['media'] = a 
 			if o == '-c':
-				args['config'] = a 
+				newArgs['config'] = a 
 			if o == '-t':
 				if a not in typesList:
 					raise Warning('Media type %s not recognized' % a)
-				args['type'] = a
+				newArgs['type'] = a
 		if not f:
 			print 'option -f not specified'
 			__showUsage(2)
-	return useDeluge, args
+	return useDeluge, newArgs
 
 
 # ======== HANDLE CLI MEDIA ======== #
@@ -379,8 +313,6 @@ def __handleMedia():
 	else:
 		# Notify about failure
 		raise Warning("No type or name specified for media")
-	print args
-	return
 	# Check that file was downloaded
 	if path.exists(args['media']):
 		# Send to handler
@@ -397,20 +329,24 @@ def __handleDeluge():
 	logging.info("Processing from deluge")
 	logging.debug("Inputs: %s", args)
 	# Extract media type from path
-	findType = re.search(r"^\/([a-z]+)$", args['path'], re.I)
-	if findType and findType.group(1):
-		args['type'] = findType.group(1)
+	findType = re.search(r"^(.*)?\/(.*)$", args['path'], re.I)
+	if findType:
+		args['type'] = findType.group(2)
 		logging.debug("Type detected: %s", args['type'])
 	else:
-		# Remove torrent
-		__removeTorrent()
+		if settings['General']['deluge']:
+			# Remove torrent
+			import extras.torrent
+			extras.torrent.removeTorrent(settings['General'], args['hash'])
 		# Notify about failure
 		raise Warning("No type specified for download: %s" % args['name'])
 	# Check that file was downloaded
 	filePath = args['path']+"/"+args['name']
 	if path.exists(filePath):
-		# Remove torrent
-		__removeTorrent()
+		if settings['General']['deluge']:
+			# Remove torrent
+			import extras.torrent
+			extras.torrent.removeTorrent(settings['General'], args['hash'])
 		# Send to handler
 		newFiles = __fileHandler(filePath)
 	else:
@@ -422,7 +358,6 @@ def __handleDeluge():
 # ======== MAIN FUNCTION WRAPPER ======== #
 
 def main():
-	logging.info("Starting main function")
 	# Get arguments
 	global args
 	(useDeluge, args) = __getArguments()
@@ -443,14 +378,24 @@ def main():
 	settings = config.getConfig(__configPath)
 	# If deluge, start processor
 	if useDeluge:
-		__handleDeluge()
+		newFiles = __handleDeluge()
 	# Start main function
 	else: 
-		__handleMedia()
-	return
+		newFiles = __handleMedia()
+	# Notify
+	#__sendNotifications(newFiles)
+	# Exit
+	return newFiles
 
 
 # ======== COMMAND LINE ======== #
 
 if __name__=='__main__':
-	main()
+	addedFiles = main()
+	if len(addedFiles) > 0:
+		print "\nMedia successfully added!\n"
+		for a in addedFiles:
+			print "\t%s" % str(a)
+		print "\n"
+	else:
+		raise Warning("No media added")
