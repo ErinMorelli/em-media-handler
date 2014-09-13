@@ -23,17 +23,20 @@ import re, logging
 
 # ======== CLASS DECLARTION ======== #
 
-class Rename:
-	def __init__(self, filepath):
+class newMusic:
+
+	def __init__(self, settings):
 		logging.info("Initializing renaming class")
-		# The File
-		self.file = filepath
 		# Beet Options
 		self.beet = "/usr/local/bin/beet"
-		self.beetslog = "beetslog.log"
+		self.beetslog = '%s/logs/beets.log' % os.path.expanduser("~")
+		# Chec for custom path in settings
+		if 'log_file' in settings.keys():
+			self.beetslog = settings['log_file']
+			logging.debug("Using custom beets log: %s" % self.beetslog)
 
 
-	def musicHandler(self, isSingle=False):
+	def addMusic(self, filePath, isSingle=False):
 		logging.info("Starting music information handler")
 		# Set Variables
 		if isSingle:
@@ -46,7 +49,7 @@ class Rename:
 			mQuery = "(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n\((Similarity\: .*%)\)"
 		# Set up query
 		mCMD = [self.beet,
-			"import", self.file,
+			"import", filePath,
 			mTags, self.beetslog,
 		]
 		logging.debug("Query: %s", mCMD)
@@ -58,7 +61,7 @@ class Rename:
 		logging.debug("Query return errors: %s", err)
 		# Process output
 		if err != '':
-			return True, err
+			return None
 		# Extract Info 
 		musicFind = re.compile(mQuery)
 		logging.debug("Search query: %s", mQuery)
@@ -68,4 +71,4 @@ class Rename:
 		logging.info("MusicBrainz URL: %s" % musicData.group(3))
 		logging.info(musicData.group(4))
 		# Return music data
-		return False, musicInfo
+		return musicInfo

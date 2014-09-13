@@ -38,7 +38,7 @@ def __findModule(parentMod, subMod):
 
 def __initLogging(settings):
 	# Set defaults
-	logFile = '~/log/mediaHandler.log'
+	logFile = '%s/logs/mediaHandler.log' % os.path.expanduser("~")
 	logLevel = 40
 	# Look for exceptions
 	if settings['General']['log_file'] != None:

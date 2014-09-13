@@ -26,15 +26,20 @@ from subprocess import Popen, PIPE
 
 # ======== MEDIA MODULE SHARED FUNCTIONS ======== #
 
-def __getInfo(self, mFormat, mDB):
-		logging.info("Getting episode information")
+def getInfo(mFormat, mDB, filePath):
+		logging.info("Getting video media information")
+		# Filebot Options
+		__filebot = "/usr/bin/filebot"
+		__action = "COPY"
+		__strict = "-non-strict"
+		__analytics = "-no-analytics"
 		# Set up query
-		mCMD = [self.filebot, 
-			"-rename", self.file, 
+		mCMD = [__filebot, 
+			"-rename", filePath, 
 			"--db", mDB, 
 			"--format", mFormat,
-			"--action", self.action.lower(),
-			self.strict, self.analytics
+			"--action", __action.lower(),
+			__strict, __analytics
 		]
 		logging.debug("Query: %s", mCMD)
 		# Process query
@@ -44,7 +49,7 @@ def __getInfo(self, mFormat, mDB):
 		logging.debug("Query output: %s", output)
 		logging.debug("Query return errors: %s", err)
 		# Process output
-		query = "\[%s\] Rename \[.*\] to \[(.*)\]" % self.action
+		query = "\[%s\] Rename \[.*\] to \[(.*)\]" % __action
 		fileInfo = re.search(query, output)
 		if fileInfo == None:
 			return None

@@ -17,7 +17,7 @@
 
 # ======== IMPORT MODULES ======== #
 
-import re, os, logging
+import re, os, logging, media
 
 
 # ======== CLASS DECLARTION ======== #
@@ -26,11 +26,6 @@ class Episode:
 
 	def __init__(self, settings):
 		logging.info("Initializing episode renaming class")
-		# Filebot Options
-		self.filebot = "/usr/bin/filebot"
-		self.action = "COPY"
-		self.strict = "-non-strict"
-		self.analytics = "-no-analytics"
 		# Default TV path
 		self.tvPath = '%s/Media/Television' % os.path.expanduser("~")
 		# Check for custom path in settings
@@ -40,13 +35,13 @@ class Episode:
 				logging.debug("Using custom path: %s" % self.tvPath)
 
 
-	def getEpisode(self):
+	def getEpisode(self, filePath):
 		logging.info("Starting episode information handler")
 		# Set Variables
 		tvFormat = "%s/{n}/Season {s}/{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}" % self.tvPath
 		tvDB = "thetvdb"
 		# Get info
-		newFile = __getInfo(tvFormat, tvDB)
+		newFile = media.getInfo(tvFormat, tvDB, filePath)
 		logging.debug("New file: %s", newFile)
 		# Check for failure
 		if newFile == None:

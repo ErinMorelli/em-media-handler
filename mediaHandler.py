@@ -68,7 +68,7 @@ def __addVideo(src):
 		"Movies" : __addMovie,
 	}
 	# Get paths
-	fileInfo = metadata[ttype](src) 
+	fileInfo = metadata[args['type']](src) 
 	# Check for errors
 	if fileInfo == None:
 		return None
@@ -116,16 +116,18 @@ def __addMovie(raw):
 	if not settings['Movies']['enabled']:
 		logging.warning("Movies type is not enabled")
 		raise Warning("Movies type is not enabled")
+	# Import movie module
+	import media.movies as Movies
 	# Send info to handler
-	r = naming.Rename(raw)
-	movInfo = r.movieHandler()
+	m = Movies.Movie(settings['Movies'])
+	movInfo = m.getMovie(raw)
 	if movInfo == None:
 		#Failure("Unable to match movie: %s" % raw)
 		return None
 	# Extract info
-	(mov_title, new_file) = movInfo
+	(movTitle, newFile) = movInfo
 	# return folder and file paths
-	return mov_title, new_file
+	return movTitle, newFile
 
 
 # ======== MUSIC ======== #
@@ -133,9 +135,16 @@ def __addMovie(raw):
 # ADD MUSIC TO COLLETION
 def __addMusic(raw, isSingle=False):
 	logging.info("Getting music information")
-	r = naming.Rename(raw)
-	(err, musicInfo) = r.musicHandler(isSingle)
-	if err:
+	# Check that Movies are enabled
+	if not settings['Movies']['enabled']:
+		logging.warning("Movies type is not enabled")
+		raise Warning("Movies type is not enabled")
+	# Import music module
+	import media.music as Music
+	# Send info to handler
+	m = Music.newMusic(settings['Music'])
+	musicInfo = m.addMusic(raw, isSingle)
+	if musicInfo == None:
 		#Failure("Unable to match music: %s\n%s" % (raw, musicInfo))
 		return None
 	# return album info
@@ -171,7 +180,7 @@ def __extractFiles(raw):
 	e = naming.Extract(file)
 	extracted = e.fileHandler()
 	if extracted == None:
-		Failure("Unable to extract files: %s" % raw)
+		#Failure("Unable to extract files: %s" % raw)
 		return None
 	# Send files back to handler
 	return extracted
@@ -298,7 +307,7 @@ def __getArguments():
 
 def __handleMedia():
 	logging.info("Processing from command line")
-	logging.debug("Inputs: %s, %s, %s", args)
+	logging.debug("Inputs: %s", args)
 	# Extract info from path
 	parsePath = re.search(r"^((.*)?\/(.*))\/(.*)$", args['media'], re.I)
 	if parsePath:
@@ -362,8 +371,7 @@ def main():
 	global args
 	(useDeluge, args) = __getArguments()
 	# Set paths
-	__userHome = path.expanduser("~")
-	__configPath = '%s/.config/mediaHandler/mediaHandler.conf' % __userHome
+	__configPath = '%s/.config/mediaHandler/mediaHandler.conf' % path.expanduser("~")
 	# Check for user-specified config
 	if 'config' in args.keys():
 		__configPath = args['config']
