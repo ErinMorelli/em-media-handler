@@ -23,6 +23,7 @@ __author__ = 'Erin Morelli <erin@erinmorelli.com>'
 import sys, re, os
 import shutil, logging, getopt
 import config
+import extras.notify as Notify
 
 from os import path, listdir, makedirs
 
@@ -78,8 +79,7 @@ def __addVideo(src):
 	logging.debug("DST: %s", dst)
 	# Check that new file exists
 	if not path.isfile(dst):
-		#Failure("File failed to move %s" % dst)
-		return None
+		Push.Failure("File failed to move %s" % dst)
 	# Return new file name
 	return newName
 
@@ -91,16 +91,14 @@ def __addEpisode(raw):
 	logging.info("Getting TV episode information")
 	# Check that TV is enabled
 	if not settings['TV']['enabled']:
-		logging.warning("TV type is not enabled")
-		raise Warning("TV type is not enabled")
+		Push.Failure("TV type is not enabled")
 	# Import TV module
 	import media.tv as TV
 	# Send info to handler
 	e = TV.Episode(settings['TV'])
 	epInfo = e.getEpisode(raw)
 	if epInfo == None:
-		#Failure("Unable to match episode: %s" % raw)
-		return None
+		Push.Failure("Unable to match episode: %s" % raw)
 	# Extract info
 	(epTitle, newFile) = epInfo
 	# return folder and file paths
@@ -114,16 +112,14 @@ def __addMovie(raw):
 	logging.info("Getting movie information")
 	# Check that Movies are enabled
 	if not settings['Movies']['enabled']:
-		logging.warning("Movies type is not enabled")
-		raise Warning("Movies type is not enabled")
+		Push.Failure("Movies type is not enabled")
 	# Import movie module
 	import media.movies as Movies
 	# Send info to handler
 	m = Movies.Movie(settings['Movies'])
 	movInfo = m.getMovie(raw)
 	if movInfo == None:
-		#Failure("Unable to match movie: %s" % raw)
-		return None
+		Push.Failure("Unable to match movie: %s" % raw)
 	# Extract info
 	(movTitle, newFile) = movInfo
 	# return folder and file paths
@@ -137,16 +133,14 @@ def __addMusic(raw, isSingle=False):
 	logging.info("Getting music information")
 	# Check that Movies are enabled
 	if not settings['Movies']['enabled']:
-		logging.warning("Movies type is not enabled")
-		raise Warning("Movies type is not enabled")
+		Push.Failure("Movies type is not enabled")
 	# Import music module
 	import media.music as Music
 	# Send info to handler
 	m = Music.newMusic(settings['Music'])
 	musicInfo = m.addMusic(raw, isSingle)
 	if musicInfo == None:
-		#Failure("Unable to match music: %s\n%s" % (raw, musicInfo))
-		return None
+		Push.Failure("Unable to match music: %s\n%s" % (raw, musicInfo))
 	# return album info
 	return musicInfo
 
@@ -166,7 +160,7 @@ def __addBook(raw):
 	b = Audiobooks.Book(settings['Audiobooks'])
 	bookInfo = b.getBook(raw)
 	if bookInfo == None:
-		#Failure("Unable to match book: %s\n%s" % raw, bookInfo)
+		Push.Failure("Unable to match book: %s\n%s" % raw, bookInfo)
 		return None
 	# return book info
 	return bookInfo
@@ -176,11 +170,12 @@ def __addBook(raw):
 
 def __extractFiles(raw):
 	logging.info("Extracting files from compressed file")
-	# Send info to handler
-	e = naming.Extract(file)
-	extracted = e.fileHandler()
+	# Import extract module
+	import extras.extract as Extract
+	# Send to handler
+	extracted = Extract.getFiles(raw)
 	if extracted == None:
-		#Failure("Unable to extract files: %s" % raw)
+		Push.Failure("Unable to extract files: %s" % raw)
 		return None
 	# Send files back to handler
 	return extracted
@@ -203,12 +198,13 @@ def __fileHandler(files):
 		if re.search(r".(zip|rar|7z)$", files, re.I):
 			logging.debug("Zipped file type detected")
 			# Send to extractor
-			getFiles = __extractFiles(src)
-			# Check for failure
-			if getFiles == None:
-				return None
-			# Rescan files
-			__fileHandler(getFiles)
+			if settings['TV']['enabled'] or settings['Movies']['enabled']:
+				getFiles = __extractFiles(src)
+				# Check for failure
+				if getFiles == None:
+					return None
+				# Rescan files
+				__fileHandler(getFiles)
 		# otherwise treat like other files
 		if args['type'] == "Music":
 			addedFile = __addMusic(files, True)
@@ -251,8 +247,8 @@ def __fileHandler(files):
 		if path.exists(files):
 			logging.debug("Removing extra files")
 			shutil.rmtree(files)
-	# Send notification
-	#Success(added_files)
+	# Send success notification
+	Push.Success(addedFiles)
 	# Finish
 	return addedFiles
 
@@ -317,18 +313,18 @@ def __handleMedia():
 		if 'type' not in args.keys():
 			args['type'] = parsePath.group(3)
 			if args['type'] not in typesList:
-					raise Warning('Media type %s not recognized' % args['type'])
+					Push.Failure('Media type %s not recognized' % args['type'])
 		logging.debug("Detected: %s", args)
 	else:
 		# Notify about failure
-		raise Warning("No type or name specified for media")
+		Push.Failure"No type or name specified for media")
 	# Check that file was downloaded
 	if path.exists(args['media']):
 		# Send to handler
 		newFiles = __fileHandler(args['media'])
 	else:
 		# There was a problem, no files found
-		raise Warning("No media files found")
+		Push.Failure("No media files found")
 	return newFiles
 
 
@@ -348,7 +344,7 @@ def __handleDeluge():
 			import extras.torrent
 			extras.torrent.removeTorrent(settings['General'], args['hash'])
 		# Notify about failure
-		raise Warning("No type specified for download: %s" % args['name'])
+		Push.Failure("No type specified for download: %s" % args['name'])
 	# Check that file was downloaded
 	filePath = args['path']+"/"+args['name']
 	if path.exists(filePath):
@@ -360,7 +356,7 @@ def __handleDeluge():
 		newFiles = __fileHandler(filePath)
 	else:
 		# There was a problem, no files found
-		raise Warning("No downloaded files found: %s" % args['name'])
+		Push.Failure("No downloaded files found: %s" % args['name'])
 	return newFiles
 
 
@@ -384,14 +380,15 @@ def main():
 	# Get settings from config
 	global settings
 	settings = config.getConfig(__configPath)
+	# Set up notify instance
+	global Push
+	Push = Notify.Push(settings['Pushover'])
 	# If deluge, start processor
 	if useDeluge:
 		newFiles = __handleDeluge()
 	# Start main function
 	else: 
 		newFiles = __handleMedia()
-	# Notify
-	#__sendNotifications(newFiles)
 	# Exit
 	return newFiles
 

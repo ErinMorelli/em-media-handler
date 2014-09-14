@@ -21,34 +21,29 @@ from subprocess import Popen, PIPE
 import re, logging
 
 
-# ======== CLASS DECLARTION ======== #
+# ======== GET FILES ======== #
 
-class Extract:
-	def __init__(self, filename):
-		logging.info("Initializing extraction class")
-		self.file = filename
-		self.filebot = "/usr/bin/filebot"
-
-
-	def fileHandler(self):
-		logging.info("Getting files from compressed folder")
-		# Set up query
-		mCMD = [self.filebot, 
-			"-extract", self.file
-		]
-		logging.debug("Query: %s", mCMD)
-		# Process query
-		p = Popen(mCMD, stdout=PIPE)
-		# Get output
-		(output, err) = p.communicate()
-		logging.debug("Query output: %s", output)
-		logging.debug("Query return errors: %s", err)
-		# Process output
-		fileinfo = re.search(r"Extracting files \[(.*)\]\n", output)
-		if fileinfo == None:
-			return None
-		extracted = fileinfo.group(1)
-		# Break into array
-		new_files = extracted.split(", ")
-		# Return array of extracted files
-		return new_files
+def getFiles(fileName):
+	logging.info("Getting files from compressed folder")
+	# Filebot path
+	__filebot = "/usr/bin/filebot"
+	# Set up query
+	mCMD = [__filebot, 
+		"-extract", fileName
+	]
+	logging.debug("Query: %s", mCMD)
+	# Process query
+	p = Popen(mCMD, stdout=PIPE)
+	# Get output
+	(output, err) = p.communicate()
+	logging.debug("Query output: %s", output)
+	logging.debug("Query return errors: %s", err)
+	# Process output
+	fileInfo = re.search(r"Extracting files \[(.*)\]\n", output)
+	if fileInfo == None:
+		return None
+	extracted = fileInfo.group(1)
+	# Break into array
+	newFiles = extracted.split(", ")
+	# Return array of extracted files
+	return newFiles
