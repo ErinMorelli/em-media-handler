@@ -17,8 +17,6 @@
 
 # ======== IMPORT MODULES ======== #
 
-from smtplib import SMTP
-import datetime, base64
 import httplib, urllib, logging
 
 
@@ -53,6 +51,8 @@ class Push:
 			connUrl, 
 			{ "Content-type": "application/x-www-form-urlencoded" }
 		)
+		# Get API response
+		connResp = conn.getresponse()
 		# Check for response success	
 		if connResp != 200:
 			logging.error("API Response: %s %s", connResp.status, connResp.reason)
@@ -76,7 +76,7 @@ class Push:
 		# If push notifications enabled
 		if settings['enabled']:
 			# Send message
-			__sendMessage(connText)
+			self.__sendMessage(connText)
 
 
 	# ======== SET ERROR INFO & EXIT ======== #
@@ -86,13 +86,13 @@ class Push:
 		# Send push notification
 		logging.debug("Before push notification send")
 		# Set error message
-		conn_text = '''There was an error reported:
+		connText = '''There was an error reported:
 %s
 		''' % errorDetails
 		# If push notifications enabled
 		if settings['enabled']:
 			# Send message
-			__sendMessage(connText)
+			self.__sendMessage(connText)
 		# Raise python warning
 		logging.warning(errorDetails)
 		raise Warning(errorDetails)

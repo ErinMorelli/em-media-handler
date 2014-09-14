@@ -25,7 +25,7 @@ import shutil, logging, getopt
 import config
 import extras.notify as Notify
 
-from os import path, listdir, makedirs
+from os import path, listdir
 
 
 # ======== SET GLOBAL OPTIONS ======== #
@@ -291,7 +291,7 @@ def __getArguments():
 				newArgs['config'] = a 
 			if o == '-t':
 				if a not in typesList:
-					raise Warning('Media type %s not recognized' % a)
+					Push.Failure('Media type %s not recognized' % a)
 				newArgs['type'] = a
 		if not f:
 			print 'option -f not specified'
@@ -317,7 +317,7 @@ def __handleMedia():
 		logging.debug("Detected: %s", args)
 	else:
 		# Notify about failure
-		Push.Failure"No type or name specified for media")
+		Push.Failure("No type or name specified for media")
 	# Check that file was downloaded
 	if path.exists(args['media']):
 		# Send to handler

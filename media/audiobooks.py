@@ -17,12 +17,10 @@
 
 # ======== IMPORT MODULES ======== #
 
-import sys, re, pprint
 import urllib2, logging
-import shutil, time, os, math
+import re, shutil, math
 
 from subprocess import Popen, PIPE
-from unicodedata import normalize
 from os import path, listdir, makedirs
 from apiclient.discovery import build
 
@@ -39,7 +37,7 @@ class Book:
 	def __init__(self, settings):
 		logging.info("Starting audiobook handler class")
 		# Get blacklist path
-		__listPath = re.sub(r'media$', 'extras/', os.path.dirname(__file__))
+		__listPath = re.sub(r'media$', 'extras/', path.dirname(__file__))
 		# Set up handler info
 		self.handler = {
 			'blacklist': __listPath + 'blacklist.txt',
@@ -53,10 +51,10 @@ class Book:
 			},
 		}
 		# Default TV path
-		self.handler['path'] = '%s/Media/Audiobooks' % os.path.expanduser("~")
+		self.handler['path'] = '%s/Media/Audiobooks' % path.expanduser("~")
 		# Check for custom path in settings
 		if 'folder' in settings.keys():
-			if os.path.exists(settings['folder']):
+			if path.exists(settings['folder']):
 				self.handler['path'] = settings['folder']
 				logging.debug("Using custom path: %s" % self.handler['path'])
 		# Look for Google api key	
@@ -81,10 +79,10 @@ class Book:
 
 	# ======== CLEAN UP SEARCH STRING ======== #
 
-	def __cleanString(self, path):
+	def __cleanString(self, strPath):
 		logging.info("Cleaning up path string")
 		# Get query from folder path
-		findBook = re.search(r"^((.*)?\/(Books|Audiobooks)\/(.*))$", path)
+		findBook = re.search(r"^((.*)?\/(Books|Audiobooks)\/(.*))$", strPath)
 		string = findBook.group(4)
 		logging.debug("Initial string: %s" % string)
 		# Save original path for later
@@ -117,7 +115,7 @@ class Book:
 		# Set new image file path
 		imgPath = imgDir + "/cover.jpg"
 		# Check to see if file exists
-		if os.path.isfile(imgPath):
+		if path.isfile(imgPath):
 			logging.warning("Cover image already exists")
 			# If so, return none
 			return imgPath
@@ -177,8 +175,8 @@ class Book:
 		for i, chunk in enumerate(chunks):
 			# Create new folder for part
 			partPath = filePath + '/Part ' + str(i+1)
-			if not os.path.exists(partPath):
-				os.makedirs(partPath)
+			if not path.exists(partPath):
+				makedirs(partPath)
 			# Move files for part into new path
 			for j, c in enumerate(chunk):
 				startPath = filePath + '/' + c
@@ -198,7 +196,7 @@ class Book:
 		logging.info("Chapterizing audiobook files")
 		newFiles = []
 		# Get chapter parts
-		fileParts = self.__getChapters(filePath, fileArray, fileType)
+		fileParts = self.__getChapters(filePath, fileArray, args['fileType'])
 		# Set defaults
 		php = '/usr/bin/php'
 		abc = '/usr/bin/abc.php'
@@ -248,9 +246,8 @@ class Book:
 		isChapterized = False
 		toChapterize = []
 		bookFiles = []
-		fileType = ''
 		# loop through all the files in dir
-		fileList = os.listdir(fileDir)
+		fileList = listdir(fileDir)
 		for f in sorted(fileList):
 			# Look for file types we want
 			goodFile = re.search(self.handler['regex']['c'], f, re.I)
@@ -296,8 +293,8 @@ class Book:
 		bookDir = self.handler['path'] + '/' + bookInfo['author'] + '/' + folderTitle
 		logging.debug("New directory: %s" % bookDir)
 		# Create the folder
-		if not os.path.exists(bookDir):
-			os.makedirs(bookDir)
+		if not path.exists(bookDir):
+			makedirs(bookDir)
 		# Sort files in order
 		sortedArray = sorted(fileArray)
 		# Loop through files

@@ -17,8 +17,7 @@
 
 # ======== IMPORT MODULES ======== #
 
-from subprocess import Popen, PIPE
-import re, logging, media
+import re, os, logging, media
 
 
 # ======== CLASS DECLARTION ======== #
@@ -42,7 +41,7 @@ class Movie:
 		movFormat = "%s/{n} ({y})" % self.movPath
 		movDB = "themoviedb"
 		# Get info
-		new_file = media.getInfo(movFormat, movDB, filePath)
+		newFile = media.getInfo(movFormat, movDB, filePath)
 		logging.debug("New file: %s", newFile)
 		# Check for failure
 		if newFile == None:

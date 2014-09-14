@@ -18,7 +18,7 @@
 # ======== IMPORT MODULES ======== #
 
 from subprocess import Popen, PIPE
-import re, logging
+import re, os, logging
 
 
 # ======== CLASS DECLARTION ======== #
