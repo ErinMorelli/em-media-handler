@@ -20,39 +20,39 @@ __author__ = 'Erin Morelli <erin@erinmorelli.com>'
 
 # ======== IMPORT MODULES ======== #
 
-import logging, re
+import logging
+from re import search
 from subprocess import Popen, PIPE
 
 
 # ======== MEDIA MODULE SHARED FUNCTIONS ======== #
 
 def getInfo(mFormat, mDB, filePath):
-		logging.info("Getting video media information")
-		# Filebot Options
-		__filebot = "/usr/bin/filebot"
-		__action = "COPY"
-		__strict = "-non-strict"
-		__analytics = "-no-analytics"
-		# Set up query
-		mCMD = [__filebot, 
-			"-rename", filePath, 
-			"--db", mDB, 
-			"--format", mFormat,
-			"--action", __action.lower(),
-			__strict, __analytics
-		]
-		logging.debug("Query: %s", mCMD)
-		# Process query
-		p = Popen(mCMD, stdout=PIPE)
-		# Get output
-		(output, err) = p.communicate()
-		logging.debug("Query output: %s", output)
-		logging.debug("Query return errors: %s", err)
-		# Process output
-		query = "\[%s\] Rename \[.*\] to \[(.*)\]" % __action
-		fileInfo = re.search(query, output)
-		if fileInfo == None:
-			return None
-		newFile = fileInfo.group(1)
-		# Return new file
-		return newFile
+    logging.info("Getting video media information")
+    # Filebot Options
+    __filebot = "/usr/bin/filebot"
+    __action = "COPY"
+    __strict = "-non-strict"
+    __analytics = "-no-analytics"
+    # Set up query
+    mCMD = [__filebot,
+            "-rename", filePath,
+            "--db", mDB,
+            "--format", mFormat,
+            "--action", __action.lower(),
+            __strict, __analytics]
+    logging.debug("Query: %s", mCMD)
+    # Process query
+    p = Popen(mCMD, stdout=PIPE)
+    # Get output
+    (output, err) = p.communicate()
+    logging.debug("Query output: %s", output)
+    logging.debug("Query return errors: %s", err)
+    # Process output
+    query = r"\[%s\] Rename \[.*\] to \[(.*)\]" % __action
+    fileInfo = search(query, output)
+    if fileInfo is None:
+        return None
+    newFile = fileInfo.group(1)
+    # Return new file
+    return newFile

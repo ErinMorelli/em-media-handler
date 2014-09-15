@@ -17,82 +17,84 @@
 
 # ======== IMPORT MODULES ======== #
 
-import httplib, urllib, logging
+import logging
+from urllib import urlencode
+from httplib import HTTPSConnection
 
 
 # ======== PUSH CLASS DECLARTION ======== #
 
 class Push:
 
-	# ======== INIT NOTIFY CLASS ======== #
+    # ======== INIT NOTIFY CLASS ======== #
 
-	def __init__(self, settings):
-		logging.info("Initializing notification class")
+    def __init__(self, settings):
+        logging.info("Initializing notification class")
+        self.settings = settings
 
+    # ======== SEND MESSAGE VIA PUSHOVER ======== #
 
-	# ======== SEND MESSAGE VIA PUSHOVER ======== #
+    def __sendMessage(self, message):
+        logging.info("Sending push notification")
+        # Initialize connection with pushover
+        conn = HTTPSConnection("api.pushover.net:443")
+        # Encode request URL
+        connUrl = urlencode({
+            "token": self.settings['api_key'],
+            "user": self.settings['user_key'],
+            "title": "EM Media Handler",
+            "message": message,
+        })
+        logging.debug("API call: %s", connUrl)
+        # Send API request
+        conn.request(
+            "POST",
+            "/1/messages.json",
+            connUrl,
+            {"Content-type": "application/x-www-form-urlencoded"}
+        )
+        # Get API response
+        connResp = conn.getresponse()
+        # Check for response success
+        if connResp != 200:
+            logging.error("API Response: %s %s",
+                          connResp.status, connResp.reason)
+        else:
+            logging.info("API Response: %s %s",
+                         connResp.status, connResp.reason)
+        logging.debug("After push notification send")
 
-	def __sendMessage(self, message):
-		logging.info("Sending push notification")
-		# Initialize connection with pushover
-		conn = httplib.HTTPSConnection("api.pushover.net:443")
-		# Encode request URL
-		connUrl = urllib.urlencode({
-			"token": settings['api_key'],
-			"user": settings['user_key'],
-			"title": "EM Media Handler",
-			"message": message,
-		})
-		logging.debug("API call: %s", connUrl)
-		# Send API request
-		conn.request(
-			"POST", 
-			"/1/messages.json",
-			connUrl, 
-			{ "Content-type": "application/x-www-form-urlencoded" }
-		)
-		# Get API response
-		connResp = conn.getresponse()
-		# Check for response success	
-		if connResp != 200:
-			logging.error("API Response: %s %s", connResp.status, connResp.reason)
-		else:
-			logging.info("API Response: %s %s", connResp.status, connResp.reason)
-		logging.debug("After push notification send")
+    # ======== SET SUCCESS INFO ======== #
 
-
-	# ======== SET SUCCESS INFO ======== #
-
-	def Success(self, fileArray):
-		logging.info("Starting success notifications")
-		# Format file list
-		mediaList = '\n    '.join(fileArray)
-		# Send push notification
-		logging.debug("Before push notification send")
-		# Set success message
-		connText = '''Media was successfully added to your server:
+    def Success(self, fileArray):
+        logging.info("Starting success notifications")
+        # Format file list
+        mediaList = '\n    '.join(fileArray)
+        # Send push notification
+        logging.debug("Before push notification send")
+        # Set success message
+        connText = '''Media was successfully added to your server:
 %s
-		''' % mediaList
-		# If push notifications enabled
-		if settings['enabled']:
-			# Send message
-			self.__sendMessage(connText)
+        ''' % mediaList
+        # If push notifications enabled
+        if self.settings['enabled']:
+            # Send message
+            self.__sendMessage(connText)
 
+    # ======== SET ERROR INFO & EXIT ======== #
 
-	# ======== SET ERROR INFO & EXIT ======== #
-
-	def Failure(self, errorDetails):
-		logging.info("Starting failure notifications")
-		# Send push notification
-		logging.debug("Before push notification send")
-		# Set error message
-		connText = '''There was an error reported:
+    def Failure(self, errorDetails):
+        logging.info("Starting failure notifications")
+        # Send push notification
+        logging.debug("Before push notification send")
+        # Set error message
+        connText = '''There was an error reported:
 %s
-		''' % errorDetails
-		# If push notifications enabled
-		if settings['enabled']:
-			# Send message
-			self.__sendMessage(connText)
-		# Raise python warning
-		logging.warning(errorDetails)
-		raise Warning(errorDetails)
+        ''' % errorDetails
+        # If push notifications enabled
+        if self.settings['enabled']:
+            # Send message
+            self.__sendMessage(connText)
+        # Raise python warning
+        logging.warning(errorDetails)
+        raise Warning(errorDetails)

@@ -17,58 +17,61 @@
 
 # ======== IMPORT MODULES ======== #
 
+import re
+import logging
+from os import path
 from subprocess import Popen, PIPE
-import re, os, logging
 
 
 # ======== CLASS DECLARTION ======== #
 
 class newMusic:
 
-	def __init__(self, settings):
-		logging.info("Initializing renaming class")
-		# Beet Options
-		self.beet = "/usr/local/bin/beet"
-		self.beetslog = '%s/logs/beets.log' % os.path.expanduser("~")
-		# Chec for custom path in settings
-		if 'log_file' in settings.keys():
-			self.beetslog = settings['log_file']
-			logging.debug("Using custom beets log: %s" % self.beetslog)
+    # ======== INIT MUSIC CLASS ======== #
 
+    def __init__(self, settings):
+        logging.info("Initializing renaming class")
+        # Beet Options
+        self.beet = "/usr/local/bin/beet"
+        self.beetslog = '%s/logs/beets.log' % path.expanduser("~")
+        # Chec for custom path in settings
+        if 'log_file' in settings.keys():
+            self.beetslog = settings['log_file']
+            logging.debug("Using custom beets log: %s" % self.beetslog)
 
-	def addMusic(self, filePath, isSingle=False):
-		logging.info("Starting music information handler")
-		# Set Variables
-		if isSingle:
-			mType = "Song"
-			mTags = "-sql"
-			mQuery = "Tagging track\:\s(.*)\nURL\:\n\s{1,4}(.*)\n\((Similarity\: .*%)\)"
-		else:
-			mType = "Album"
-			mTags = "-ql"
-			mQuery = "(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n\((Similarity\: .*%)\)"
-		# Set up query
-		mCMD = [self.beet,
-			"import", filePath,
-			mTags, self.beetslog,
-		]
-		logging.debug("Query: %s", mCMD)
-		# Process query
-		p = Popen(mCMD, stdout=PIPE, stderr=PIPE)
-		# Get output
-		(output, err) = p.communicate()
-		logging.debug("Query output: %s", output)
-		logging.debug("Query return errors: %s", err)
-		# Process output
-		if err != '':
-			return None
-		# Extract Info 
-		musicFind = re.compile(mQuery)
-		logging.debug("Search query: %s", mQuery)
-		# Format data
-		musicData = musicFind.search(output)
-		musicInfo = "%s: %s" % (mType, musicData.group(2))
-		logging.info("MusicBrainz URL: %s" % musicData.group(3))
-		logging.info(musicData.group(4))
-		# Return music data
-		return musicInfo
+    # ======== ADD MUSIC ======== #
+
+    def addMusic(self, filePath, isSingle=False):
+        logging.info("Starting music information handler")
+        # Set Variables
+        if isSingle:
+            mType = "Song"
+            mTags = "-sql"
+            mQuery = "Tagging track\:\s(.*)\nURL\:\n\s{1,4}(.*)\n"
+        else:
+            mType = "Album"
+            mTags = "-ql"
+            mQuery = "(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n"
+        # Set up query
+        mCMD = [self.beet,
+                "import", filePath,
+                mTags, self.beetslog]
+        logging.debug("Query: %s", mCMD)
+        # Process query
+        p = Popen(mCMD, stdout=PIPE, stderr=PIPE)
+        # Get output
+        (output, err) = p.communicate()
+        logging.debug("Query output: %s", output)
+        logging.debug("Query return errors: %s", err)
+        # Process output
+        if err != '':
+            return None
+        # Extract Info
+        musicFind = re.compile(mQuery)
+        logging.debug("Search query: %s", mQuery)
+        # Format data
+        musicData = musicFind.search(output)
+        musicInfo = "%s: %s" % (mType, musicData.group(2))
+        logging.info("MusicBrainz URL: %s" % musicData.group(3))
+        # Return music data
+        return musicInfo

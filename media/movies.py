@@ -17,45 +17,50 @@
 
 # ======== IMPORT MODULES ======== #
 
-import re, os, logging, media
+import logging
+from os import path
+from media import getInfo
+from re import escape, search
 
 
 # ======== CLASS DECLARTION ======== #
 
 class Movie:
 
-	def __init__(self, settings):
-		logging.info("Initializing renaming class")
-		# Default TV path
-		self.movPath = '%s/Media/Movies' % os.path.expanduser("~")
-		# Check for custom path in settings
-		if 'folder' in settings.keys():
-			if os.path.exists(settings['folder']):
-				self.movPath = settings['folder']
-				logging.debug("Using custom path: %s" % self.tvPath)
+    # ======== INIT MOVIE CLASS ======== #
 
+    def __init__(self, settings):
+        logging.info("Initializing renaming class")
+        # Default TV path
+        self.movPath = '%s/Media/Movies' % path.expanduser("~")
+        # Check for custom path in settings
+        if 'folder' in settings.keys():
+            if path.exists(settings['folder']):
+                self.movPath = settings['folder']
+                logging.debug("Using custom path: %s" % self.tvPath)
 
-	def getMovie(self, filePath):
-		logging.info("Starting movie information handler")
-		# Set Variables
-		movFormat = "%s/{n} ({y})" % self.movPath
-		movDB = "themoviedb"
-		# Get info
-		newFile = media.getInfo(movFormat, movDB, filePath)
-		logging.debug("New file: %s", newFile)
-		# Check for failure
-		if newFile == None:
-			return None
-		# Set search query
-		ePath = re.escape(self.movPath)
-		movFind = "%s\/(.*\(\d{4}\))\.\w{3}" % ePath
-		logging.debug("Search query: %s", movFind)
-		# Extract info
-		movie = re.search(movFind, newFile)
-		if movie == None:
-			return None
-		# Set title
-		movTitle = movie.group(1)
-		# Return Movie Title
-		return movTitle, newFile
+    # ======== GET MOVIE ======== #
 
+    def getMovie(self, filePath):
+        logging.info("Starting movie information handler")
+        # Set Variables
+        movFormat = "%s/{n} ({y})" % self.movPath
+        movDB = "themoviedb"
+        # Get info
+        newFile = getInfo(movFormat, movDB, filePath)
+        logging.debug("New file: %s", newFile)
+        # Check for failure
+        if newFile is None:
+            return None
+        # Set search query
+        ePath = escape(self.movPath)
+        movFind = "%s\/(.*\(\d{4}\))\.\w{3}" % ePath
+        logging.debug("Search query: %s", movFind)
+        # Extract info
+        movie = search(movFind, newFile)
+        if movie is None:
+            return None
+        # Set title
+        movTitle = movie.group(1)
+        # Return Movie Title
+        return movTitle, newFile

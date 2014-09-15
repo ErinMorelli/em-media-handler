@@ -26,48 +26,55 @@ from deluge.ui.client import client
 # ======== REMOVE TORRENT ======== #
 
 def removeTorrent(settings, torrentHash):
-	logging.info("Removing torrent from Deluge")
-	# Connect to Deluge daemon
-	d = client.connect(
-		host = settings['deluge_host'],
-		port = int(settings['deluge_port']),
-		username = settings['deluge_user'],
-		password = settings['deluge_pass']
-	)
-	# We create a callback function to be called upon a successful connection
-	def on_connect_success(result):
-		logging.debug("Connection was successful!")
-		def on_remove_torrent(success):
-			if success:
-				logging.debug("Torrent remove successful")
-			else:
-				logging.warning("Torrent remove unsuccessful")
-			# Disconnect from the daemon & exit
-			client.disconnect()
-			reactor.stop()
-		def on_get_session_state(torrents):
-			found = False
-			# Look for completed torrent in list
-			for t in torrents:
-				if t == torrentHash:
-					# Set as found and call remove function
-					logging.debug("Torrent found")
-					found = True
-					client.core.remove_torrent(torrentHash, False).addCallback(on_remove_torrent)
-					break
-			if not found:
-				logging.warning("Torrent not found")
-				# Disconnect from the daemon & exit
-				client.disconnect()
-				reactor.stop()
-		# Get list of current torrent hashes
-		client.core.get_session_state().addCallback(on_get_session_state)
-	# We add the callback to the Deferred object we got from connect()
-	d.addCallback(on_connect_success)
-	# We create another callback function to be called when an error is encountered
-	def on_connect_fail(result):
-		logging.error("Connection failed: %s", result)
-	# We add the callback (in this case it's an errback, for error)
-	d.addErrback(on_connect_fail)
-	# Run the twisted main loop to make everything go
-	reactor.run()
+    logging.info("Removing torrent from Deluge")
+    # Connect to Deluge daemon
+    d = client.connect(
+        host=settings['deluge_host'],
+        port=int(settings['deluge_port']),
+        username=settings['deluge_user'],
+        password=settings['deluge_pass']
+    )
+
+    # We create a callback function to be called upon a successful connection
+    def on_connect_success(result):
+        logging.debug("Connection was successful!")
+
+        def on_remove_torrent(success):
+            if success:
+                logging.debug("Torrent remove successful")
+            else:
+                logging.warning("Torrent remove unsuccessful")
+            # Disconnect from the daemon & exit
+            client.disconnect()
+            reactor.stop()
+
+        def on_get_session_state(torrents):
+            found = False
+            # Look for completed torrent in list
+            for t in torrents:
+                if t == torrentHash:
+                    # Set as found and call remove function
+                    logging.debug("Torrent found")
+                    found = True
+                    client.core.remove_torrent(
+                        torrentHash,
+                        False).addCallback(
+                            on_remove_torrent)
+                    break
+            if not found:
+                logging.warning("Torrent not found")
+                # Disconnect from the daemon & exit
+                client.disconnect()
+                reactor.stop()
+        # Get list of current torrent hashes
+        client.core.get_session_state().addCallback(on_get_session_state)
+    # We add the callback to the Deferred object we got from connect()
+    d.addCallback(on_connect_success)
+
+    # To be called when an error is encountered
+    def on_connect_fail(result):
+        logging.error("Connection failed: %s", result)
+    # We add the callback (in this case it's an errback, for error)
+    d.addErrback(on_connect_fail)
+    # Run the twisted main loop to make everything go
+    reactor.run()

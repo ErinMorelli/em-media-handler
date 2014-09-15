@@ -14,36 +14,36 @@
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
 
-
 # ======== IMPORT MODULES ======== #
 
+import logging
+from re import search
 from subprocess import Popen, PIPE
-import re, logging
 
 
 # ======== GET FILES ======== #
 
 def getFiles(fileName):
-	logging.info("Getting files from compressed folder")
-	# Filebot path
-	__filebot = "/usr/bin/filebot"
-	# Set up query
-	mCMD = [__filebot, 
-		"-extract", fileName
-	]
-	logging.debug("Query: %s", mCMD)
-	# Process query
-	p = Popen(mCMD, stdout=PIPE)
-	# Get output
-	(output, err) = p.communicate()
-	logging.debug("Query output: %s", output)
-	logging.debug("Query return errors: %s", err)
-	# Process output
-	fileInfo = re.search(r"Extracting files \[(.*)\]\n", output)
-	if fileInfo == None:
-		return None
-	extracted = fileInfo.group(1)
-	# Break into array
-	newFiles = extracted.split(", ")
-	# Return array of extracted files
-	return newFiles
+    logging.info("Getting files from compressed folder")
+    # Filebot path
+    __filebot = "/usr/bin/filebot"
+    # Set up query
+    mCMD = [__filebot,
+            "-extract",
+            fileName]
+    logging.debug("Query: %s", mCMD)
+    # Process query
+    p = Popen(mCMD, stdout=PIPE)
+    # Get output
+    (output, err) = p.communicate()
+    logging.debug("Query output: %s", output)
+    logging.debug("Query return errors: %s", err)
+    # Process output
+    fileInfo = search(r"Extracting files \[(.*)\]\n", output)
+    if fileInfo is None:
+        return None
+    extracted = fileInfo.group(1)
+    # Break into array
+    newFiles = extracted.split(", ")
+    # Return array of extracted files
+    return newFiles
