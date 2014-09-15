@@ -24,9 +24,9 @@ import sys
 import logging
 from re import search, I
 from shutil import rmtree
-from config import getConfig
+from os import path, listdir
 from getopt import getopt, GetoptError
-from os import access, R_OK, path, listdir
+from config import getConfig, makeConfig
 import extras.notify as Notify
 
 
@@ -46,26 +46,26 @@ class Handler:
                           'Audiobooks']
         self.args = {}
         self.settings = {}
-        self.Push
+        self.Push = ''
 
     # ======== COMMAND LINE USAGE ======== #
 
     def __showUsage(self, code):
         usageText = '''
-    EM Media Handler v%s / by %s
+EM Media Handler v%s / by %s
 
-    Usage:
+Usage:
         mediaHandler.py -f /path/to/file [..options]
 
 
-    Options:
+Options:
         -f     : (required) Set path to media files
                   Assumes path structure /path/to/<media type>/<media name>
         -c     : Set a custom config file path
         -t     : Force a specific media type for processing
 
 
-    Media types:
+Media types:
         %s
         ''' % (__version__, __author__, '\n\t'.join(self.typesList))
         # Output text
@@ -160,8 +160,7 @@ class Handler:
         logging.info("Getting audiobook information")
         # Check that Movies are enabled
         if not self.settings['Audiobooks']['enabled']:
-            logging.warning("Audiobooks type is not enabled")
-            raise Warning("Audiobooks type is not enabled")
+            self.Push.Failure("Audiobooks type is not enabled")
         # Import audiobooks module
         import media.audiobooks as Audiobooks
         # Send to handler
@@ -317,11 +316,11 @@ class Handler:
                 self.args['type'] = findType.group(2)
                 logging.debug("Type detected: %s", self.args['type'])
             else:
-                if self.settings['General']['deluge']:
+                if self.settings['Deluge']['enabled']:
                     # Remove torrent
                     import extras.torrent
                     extras.torrent.removeTorrent(
-                        self.settings['General'],
+                        self.settings['Deluge'],
                         self.args['hash'])
                 # Notify about failure
                 self.Push.Failure(
@@ -350,11 +349,11 @@ class Handler:
         # Check that file was downloaded
         filePath = self.args['path'] + "/" + self.args['name']
         if path.exists(filePath):
-            if self.settings['General']['deluge']:
+            if self.settings['Deluge']['enabled']:
                 # Remove torrent
                 import extras.torrent as Torrent
                 Torrent.removeTorrent(
-                    self.settings['General'],
+                    self.settings['Deluge'],
                     self.args['hash'])
             # Send to handler
             newFiles = self.__fileHandler(self.args['media'])
@@ -368,18 +367,13 @@ class Handler:
     def addMedia(self):
         # Get arguments
         (useDeluge, self.args) = self.__getArguments()
-        # Set paths
-        __configPath = ('%s/.config/mediaHandler/mediaHandler.conf' %
-                        path.expanduser("~"))
+        # User-provided path 
+        __newPath = None
         # Check for user-specified config
         if 'config' in self.args.keys():
-            __configPath = self.args['config']
-        # Check that config exists
-        if not path.isfile(__configPath):
-            raise Warning('Configuration file does not exist')
-        # Check config file permissions
-        if not access(__configPath, R_OK):
-            raise Warning('Configuration file cannot be opened')
+            __newPath = self.args['config']
+        # Set paths
+        __configPath = makeConfig(__newPath)
         # Get settings from config
         self.settings = getConfig(__configPath)
         # Set up notify instance

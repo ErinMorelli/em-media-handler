@@ -29,10 +29,10 @@ def removeTorrent(settings, torrentHash):
     logging.info("Removing torrent from Deluge")
     # Connect to Deluge daemon
     d = client.connect(
-        host=settings['deluge_host'],
-        port=int(settings['deluge_port']),
-        username=settings['deluge_user'],
-        password=settings['deluge_pass']
+        host=settings['host'],
+        port=int(settings['port']),
+        username=settings['user'],
+        password=settings['pass']
     )
 
     # We create a callback function to be called upon a successful connection

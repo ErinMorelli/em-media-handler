@@ -34,16 +34,21 @@ class Push:
 
     # ======== SEND MESSAGE VIA PUSHOVER ======== #
 
-    def __sendMessage(self, message):
+    def __sendMessage(self, connMsg):
         logging.info("Sending push notification")
         # Initialize connection with pushover
         conn = HTTPSConnection("api.pushover.net:443")
+        # Set default title
+        connTitle = "EM Media Handler"
+        # Look for custom notify name
+        if self.settings['notify_name'] != '':
+            connTitle = self.settings['notify_name']
         # Encode request URL
         connUrl = urlencode({
             "token": self.settings['api_key'],
             "user": self.settings['user_key'],
-            "title": "EM Media Handler",
-            "message": message,
+            "title": connTitle,
+            "message": connMsg,
         })
         logging.debug("API call: %s", connUrl)
         # Send API request
