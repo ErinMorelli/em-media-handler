@@ -34,7 +34,7 @@ class Movie:
         # Default TV path
         self.movPath = '%s/Media/Movies' % path.expanduser("~")
         # Check for custom path in settings
-        if 'folder' in settings.keys():
+        if settings['folder'] != '':
             if path.exists(settings['folder']):
                 self.movPath = settings['folder']
                 logging.debug("Using custom path: %s" % self.tvPath)

@@ -57,12 +57,12 @@ class Book:
         # Default TV path
         self.handler['path'] = '%s/Media/Audiobooks' % path.expanduser("~")
         # Check for custom path in settings
-        if 'folder' in settings.keys():
+        if settings['folder'] != '':
             if path.exists(settings['folder']):
                 self.handler['path'] = settings['folder']
                 logging.debug("Using custom path: %s" % self.handler['path'])
         # Look for Google api key
-        if 'api_key' in settings.keys():
+        if settings['api_key'] != '':
             self.handler['apiKey'] = settings['api_key']
             logging.debug("Found Google Books API key")
         else:
@@ -71,14 +71,14 @@ class Book:
         # Default chapter length
         self.handler['maxLength'] = 28800  # 8hrs (in seconds)
         # Look for custom chapter length
-        if 'chapter_length' in settings.keys():
+        if settings['chapter_length'] != '':
             # Convert hours to seconds
             customLength = int(settings['chapter_length']) * 3600
             # Set new length
             self.handler['maxLength'] = customLength
             logging.debug("Using custom chapter length: %s" %
                           self.handler['maxLength'])
-        if 'make_chapters' in settings.keys():
+        if settings['make_chapters'] != '':
             self.handler['makeChapters'] = settings['make_chapters']
 
     # ======== CLEAN UP SEARCH STRING ======== #

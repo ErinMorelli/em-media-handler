@@ -35,7 +35,7 @@ class newMusic:
         self.beet = "/usr/local/bin/beet"
         self.beetslog = '%s/logs/beets.log' % path.expanduser("~")
         # Chec for custom path in settings
-        if 'log_file' in settings.keys():
+        if settings['log_file'] != '':
             self.beetslog = settings['log_file']
             logging.debug("Using custom beets log: %s" % self.beetslog)
 

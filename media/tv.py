@@ -34,7 +34,7 @@ class Episode:
         # Default TV path
         self.tvPath = '%s/Media/Television' % path.expanduser("~")
         # Check for custom path in settings
-        if 'folder' in settings.keys():
+        if settings['folder'] != '':
             if path.exists(settings['folder']):
                 self.tvPath = settings['folder']
                 logging.debug("Using custom path: %s" % self.tvPath)
