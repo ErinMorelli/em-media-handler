@@ -39,6 +39,7 @@ class Handler:
     def __init__(self):
         # Set global variables
         self.typesList = ['TV',
+                          'TV Shows'
                           'Television',
                           'Movies',
                           'Music',
@@ -94,7 +95,7 @@ Media types:
         logging.debug("DST: %s", dst)
         # Check that new file exists
         if not path.isfile(dst):
-            self.Push.Failure("File failed to move %s" % dst)
+            self.Push.Failure("File failed to move: %s" % self.args['name'])
         # Return new file name
         return newName
 
@@ -111,7 +112,8 @@ Media types:
         e = TV.Episode(self.settings['TV'])
         epInfo = e.getEpisode(raw)
         if epInfo is None:
-            self.Push.Failure("Unable to match episode: %s" % raw)
+            self.Push.Failure("Unable to match episode: %s"
+                              % self.args['name'])
         # Extract info
         (epTitle, newFile) = epInfo
         # return folder and file paths
@@ -130,7 +132,7 @@ Media types:
         m = Movies.Movie(self.settings['Movies'])
         movInfo = m.getMovie(raw)
         if movInfo is None:
-            self.Push.Failure("Unable to match movie: %s" % raw)
+            self.Push.Failure("Unable to match movie: %s" % self.rargs['name'])
         # Extract info
         (movTitle, newFile) = movInfo
         # return folder and file paths
@@ -150,7 +152,7 @@ Media types:
         musicInfo = m.addMusic(raw, isSingle)
         if musicInfo is None:
             self.Push.Failure(
-                "Unable to match music: %s\n%s" % (raw, musicInfo))
+                "Unable to match music: %s" % self.args['name'])
         # return album info
         return musicInfo
 
@@ -167,7 +169,7 @@ Media types:
         b = Audiobooks.Book(self.settings['Audiobooks'])
         bookInfo = b.getBook(raw)
         if bookInfo is None:
-            self.Push.Failure("Unable to match book: %s\n%s" % raw, bookInfo)
+            self.Push.Failure("Unable to match book: %s" % self.args['name'])
             return None
         # return book info
         return bookInfo
@@ -181,7 +183,8 @@ Media types:
         # Send to handler
         extracted = Extract.getFiles(raw)
         if extracted is None:
-            self.Push.Failure("Unable to extract files: %s" % raw)
+            self.Push.Failure("Unable to extract files: %s"
+                              % self.args['name'])
             return None
         # Send files back to handler
         return extracted
@@ -198,7 +201,7 @@ Media types:
         # Then check for folders/files
         elif path.isfile(files):
             # Single file, treat differently
-            logging.debug("Proecessing as a single file")
+            logging.debug("Processing as a single file")
             # Look for zipped file first
             if search(r".(zip|rar|7z)$", files, I):
                 logging.debug("Zipped file type detected")
@@ -314,8 +317,13 @@ Media types:
             findType = search(r"^(.*)?\/(.*)$", self.args['path'], I)
             if findType:
                 self.args['type'] = findType.group(2)
+                # Check is valid type
+                if self.args['type'] not in self.typesList:
+                    self.Push.Failure(
+                        'Media type %s not recognized' % self.args['type'])
                 logging.debug("Type detected: %s", self.args['type'])
             else:
+                logging.debug("No type detected")
                 if self.settings['Deluge']['enabled']:
                     # Remove torrent
                     import extras.torrent
@@ -340,8 +348,9 @@ Media types:
                             self.Push.Failure(
                                 'Media type %s not recognized' %
                                 self.args['type'])
-                logging.debug("Detected: %s", self.args)
+                logging.debug("Type detected: %s", self.args)
             else:
+                logging.debug("No type detected")
                 # Notify about failure
                 self.Push.Failure(
                     "No type or name specified for media: %s" %
@@ -356,7 +365,7 @@ Media types:
                     self.settings['Deluge'],
                     self.args['hash'])
             # Send to handler
-            newFiles = self.__fileHandler(self.args['media'])
+            newFiles = self.__fileHandler(filePath)
         else:
             # There was a problem, no files found
             self.Push.Failure("No media files found: %s" % self.args['name'])
@@ -367,7 +376,7 @@ Media types:
     def addMedia(self):
         # Get arguments
         (useDeluge, self.args) = self.__getArguments()
-        # User-provided path 
+        # User-provided path
         __newPath = None
         # Check for user-specified config
         if 'config' in self.args.keys():

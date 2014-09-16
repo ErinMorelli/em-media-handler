@@ -75,8 +75,6 @@ class Push:
         logging.info("Starting success notifications")
         # Format file list
         mediaList = '\n    '.join(fileArray)
-        # Send push notification
-        logging.debug("Before push notification send")
         # Set success message
         connText = '''Media was successfully added to your server:
 %s
@@ -85,13 +83,12 @@ class Push:
         if self.settings['enabled']:
             # Send message
             self.__sendMessage(connText)
+        logging.warning(connText)
 
     # ======== SET ERROR INFO & EXIT ======== #
 
     def Failure(self, errorDetails):
         logging.info("Starting failure notifications")
-        # Send push notification
-        logging.debug("Before push notification send")
         # Set error message
         connText = '''There was an error reported:
 %s
