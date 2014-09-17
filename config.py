@@ -176,10 +176,10 @@ def makeConfig(newPath):
         config.add_section('Movies')
         config.set('Movies', 'enabled', 'true')
         config.set('Movies', 'folder', '')
-        config.set('Movies', 'log_file', '')
         # Music section defaults
         config.add_section('Music')
         config.set('Music', 'enabled', 'false')
+	config.set('Music', 'log_file', '')
         # Audiobooks section defaults
         config.add_section('Audiobooks')
         config.set('Audiobooks', 'enabled', 'false')
