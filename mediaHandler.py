@@ -83,7 +83,7 @@ Media types:
         if self.args['type'] in ["TV", "Television", "TV Shows"]:
             fileInfo = self.__addEpisode(src)
         elif self.args['type'] == 'Movies':
-            fileInfo = metadata[self.args['type']](src)
+            fileInfo = self.__addMovie(src)
         # Check for errors
         if fileInfo is None:
             return None
