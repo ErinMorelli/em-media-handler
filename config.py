@@ -19,7 +19,7 @@
 
 import imp
 import logging
-from os import path, access, R_OK
+from os import path, makedirs, access, R_OK
 from ConfigParser import ConfigParser
 
 
@@ -47,6 +47,9 @@ def __initLogging(settings):
         logFile = settings['Logging']['file_path']
     if settings['Logging']['level'] is not None:
         logLevel = int(settings['Logging']['level'])
+    # Make sure log file dir exists
+    logPath = path.dirname(logFile)
+    makedirs(logPath)
     # Config logging
     logging.basicConfig(
         filename=logFile,
@@ -77,7 +80,8 @@ def __checkModules(settings):
     # Check video requirements
     if settings['TV']['enabled'] or settings['Movies']['enabled']:
         # Check for Filebot
-        if not path.isfile('/usr/bin/filebot'):
+        if (not path.isfile('/usr/bin/filebot') and
+           not path.isfile('/usr/local/bin/filebot')):
             raise ImportError('Filebot application not found')
     # Check music requirements
     if settings['Music']['enabled']:
@@ -133,17 +137,17 @@ def getConfig(configFile):
 
 # ======== MAKE CONFIG FILE ======== #
 
-def makeConfig(newPath):
+def makeConfig(newFile):
     # Set default path
-    configPath = ('%s/.config/mediaHandler/mediaHandler.conf' %
+    configFile = ('%s/.config/mediaHandler/mediaHandler.conf' %
                   path.expanduser("~"))
     # Check for user-provided path
-    if newPath is not None:
-        configPath = newPath
+    if newFile is not None:
+        configFile = newFile
     # Check that config exists
-    if path.isfile(configPath):
+    if path.isfile(configFile):
         # Check config file permissions
-        if not access(configPath, R_OK):
+        if not access(configFile, R_OK):
             raise Warning('Configuration file cannot be opened')
     else:
         config = ConfigParser()
@@ -152,7 +156,7 @@ def makeConfig(newPath):
         config.set('General', 'keep_files', 'true')
         # Deluge section defaults
         config.add_section('Deluge')
-        config.set('Deluge', 'enabled', 'true')
+        config.set('Deluge', 'enabled', 'false')
         config.set('Deluge', 'host', '127.0.0.1')
         config.set('Deluge', 'port', '58846')
         config.set('Deluge', 'user', '')
@@ -187,8 +191,11 @@ def makeConfig(newPath):
         config.set('Audiobooks', 'api_key', '')
         config.set('Audiobooks', 'make_chapters', 'false')
         config.set('Audiobooks', 'chapter_length', '8')
-        # Writing our configuration file to 'example.cfg'
-        with open(configPath, 'wb') as configFile:
-            config.write(configFile)
+        # Make directories for config file
+        configPath = path.dirname(configFile)
+        makedirs(configPath)
+        # Write new configuration file to path
+        with open(configFile, 'wb') as configFileOpen:
+            config.write(configFileOpen)
     # Return with path to file
-    return configPath
+    return configFile

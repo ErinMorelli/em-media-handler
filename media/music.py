@@ -19,7 +19,7 @@
 
 import re
 import logging
-from os import path
+from os import path, makedirs
 from subprocess import Popen, PIPE
 
 
@@ -34,10 +34,13 @@ class newMusic:
         # Beet Options
         self.beet = "/usr/local/bin/beet"
         self.beetslog = '%s/logs/beets.log' % path.expanduser("~")
-        # Chec for custom path in settings
+        # Check for custom path in settings
         if settings['log_file'] != '':
             self.beetslog = settings['log_file']
             logging.debug("Using custom beets log: %s" % self.beetslog)
+        # Check that log file path exists
+        beetslogDir = path.dirname(self.beetslog)
+        makedirs(beetslogDir)
 
     # ======== ADD MUSIC ======== #
 
