@@ -78,14 +78,12 @@ Media types:
 
     def __addVideo(self, src):
         logging.info("Moving file(s)")
-        # Set metadata options
-        metadata = {
-            "TV": self.__addEpisode,
-            "Television": self.__addEpisode,
-            "Movies": self.__addMovie,
-        }
-        # Get paths
-        fileInfo = metadata[self.args['type']](src)
+        fileInfo = None
+        # Set which handler to use
+        if self.args['type'] in ["TV", "Television", "TV Shows"]:
+            fileInfo = self.__addEpisode(src)
+        elif self.args['type'] == 'Movies':
+            fileInfo = metadata[self.args['type']](src)
         # Check for errors
         if fileInfo is None:
             return None
