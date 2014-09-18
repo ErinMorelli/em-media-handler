@@ -40,7 +40,8 @@ class newMusic:
             logging.debug("Using custom beets log: %s" % self.beetslog)
         # Check that log file path exists
         beetslogDir = path.dirname(self.beetslog)
-        makedirs(beetslogDir)
+        if not path.exists(beetslogDir):
+            makedirs(beetslogDir)
 
     # ======== ADD MUSIC ======== #
 

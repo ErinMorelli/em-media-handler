@@ -49,7 +49,8 @@ def __initLogging(settings):
         logLevel = int(settings['Logging']['level'])
     # Make sure log file dir exists
     logPath = path.dirname(logFile)
-    makedirs(logPath)
+    if not path.exists(logPath):
+        makedirs(logPath)
     # Config logging
     logging.basicConfig(
         filename=logFile,
@@ -183,7 +184,7 @@ def makeConfig(newFile):
         # Music section defaults
         config.add_section('Music')
         config.set('Music', 'enabled', 'false')
-	config.set('Music', 'log_file', '')
+        config.set('Music', 'log_file', '')
         # Audiobooks section defaults
         config.add_section('Audiobooks')
         config.set('Audiobooks', 'enabled', 'false')
@@ -193,7 +194,8 @@ def makeConfig(newFile):
         config.set('Audiobooks', 'chapter_length', '8')
         # Make directories for config file
         configPath = path.dirname(configFile)
-        makedirs(configPath)
+        if not path.exists(configPath):
+            makedirs(configPath)
         # Write new configuration file to path
         with open(configFile, 'wb') as configFileOpen:
             config.write(configFileOpen)

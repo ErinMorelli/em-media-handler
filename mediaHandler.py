@@ -39,7 +39,7 @@ class Handler:
     def __init__(self):
         # Set global variables
         self.typesList = ['TV',
-                          'TV Shows'
+                          'TV Shows',
                           'Television',
                           'Movies',
                           'Music',
