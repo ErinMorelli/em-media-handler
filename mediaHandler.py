@@ -313,6 +313,11 @@ Media types:
         # Determing if using deluge or not
         if useDeluge:
             logging.info("Processing from deluge")
+            # Make sure path exists
+            if not path.exists(self.args['path']):
+                # There was a problem, no files found
+                self.Push.Failure("No media files found: %s"
+                                  % self.args['name'])
             # Extract media type from path
             findType = search(r"^(.*)?\/(.*)$", self.args['path'], I)
             if findType:
@@ -335,6 +340,11 @@ Media types:
                     "No type specified for download: %s" % self.args['name'])
         else:
             logging.info("Processing from command line")
+            # Make sure path exists
+            if not path.exists(self.args['media']):
+                # There was a problem, no files found
+                self.Push.Failure("No media files found: %s"
+                                  % self.args['name'])
             # Extract info from path
             parsePath = search(r"^((.*)?\/(.*))\/(.*)$",
                                self.args['media'], I)
