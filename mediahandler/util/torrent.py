@@ -25,7 +25,7 @@ from deluge.ui.client import client
 
 # ======== REMOVE TORRENT ======== #
 
-def removeTorrent(settings, torrentHash):
+def remove_torrent(settings, torrent_hash):
     logging.info("Removing torrent from Deluge")
     # Connect to Deluge daemon
     d = client.connect(
@@ -51,13 +51,13 @@ def removeTorrent(settings, torrentHash):
         def on_get_session_state(torrents):
             found = False
             # Look for completed torrent in list
-            for t in torrents:
-                if t == torrentHash:
+            for tor in torrents:
+                if tor == torrent_hash:
                     # Set as found and call remove function
                     logging.debug("Torrent found")
                     found = True
                     client.core.remove_torrent(
-                        torrentHash,
+                        torrent_hash,
                         False).addCallback(
                             on_remove_torrent)
                     break

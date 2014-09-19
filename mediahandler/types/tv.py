@@ -19,7 +19,7 @@
 
 import logging
 from os import path
-from types import getInfo
+from mediahandler.types import getinfo
 from re import escape, search, sub
 
 
@@ -32,44 +32,44 @@ class Episode:
     def __init__(self, settings):
         logging.info("Initializing episode renaming class")
         # Default TV path
-        self.tvPath = '%s/Media/Television' % path.expanduser("~")
+        self.tv_path = '%s/Media/Television' % path.expanduser("~")
         # Check for custom path in settings
         if settings['folder'] != '':
             if path.exists(settings['folder']):
-                self.tvPath = settings['folder']
-                logging.debug("Using custom path: %s" % self.tvPath)
+                self.tv_path = settings['folder']
+                logging.debug("Using custom path: %s" % self.tv_path)
 
     # ======== GET EPISODE ======== #
 
-    def getEpisode(self, filePath):
+    def get_episode(self, file_path):
         logging.info("Starting episode information handler")
         # Set Variables
-        tvForm = ("%s/{n}/Season {s}/{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}"
-                  % self.tvPath)
-        tvDB = "thetvdb"
+        tv_form = ("%s/{n}/Season {s}/{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}"
+                  % self.tv_path)
+        tv_db = "thetvdb"
         # Get info
-        newFile = getInfo(tvForm, tvDB, filePath)
-        logging.debug("New file: %s", newFile)
+        new_file = getinfo(tv_form, tv_db, file_path)
+        logging.debug("New file: %s", new_file)
         # Check for failure
-        if newFile is None:
+        if new_file is None:
             return None
         # Set search query
-        ePath = escape(self.tvPath)
-        tvFind = "%s\/(.*)\/(.*)\/.*\.S\d{2,4}E(\d{2,3}).\w{3}" % ePath
-        logging.debug("Search query: %s", tvFind)
+        epath = escape(self.tv_path)
+        tv_find = "%s\/(.*)\/(.*)\/.*\.S\d{2,4}E(\d{2,3}).\w{3}" % epath
+        logging.debug("Search query: %s", tv_find)
         # Extract info
-        episode = search(tvFind, newFile)
+        episode = search(tv_find, new_file)
         if episode is None:
             return None
         # Show title
-        showName = episode.group(1)
+        show_name = episode.group(1)
         # Season
         season = episode.group(2)
         # Episode
-        epNum = episode.group(3)
-        epNumFix = sub('^0', '', epNum)
-        episode = "Episode %s" % epNumFix
+        ep_num = episode.group(3)
+        ep_num_fix = sub('^0', '', ep_num)
+        episode = "Episode %s" % ep_num_fix
         # Set title
-        epTitle = "%s (%s, %s)" % (showName, season, episode)
+        ep_title = "%s (%s, %s)" % (show_name, season, episode)
         # Return Show Name, Season, Episode (file)
-        return epTitle, newFile
+        return ep_title, new_file

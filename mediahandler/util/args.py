@@ -21,7 +21,7 @@
 import sys
 import mediahandler as mh
 from getopt import getopt, GetoptError
-from mediahandler.util.notify import push
+from mediahandler.util.notify import Push
 
 
 # ======== COMMAND LINE USAGE ======== #
@@ -90,7 +90,7 @@ def get_arguments():
                 new_args['config'] = a
             if o == '-t':
                 if a not in mh.typeslist:
-                    push.failure('Media type %s not recognized' % a)
+                    Push.failure('Media type %s not recognized' % a)
                 new_args['type'] = a
         if not f:
             print 'option -f not specified'

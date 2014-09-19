@@ -392,7 +392,7 @@ class Book:
 
     # ======== MAIN BOOK FUNCTION (public) ======== #
 
-    def getBook(self, raw):
+    def get_book(self, raw):
         logging.info("Getting audiobook")
         # Parse string & get query
         refined = self.__cleanString(raw)

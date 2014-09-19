@@ -19,7 +19,7 @@
 
 import logging
 from os import path
-from media import getInfo
+from mediahandler.types import getinfo
 from re import escape, search
 
 
@@ -32,35 +32,35 @@ class Movie:
     def __init__(self, settings):
         logging.info("Initializing renaming class")
         # Default TV path
-        self.movPath = '%s/Media/Movies' % path.expanduser("~")
+        self.mov_path = '%s/Media/Movies' % path.expanduser("~")
         # Check for custom path in settings
         if settings['folder'] != '':
             if path.exists(settings['folder']):
-                self.movPath = settings['folder']
-                logging.debug("Using custom path: %s" % self.tvPath)
+                self.mov_path = settings['folder']
+                logging.debug("Using custom path: %s" % self.tv_path)
 
     # ======== GET MOVIE ======== #
 
-    def getMovie(self, filePath):
+    def get_movie(self, file_path):
         logging.info("Starting movie information handler")
         # Set Variables
-        movFormat = "%s/{n} ({y})" % self.movPath
-        movDB = "themoviedb"
+        mov_format = "%s/{n} ({y})" % self.mov_path
+        mov_db = "themoviedb"
         # Get info
-        newFile = getInfo(movFormat, movDB, filePath)
-        logging.debug("New file: %s", newFile)
+        new_file = getinfo(mov_format, mov_db, file_path)
+        logging.debug("New file: %s", new_file)
         # Check for failure
-        if newFile is None:
+        if new_file is None:
             return None
         # Set search query
-        ePath = escape(self.movPath)
-        movFind = "%s\/(.*\(\d{4}\))\.\w{3}" % ePath
-        logging.debug("Search query: %s", movFind)
+        epath = escape(self.mov_path)
+        mov_find = "%s\/(.*\(\d{4}\))\.\w{3}" % epath
+        logging.debug("Search query: %s", mov_find)
         # Extract info
-        movie = search(movFind, newFile)
+        movie = search(mov_find, new_file)
         if movie is None:
             return None
         # Set title
-        movTitle = movie.group(1)
+        mov_title = movie.group(1)
         # Return Movie Title
-        return movTitle, newFile
+        return mov_title, new_file

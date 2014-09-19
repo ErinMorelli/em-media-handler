@@ -34,69 +34,69 @@ class Push:
 
     # ======== SEND MESSAGE VIA PUSHOVER ======== #
 
-    def __sendMessage(self, connMsg):
+    def __send_message(self, conn_msg):
         logging.info("Sending push notification")
         # Initialize connection with pushover
         conn = HTTPSConnection("api.pushover.net:443")
         # Set default title
-        connTitle = "EM Media Handler"
+        conn_title = "EM Media Handler"
         # Look for custom notify name
         if self.settings['notify_name'] != '':
-            connTitle = self.settings['notify_name']
+            conn_title = self.settings['notify_name']
         # Encode request URL
-        connUrl = urlencode({
+        conn_url = urlencode({
             "token": self.settings['api_key'],
             "user": self.settings['user_key'],
-            "title": connTitle,
-            "message": connMsg,
+            "title": conn_title,
+            "message": conn_msg,
         })
-        logging.debug("API call: %s", connUrl)
+        logging.debug("API call: %s", conn_url)
         # Send API request
         conn.request(
             "POST",
             "/1/messages.json",
-            connUrl,
+            conn_url,
             {"Content-type": "application/x-www-form-urlencoded"}
         )
         # Get API response
-        connResp = conn.getresponse()
+        conn_resp = conn.getresponse()
         # Check for response success
-        if connResp != 200:
+        if conn_resp != 200:
             logging.error("API Response: %s %s",
-                          connResp.status, connResp.reason)
+                          conn_resp.status, conn_resp.reason)
         else:
             logging.info("API Response: %s %s",
-                         connResp.status, connResp.reason)
+                         conn_resp.status, conn_resp.reason)
         logging.debug("After push notification send")
 
     # ======== SET SUCCESS INFO ======== #
 
-    def Success(self, fileArray):
+    def success(self, file_array):
         logging.info("Starting success notifications")
         # Format file list
-        mediaList = '\n    '.join(fileArray)
+        media_list = '\n    '.join(file_array)
         # Set success message
-        connText = '''Media was successfully added to your server:
+        conn_text = '''Media was successfully added to your server:
 %s
-        ''' % mediaList
+        ''' % media_list
         # If push notifications enabled
         if self.settings['enabled']:
             # Send message
-            self.__sendMessage(connText)
-        logging.warning(connText)
+            self.__send_message(conn_text)
+        logging.warning(conn_text)
 
     # ======== SET ERROR INFO & EXIT ======== #
 
-    def Failure(self, errorDetails):
+    def failure(self, error_details):
         logging.info("Starting failure notifications")
         # Set error message
-        connText = '''There was an error reported:
+        conn_text = '''There was an error reported:
 %s
-        ''' % errorDetails
+        ''' % error_details
         # If push notifications enabled
         if self.settings['enabled']:
             # Send message
-            self.__sendMessage(connText)
+            self.__send_message(conn_text)
         # Raise python warning
-        logging.warning(errorDetails)
-        raise Warning(errorDetails)
+        logging.warning(error_details)
+        raise Warning(error_details)

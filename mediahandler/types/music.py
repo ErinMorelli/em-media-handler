@@ -25,7 +25,7 @@ from subprocess import Popen, PIPE
 
 # ======== CLASS DECLARTION ======== #
 
-class newMusic:
+class Music:
 
     # ======== INIT MUSIC CLASS ======== #
 
@@ -39,30 +39,30 @@ class newMusic:
             self.beetslog = settings['log_file']
             logging.debug("Using custom beets log: %s" % self.beetslog)
         # Check that log file path exists
-        beetslogDir = path.dirname(self.beetslog)
-        if not path.exists(beetslogDir):
-            makedirs(beetslogDir)
+        beetslog_dir = path.dirname(self.beetslog)
+        if not path.exists(beetslog_dir):
+            makedirs(beetslog_dir)
 
     # ======== ADD MUSIC ======== #
 
-    def addMusic(self, filePath, isSingle=False):
+    def add_music(self, file_path, is_single=False):
         logging.info("Starting music information handler")
         # Set Variables
-        if isSingle:
-            mType = "Song"
-            mTags = "-sql"
-            mQuery = "Tagging track\:\s(.*)\nURL\:\n\s{1,4}(.*)\n"
+        if is_single:
+            m_type = "Song"
+            m_tags = "-sql"
+            m_query = "Tagging track\:\s(.*)\nURL\:\n\s{1,4}(.*)\n"
         else:
-            mType = "Album"
-            mTags = "-ql"
-            mQuery = "(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n"
+            m_type = "Album"
+            m_tags = "-ql"
+            m_query = "(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n"
         # Set up query
-        mCMD = [self.beet,
-                "import", filePath,
-                mTags, self.beetslog]
-        logging.debug("Query: %s", mCMD)
+        m_cmd = [self.beet,
+                "import", file_path,
+                m_tags, self.beetslog]
+        logging.debug("Query: %s", m_cmd)
         # Process query
-        p = Popen(mCMD, stdout=PIPE, stderr=PIPE)
+        p = Popen(m_cmd, stdout=PIPE, stderr=PIPE)
         # Get output
         (output, err) = p.communicate()
         logging.debug("Query output: %s", output)
@@ -75,11 +75,11 @@ class newMusic:
             logging.warning("Beets is skipping the import: %s" % output)
             return None
         # Extract Info
-        musicFind = re.compile(mQuery)
-        logging.debug("Search query: %s", mQuery)
+        music_find = re.compile(m_query)
+        logging.debug("Search query: %s", m_query)
         # Format data
-        musicData = musicFind.search(output)
-        musicInfo = "%s: %s" % (mType, musicData.group(2))
-        logging.info("MusicBrainz URL: %s" % musicData.group(3))
+        music_data = music_find.search(output)
+        music_info = "%s: %s" % (m_type, music_data.group(2))
+        logging.info("MusicBrainz URL: %s" % music_data.group(3))
         # Return music data
-        return musicInfo
+        return music_info

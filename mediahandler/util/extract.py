@@ -23,27 +23,27 @@ from subprocess import Popen, PIPE
 
 # ======== GET FILES ======== #
 
-def getFiles(fileName):
+def get_files(file_name):
     logging.info("Getting files from compressed folder")
     # Filebot path
     __filebot = "/usr/bin/filebot"
     # Set up query
-    mCMD = [__filebot,
+    m_cmd = [__filebot,
             "-extract",
-            fileName]
-    logging.debug("Query: %s", mCMD)
+            file_name]
+    logging.debug("Query: %s", m_cmd)
     # Process query
-    p = Popen(mCMD, stdout=PIPE)
+    p = Popen(m_cmd, stdout=PIPE)
     # Get output
     (output, err) = p.communicate()
     logging.debug("Query output: %s", output)
     logging.debug("Query return errors: %s", err)
     # Process output
-    fileInfo = search(r"Extracting files \[(.*)\]\n", output)
-    if fileInfo is None:
+    file_info = search(r"Extracting files \[(.*)\]\n", output)
+    if file_info is None:
         return None
-    extracted = fileInfo.group(1)
+    extracted = file_info.group(1)
     # Break into array
-    newFiles = extracted.split(", ")
+    new_files = extracted.split(", ")
     # Return array of extracted files
-    return newFiles
+    return new_files

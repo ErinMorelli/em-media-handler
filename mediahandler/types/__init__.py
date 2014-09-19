@@ -27,7 +27,7 @@ from subprocess import Popen, PIPE
 
 # ======== MEDIA MODULE SHARED FUNCTIONS ======== #
 
-def getInfo(mFormat, mDB, filePath):
+def getinfo(m_format, m_db, file_path):
     logging.info("Getting video media information")
     # Filebot Options
     __filebot = "/usr/bin/filebot"
@@ -35,24 +35,24 @@ def getInfo(mFormat, mDB, filePath):
     __strict = "-non-strict"
     __analytics = "-no-analytics"
     # Set up query
-    mCMD = [__filebot,
-            "-rename", filePath,
-            "--db", mDB,
-            "--format", mFormat,
+    m_cmd = [__filebot,
+            "-rename", file_path,
+            "--db", m_db,
+            "--format", m_format,
             "--action", __action.lower(),
             __strict, __analytics]
-    logging.debug("Query: %s", mCMD)
+    logging.debug("Query: %s", m_cmd)
     # Process query
-    p = Popen(mCMD, stdout=PIPE)
+    p = Popen(m_cmd, stdout=PIPE)
     # Get output
     (output, err) = p.communicate()
     logging.debug("Query output: %s", output)
     logging.debug("Query return errors: %s", err)
     # Process output
     query = r"\[%s\] Rename \[.*\] to \[(.*)\]" % __action
-    fileInfo = search(query, output)
-    if fileInfo is None:
+    file_info = search(query, output)
+    if file_info is None:
         return None
-    newFile = fileInfo.group(1)
+    new_file = file_info.group(1)
     # Return new file
-    return newFile
+    return new_file
