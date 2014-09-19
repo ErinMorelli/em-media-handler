@@ -70,6 +70,10 @@ class newMusic:
         # Process output
         if err != '':
             return None
+        # Check for skip
+        if re.search(r"(Skipping\.)\n", output):
+            logging.warning("Beets is skipping the import: %s" % output)
+            return None
         # Extract Info
         musicFind = re.compile(mQuery)
         logging.debug("Search query: %s", mQuery)

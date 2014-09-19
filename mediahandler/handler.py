@@ -13,175 +13,147 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-
-__version__ = '1.0'
-__author__ = 'Erin Morelli <erin@erinmorelli.com>'
+'''Main handler module'''
 
 
 # ======== IMPORT MODULES ======== #
 
-import sys
 import logging
 from re import search, I
 from shutil import rmtree
 from os import path, listdir
-from getopt import getopt, GetoptError
-from config import getConfig, makeConfig
-import extras.notify as Notify
+import .util.notify as Notify
+#from util.config import getconfig, makeconfig
+#from util.args import get_arguments
 
 
 # ======== DEFINE HANDLER CLASS ======== #
 
-class Handler:
-
+class Handler():
+    '''Media handler class'''
     # ======== INIT CLASS ======== #
 
     def __init__(self):
+        '''Initialize handler class'''
         # Set global variables
-        self.typesList = ['TV',
-                          'TV Shows',
-                          'Television',
-                          'Movies',
-                          'Music',
-                          'Books',
-                          'Audiobooks']
         self.args = {}
         self.settings = {}
-        self.Push = ''
-
-    # ======== COMMAND LINE USAGE ======== #
-
-    def __showUsage(self, code):
-        usageText = '''
-EM Media Handler v%s / by %s
-
-Usage:
-        mediaHandler.py -f /path/to/file [..options]
-
-
-Options:
-        -f     : (required) Set path to media files
-                  Assumes path structure /path/to/<media type>/<media name>
-        -c     : Set a custom config file path
-        -t     : Force a specific media type for processing
-
-
-Media types:
-        %s
-        ''' % (__version__, __author__, '\n\t'.join(self.typesList))
-        # Output text
-        print usageText
-        # Exit program
-        sys.exit(int(code))
+        self.push = ''
 
     # ======== MOVE VIDEO FILES ======== #
 
-    def __addVideo(self, src):
+    def __add_video(self, src):
+        '''Process video files'''
         logging.info("Moving file(s)")
-        fileInfo = None
+        file_info = None
         # Set which handler to use
         if self.args['type'] in ["TV", "Television", "TV Shows"]:
-            fileInfo = self.__addEpisode(src)
+            file_info = self.__add_episode(src)
         elif self.args['type'] == 'Movies':
-            fileInfo = self.__addMovie(src)
+            file_info = self.__add_movie(src)
         # Check for errors
-        if fileInfo is None:
+        if file_info is None:
             return None
         # Extract info
-        (newName, dst) = fileInfo
-        logging.debug("Name: %s", newName)
+        (new_name, dst) = file_info
+        logging.debug("Name: %s", new_name)
         logging.debug("DST: %s", dst)
         # Check that new file exists
         if not path.isfile(dst):
-            self.Push.Failure("File failed to move: %s" % self.args['name'])
+            self.push.failure("File failed to move: %s" % self.args['name'])
         # Return new file name
-        return newName
+        return new_name
 
     # ======== ADD TV EPISODE ======== #
 
-    def __addEpisode(self, raw):
+    def __add_episode(self, raw):
+        '''Get and process TV episode information'''
         logging.info("Getting TV episode information")
         # Check that TV is enabled
         if not self.settings['TV']['enabled']:
-            self.Push.Failure("TV type is not enabled")
+            self.push.failure("TV type is not enabled")
         # Import TV module
         import media.tv as TV
         # Send info to handler
         e = TV.Episode(self.settings['TV'])
-        epInfo = e.getEpisode(raw)
-        if epInfo is None:
-            self.Push.Failure("Unable to match episode: %s"
+        ep_info = e.get_episode(raw)
+        if ep_info is None:
+            self.push.failure("Unable to match episode: %s"
                               % self.args['name'])
         # Extract info
-        (epTitle, newFile) = epInfo
+        (ep_title, new_file) = ep_info
         # return folder and file paths
-        return epTitle, newFile
+        return ep_title, new_file
 
     # ======== ADD MOVIE ======== #
 
-    def __addMovie(self, raw):
+    def __add_movie(self, raw):
+        '''Get and process movie information'''
         logging.info("Getting movie information")
         # Check that Movies are enabled
         if not self.settings['Movies']['enabled']:
-            self.Push.Failure("Movies type is not enabled")
+            self.push.failure("Movies type is not enabled")
         # Import movie module
         import media.movies as Movies
         # Send info to handler
         m = Movies.Movie(self.settings['Movies'])
-        movInfo = m.getMovie(raw)
-        if movInfo is None:
-            self.Push.Failure("Unable to match movie: %s" % self.rargs['name'])
+        mov_info = m.get_movie(raw)
+        if mov_info is None:
+            self.push.failure("Unable to match movie: %s" % self.rargs['name'])
         # Extract info
-        (movTitle, newFile) = movInfo
+        (mov_title, new_file) = mov_info
         # return folder and file paths
-        return movTitle, newFile
+        return mov_title, new_file
 
     # ======== ADD MUSIC ======== #
 
-    def __addMusic(self, raw, isSingle=False):
+    def __addMusic(self, raw, is_single=False):
+        '''Get and process music information'''
         logging.info("Getting music information")
         # Check that Movies are enabled
         if not self.settings['Movies']['enabled']:
-            self.Push.Failure("Movies type is not enabled")
+            self.push.failure("Movies type is not enabled")
         # Import music module
-        import media.music as Music
+        import media.music as new_music
         # Send info to handler
-        m = Music.newMusic(self.settings['Music'])
-        musicInfo = m.addMusic(raw, isSingle)
-        if musicInfo is None:
-            self.Push.Failure(
+        m = new_music.Music(self.settings['Music'])
+        music_info = m.add_music(raw, is_single)
+        if music_info is None:
+            self.push.failure(
                 "Unable to match music: %s" % self.args['name'])
         # return album info
-        return musicInfo
+        return music_info
 
     # ======== ADD AUDIOBOOK ======== #
 
-    def __addBook(self, raw):
+    def __add_book(self, raw):
+        '''Get and process book information'''
         logging.info("Getting audiobook information")
         # Check that Movies are enabled
         if not self.settings['Audiobooks']['enabled']:
-            self.Push.Failure("Audiobooks type is not enabled")
+            self.push.failure("Audiobooks type is not enabled")
         # Import audiobooks module
         import media.audiobooks as Audiobooks
         # Send to handler
         b = Audiobooks.Book(self.settings['Audiobooks'])
-        bookInfo = b.getBook(raw)
-        if bookInfo is None:
-            self.Push.Failure("Unable to match book: %s" % self.args['name'])
+        book_info = b.get_book(raw)
+        if book_info is None:
+            self.push.failure("Unable to match book: %s" % self.args['name'])
             return None
         # return book info
-        return bookInfo
+        return book_info
 
     # ======== EXTRACT FILES ======== #
 
-    def __extractFiles(self, raw):
+    def __extract_files(self, raw):
+        '''Send files to be extracted'''
         logging.info("Extracting files from compressed file")
         # Import extract module
         import extras.extract as Extract
         # Send to handler
-        extracted = Extract.getFiles(raw)
+        extracted = Extract.get_files(raw)
         if extracted is None:
-            self.Push.Failure("Unable to extract files: %s"
+            self.push.failure("Unable to extract files: %s"
                               % self.args['name'])
             return None
         # Send files back to handler
@@ -189,13 +161,14 @@ Media types:
 
     # ======== MAIN FILE HANDLER ======== #
 
-    def __fileHandler(self, files):
+    def __file_handler(self, files):
+        '''Handle files by type'''
         logging.info("Starting files handler")
-        addedFiles = []
+        added_files = []
         # Process books first
         if self.args['type'] == "Books" or self.args['type'] == "Audiobooks":
-            addedFile = self.__addBook(files)
-            addedFiles.append(addedFile)
+            added_file = self.__addBook(files)
+            added_files.append(added_file)
         # Then check for folders/files
         elif path.isfile(files):
             # Single file, treat differently
@@ -206,123 +179,79 @@ Media types:
                 # Send to extractor
                 if (self.settings['TV']['enabled'] or
                    self.settings['Movies']['enabled']):
-                    getFiles = self.__extractFiles(files)
+                    get_files = self.__extract_files(files)
                     # Check for failure
-                    if getFiles is None:
+                    if get_files is None:
                         return None
                     # Rescan files
-                    self.__fileHandler(getFiles)
+                    self.__file_handler(get_files)
             # otherwise treat like other files
             if self.args['type'] == "Music":
-                addedFile = self.__addMusic(files, True)
-                addedFiles.append(addedFile)
+                added_file = self.__add_music(files, True)
+                added_files.append(added_file)
             else:
                 # Set single file as source
                 src = files
                 # Move file
-                videoInfo = self.__addVideo(src)
+                video_info = self.__add_video(src)
                 # Check for problems
-                if videoInfo is None:
+                if video_info is None:
                     return
-                addedFile = videoInfo
-                addedFiles.append(addedFile)
+                added_file = video_info
+                added_files.append(added_file)
         else:
             # Otherwise process as folder
             logging.debug("Proecessing as a folder")
             if self.args['type'] == "Music":
-                addedFile = self.__addMusic(files)
-                addedFiles.append(addedFile)
+                added_file = self.__add_music(files)
+                added_files.append(added_file)
             else:
                 # Get a list of files
-                fileList = listdir(files)
+                file_list = listdir(files)
                 # Locate video file in folder
-                for f in fileList:
+                for f in file_list:
                     # Look for file types we want
                     if search(r"\.(mkv|avi|m4v|mp4)$", f, I):
                         # Set info
-                        fileName = f
-                        src = files+'/'+fileName
+                        file_name = f
+                        src = files+'/'+file_name
                         # Move file
-                        videoInfo = self.__addVideo(src)
+                        video_info = self.__add_video(src)
                         # Check for problems
-                        if videoInfo is None:
+                        if video_info is None:
                             return
-                        addedFile = videoInfo
-                        addedFiles.append(addedFile)
+                        added_file = video_info
+                        added_files.append(added_file)
         # Remove old files
         if not self.settings['General']['keep_files']:
             if path.exists(files):
                 logging.debug("Removing extra files")
                 rmtree(files)
         # Send success notification
-        self.Push.Success(addedFiles)
+        self.push.success(added_files)
         # Finish
-        return addedFiles
-
-    # ======== GET ARGUMENTS ======== #
-
-    def __getArguments(self):
-        useDeluge = False
-        # Parse args
-        try:
-            (optlist, getArgs) = getopt(sys.argv[1:], 'f:c:t:')
-        except GetoptError as err:
-            print str(err)
-            self.__showUsage(2)
-        # Check for failure conditions
-        if len(optlist) > 0 and len(getArgs) > 0:
-            self.__showUsage(2)
-        if len(optlist) == 0 and len(getArgs) == 0:
-            self.__showUsage(2)
-        # Check for deluge
-        if len(getArgs) == 3:
-            # Treat like deluge
-            useDeluge = True
-            newArgs = {
-                'hash': getArgs[0],
-                'name': getArgs[1],
-                'path': getArgs[2]
-            }
-        elif len(getArgs) > 0:
-            self.__showUsage(2)
-        # Check for CLI
-        if len(optlist) > 0:
-            newArgs = {}
-            f = False
-            for o, a in optlist:
-                if o == '-f':
-                    f = True
-                    newArgs['media'] = a
-                if o == '-c':
-                    newArgs['config'] = a
-                if o == '-t':
-                    if a not in self.typesList:
-                        self.Push.Failure('Media type %s not recognized' % a)
-                    newArgs['type'] = a
-            if not f:
-                print 'option -f not specified'
-                self.__showUsage(2)
-        return useDeluge, newArgs
+        return added_files
 
     # ======== HANDLE MEDIA ======== #
 
-    def __handleMedia(self, useDeluge):
+    def __handle_media(self, use_deluge):
+        '''Sort args based on input'''
         logging.debug("Inputs: %s", self.args)
         # Determing if using deluge or not
-        if useDeluge:
+        if use_deluge:
             logging.info("Processing from deluge")
             # Make sure path exists
             if not path.exists(self.args['path']):
                 # There was a problem, no files found
-                self.Push.Failure("No media files found: %s"
+                self.push.failure("No media files found: %s"
                                   % self.args['name'])
             # Extract media type from path
-            findType = search(r"^(.*)?\/(.*)$", self.args['path'], I)
-            if findType:
-                self.args['type'] = findType.group(2)
+            find_type = search(r"^(.*)?\/(.*)$", self.args['path'], I)
+            if find_type:
+                self.args['type'] = find_type.group(2)
                 # Check is valid type
-                if self.args['type'] not in self.typesList:
-                    self.Push.Failure(
+                if self.args['type'] not in mh.typeslist:
+                    self.push.failure(
                         'Media type %s not recognized' % self.args['type'])
                 logging.debug("Type detected: %s", self.args['type'])
             else:
@@ -330,85 +259,87 @@ Media types:
                 if self.settings['Deluge']['enabled']:
                     # Remove torrent
                     import extras.torrent
-                    extras.torrent.removeTorrent(
+                    extras.torrent.remove_torrent(
                         self.settings['Deluge'],
                         self.args['hash'])
                 # Notify about failure
-                self.Push.Failure(
+                self.push.failure(
                     "No type specified for download: %s" % self.args['name'])
         else:
             logging.info("Processing from command line")
             # Make sure path exists
-            if not path.exists(self.args['media']):
+            media_dir = path.dirname(self.args['media'])
+            if not path.exists(media_dir):
                 # There was a problem, no files found
-                self.Push.Failure("No media files found: %s"
+                self.push.failure("No media files found: %s"
                                   % self.args['name'])
             # Extract info from path
-            parsePath = search(r"^((.*)?\/(.*))\/(.*)$",
-                               self.args['media'], I)
-            if parsePath:
-                self.args['path'] = parsePath.group(1)
-                self.args['name'] = parsePath.group(4)
+            parse_path = search(r"^((.*)?\/(.*))\/(.*)$",
+                                media_dir, I)
+            if parse_path:
+                self.args['path'] = parse_path.group(1)
+                self.args['name'] = parse_path.group(4)
                 # Look for custom type
                 if 'type' not in self.args.keys():
-                    self.args['type'] = parsePath.group(3)
-                    if self.args['type'] not in self.typesList:
-                            self.Push.Failure(
-                                'Media type %s not recognized' %
-                                self.args['type'])
-                logging.debug("Type detected: %s", self.args)
+                    self.args['type'] = parse_path.group(3)
+                    if self.args['type'] not in mh.typeslist:
+                        self.push.failure(
+                            'Media type %s not recognized' %
+                            self.args['type'])
+                logging.debug("Type detected: %s", self.args['type'])
             else:
                 logging.debug("No type detected")
                 # Notify about failure
-                self.Push.Failure(
+                self.push.failure(
                     "No type or name specified for media: %s" %
                     self.args['name'])
         # Check that file was downloaded
-        filePath = self.args['path'] + "/" + self.args['name']
-        if path.exists(filePath):
-            if self.settings['Deluge']['enabled']:
+        file_path = self.args['path'] + "/" + self.args['name']
+        if path.exists(file_path):
+            if self.settings['Deluge']['enabled'] and use_deluge:
                 # Remove torrent
                 import extras.torrent as Torrent
-                Torrent.removeTorrent(
+                Torrent.remove_torrent(
                     self.settings['Deluge'],
                     self.args['hash'])
             # Send to handler
-            newFiles = self.__fileHandler(filePath)
+            new_files = self.__file_handler(file_path)
         else:
             # There was a problem, no files found
-            self.Push.Failure("No media files found: %s" % self.args['name'])
-        return newFiles
+            self.push.failure("No media files found: %s" % self.args['name'])
+        return new_files
 
     # ======== MAIN ADD MEDIA FUNCTION ======== #
 
-    def addMedia(self):
+    def addmedia(self):
+        '''Main function'''
         # Get arguments
-        (useDeluge, self.args) = self.__getArguments()
+        (use_deluge, self.args) = get_arguments()
         # User-provided path
-        __newPath = None
+        __new_path = None
         # Check for user-specified config
         if 'config' in self.args.keys():
-            __newPath = self.args['config']
+            __new_path = self.args['config']
         # Set paths
-        __configPath = makeConfig(__newPath)
+        __config_path = makeconfig(__new_path)
         # Get settings from config
-        self.settings = getConfig(__configPath)
+        self.settings = getconfig(__config_path)
         # Set up notify instance
-        self.Push = Notify.Push(self.settings['Pushover'])
+        self.push = Notify.push(self.settings['Pushover'])
         # Start main function
-        newFiles = self.__handleMedia(useDeluge)
+        new_files = self.__handle_media(use_deluge)
         # Exit
-        return newFiles
+        return new_files
 
 
 # ======== COMMAND LINE ======== #
 
 if __name__ == '__main__':
     h = Handler()
-    addedFiles = h.addMedia()
-    if len(addedFiles) > 0:
+    added_files = h.addmedia()
+    if len(added_files) > 0:
         print "\nMedia successfully added!\n"
-        for a in addedFiles:
+        for a in added_files:
             print "\t%s" % str(a)
         print "\n"
     else:

@@ -13,6 +13,16 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
+'''Initialize module'''
 
 __version__ = '1.0'
 __author__ = 'Erin Morelli <erin@erinmorelli.com>'
+
+
+typeslist = ['TV',
+             'TV Shows',
+             'Television',
+             'Movies',
+             'Music',
+             'Books',
+             'Audiobooks']

@@ -19,7 +19,7 @@
 
 import logging
 from os import path
-from media import getInfo
+from types import getInfo
 from re import escape, search, sub
 
 

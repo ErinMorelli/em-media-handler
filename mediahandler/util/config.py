@@ -13,6 +13,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
+'''Configuration file handler'''
 
 
 # ======== IMPORT MODULES ======== #
@@ -25,37 +26,39 @@ from ConfigParser import ConfigParser
 
 # ======== LOOK FOR MODULE ======== #
 
-def __findModule(parentMod, subMod):
+def __find_module(parent_mod, sub_mod):
+    '''Look to see if module is installed'''
     try:
-        modInfo = imp.find_module(parentMod)
-        mod = imp.load_module(parentMod, *modInfo)
-        imp.find_module(subMod, mod.__path__)
+        mod_info = imp.find_module(parent_mod)
+        mod = imp.load_module(parent_mod, *mod_info)
+        imp.find_module(sub_mod, mod.__path__)
         return True
     except ImportError:
-        errMsg = 'Module %s.%s is not installed' % (parentMod, subMod)
-        raise ImportError(errMsg)
+        err_msg = 'Module %s.%s is not installed' % (parent_mod, sub_mod)
+        raise ImportError(err_msg)
 
 
 # ======== LOGGING ======== #
 
-def __initLogging(settings):
+def __init_logging(settings):
+    '''Turn on logging'''
     # Set defaults
-    logFile = '%s/logs/mediaHandler.log' % path.expanduser("~")
-    logLevel = 40
+    log_file = '%s/logs/mediaHandler.log' % path.expanduser("~")
+    log_level = 40
     # Look for exceptions
     if settings['Logging']['file_path'] is not None:
-        logFile = settings['Logging']['file_path']
+        log_file = settings['Logging']['file_path']
     if settings['Logging']['level'] is not None:
-        logLevel = int(settings['Logging']['level'])
+        log_level = int(settings['Logging']['level'])
     # Make sure log file dir exists
-    logPath = path.dirname(logFile)
-    if not path.exists(logPath):
-        makedirs(logPath)
+    log_path = path.dirname(log_file)
+    if not path.exists(log_path):
+        makedirs(log_path)
     # Config logging
     logging.basicConfig(
-        filename=logFile,
+        filename=log_file,
         format='%(asctime)s - %(filename)s - %(levelname)s - %(message)s',
-        level=logLevel,
+        level=log_level,
     )
     # Enable deluge logging
     if settings['Deluge']['enabled']:
@@ -66,18 +69,19 @@ def __initLogging(settings):
 
 # ======== CHECK MODULES ======== #
 
-def __checkModules(settings):
+def __check_modules(settings):
+    '''Check that needed modules are installed'''
     # Check for logging
     if settings['Logging']['enabled']:
-        __initLogging(settings)
+        __init_logging(settings)
         logging.info('Logging enabled')
     # Check deluge requirements
     if settings['Deluge']['enabled']:
         # Check for Twisted
-        __findModule('twisted', 'internet')
+        __find_module('twisted', 'internet')
         # Check for Deluge
-        __findModule('deluge', 'ui')
-        __findModule('deluge', 'log')
+        __find_module('deluge', 'ui')
+        __find_module('deluge', 'log')
     # Check video requirements
     if settings['TV']['enabled'] or settings['Movies']['enabled']:
         # Check for Filebot
@@ -87,16 +91,16 @@ def __checkModules(settings):
     # Check music requirements
     if settings['Music']['enabled']:
         # Check for Beets
-        __findModule('beets', 'util')
+        __find_module('beets', 'util')
     # Check audiobook requirements
     if settings['Audiobooks']['enabled']:
         # Check for Google API
-        __findModule('apiclient', 'discovery')
+        __find_module('apiclient', 'discovery')
         # Is chaptering enabled
         if settings['Audiobooks']['make_chapters']:
             # Check for Mutagen
-            __findModule('mutagen', 'mp3')
-            __findModule('mutagen', 'ogg')
+            __find_module('mutagen', 'mp3')
+            __find_module('mutagen', 'ogg')
             # Check fo ABC
             if not path.isfile('/usr/bin/abc.php'):
                 raise ImportError('ABC application not found')
@@ -105,50 +109,50 @@ def __checkModules(settings):
 
 # ======== PARSE CONFIG FILE ======== #
 
-def getConfig(configFile):
+def getconfig(config_file):
+    '''Read config file'''
     # Bool options
-    __boolOptions = ["enabled",
-                     "keep_files",
-                     "make_chapters"]
+    __bool_options = ["enabled",
+                      "keep_files",
+                      "make_chapters"]
     # Read config file
-    Config = ConfigParser()
-    Config.read(configFile)
+    config = ConfigParser()
+    config.read(config_file)
     # Loop through sections
     settings = {}
-    sections = Config.sections()
+    sections = config.sections()
     for section in sections:
         # Loop through options
-        newOptions = {}
-        options = Config.options(section)
+        new_options = {}
+        options = config.options(section)
         for option in options:
-            try:
-                if option in __boolOptions:
-                    newOptions[option] = Config.getboolean(section, option)
-                else:
-                    newOptions[option] = Config.get(section, option)
-            except:
-                newOptions[option] = None
+            new_options[option] = None
+            if option in __bool_options:
+                new_options[option] = config.getboolean(section, option)
+            else:
+                new_options[option] = config.get(section, option)
         # Populate hash
-        settings[section] = newOptions
+        settings[section] = new_options
     # Check that appropriate modules are installed
-    __checkModules(settings)
+    __check_modules(settings)
     # Return setting hash
     return settings
 
 
 # ======== MAKE CONFIG FILE ======== #
 
-def makeConfig(newFile):
+def makeconfig(new_file):
+    '''Generate default config file'''
     # Set default path
-    configFile = ('%s/.config/mediaHandler/mediaHandler.conf' %
-                  path.expanduser("~"))
+    config_file = ('%s/.config/mediaHandler/mediaHandler.conf' %
+                   path.expanduser("~"))
     # Check for user-provided path
-    if newFile is not None:
-        configFile = newFile
+    if new_file is not None:
+        config_file = new_file
     # Check that config exists
-    if path.isfile(configFile):
+    if path.isfile(config_file):
         # Check config file permissions
-        if not access(configFile, R_OK):
+        if not access(config_file, R_OK):
             raise Warning('Configuration file cannot be opened')
     else:
         config = ConfigParser()
@@ -193,11 +197,11 @@ def makeConfig(newFile):
         config.set('Audiobooks', 'make_chapters', 'false')
         config.set('Audiobooks', 'chapter_length', '8')
         # Make directories for config file
-        configPath = path.dirname(configFile)
-        if not path.exists(configPath):
-            makedirs(configPath)
+        config_path = path.dirname(config_file)
+        if not path.exists(config_path):
+            makedirs(config_path)
         # Write new configuration file to path
-        with open(configFile, 'wb') as configFileOpen:
-            config.write(configFileOpen)
+        with open(config_file, 'wb') as config_file_open:
+            config.write(config_file_open)
     # Return with path to file
-    return configFile
+    return config_file
