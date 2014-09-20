@@ -13,9 +13,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-
-__version__ = '1.0'
-__author__ = 'Erin Morelli <erin@erinmorelli.com>'
+'''Media types module'''
 
 
 # ======== IMPORT MODULES ======== #
@@ -28,6 +26,7 @@ from subprocess import Popen, PIPE
 # ======== MEDIA MODULE SHARED FUNCTIONS ======== #
 
 def getinfo(m_format, m_db, file_path):
+    '''Get video info from filebot'''
     logging.info("Getting video media information")
     # Filebot Options
     __filebot = "/usr/bin/filebot"
@@ -36,16 +35,16 @@ def getinfo(m_format, m_db, file_path):
     __analytics = "-no-analytics"
     # Set up query
     m_cmd = [__filebot,
-            "-rename", file_path,
-            "--db", m_db,
-            "--format", m_format,
-            "--action", __action.lower(),
-            __strict, __analytics]
+             "-rename", file_path,
+             "--db", m_db,
+             "--format", m_format,
+             "--action", __action.lower(),
+             __strict, __analytics]
     logging.debug("Query: %s", m_cmd)
     # Process query
-    p = Popen(m_cmd, stdout=PIPE)
+    m_open = Popen(m_cmd, stdout=PIPE)
     # Get output
-    (output, err) = p.communicate()
+    (output, err) = m_open.communicate()
     logging.debug("Query output: %s", output)
     logging.debug("Query return errors: %s", err)
     # Process output

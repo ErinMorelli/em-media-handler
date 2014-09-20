@@ -13,7 +13,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-
+'''Music media type module'''
 
 # ======== IMPORT MODULES ======== #
 
@@ -23,63 +23,54 @@ from os import path, makedirs
 from subprocess import Popen, PIPE
 
 
-# ======== CLASS DECLARTION ======== #
+# ======== ADD MUSIC ======== #
 
-class Music:
-
-    # ======== INIT MUSIC CLASS ======== #
-
-    def __init__(self, settings):
-        logging.info("Initializing renaming class")
-        # Beet Options
-        self.beet = "/usr/local/bin/beet"
-        self.beetslog = '%s/logs/beets.log' % path.expanduser("~")
-        # Check for custom path in settings
-        if settings['log_file'] != '':
-            self.beetslog = settings['log_file']
-            logging.debug("Using custom beets log: %s" % self.beetslog)
-        # Check that log file path exists
-        beetslog_dir = path.dirname(self.beetslog)
-        if not path.exists(beetslog_dir):
-            makedirs(beetslog_dir)
-
-    # ======== ADD MUSIC ======== #
-
-    def add_music(self, file_path, is_single=False):
-        logging.info("Starting music information handler")
-        # Set Variables
-        if is_single:
-            m_type = "Song"
-            m_tags = "-sql"
-            m_query = "Tagging track\:\s(.*)\nURL\:\n\s{1,4}(.*)\n"
-        else:
-            m_type = "Album"
-            m_tags = "-ql"
-            m_query = "(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n"
-        # Set up query
-        m_cmd = [self.beet,
-                "import", file_path,
-                m_tags, self.beetslog]
-        logging.debug("Query: %s", m_cmd)
-        # Process query
-        p = Popen(m_cmd, stdout=PIPE, stderr=PIPE)
-        # Get output
-        (output, err) = p.communicate()
-        logging.debug("Query output: %s", output)
-        logging.debug("Query return errors: %s", err)
-        # Process output
-        if err != '':
-            return None
-        # Check for skip
-        if re.search(r"(Skipping\.)\n", output):
-            logging.warning("Beets is skipping the import: %s" % output)
-            return None
-        # Extract Info
-        music_find = re.compile(m_query)
-        logging.debug("Search query: %s", m_query)
-        # Format data
-        music_data = music_find.search(output)
-        music_info = "%s: %s" % (m_type, music_data.group(2))
-        logging.info("MusicBrainz URL: %s" % music_data.group(3))
-        # Return music data
-        return music_info
+def get_music(file_path, settings, is_single=False):
+    '''Add music to beets library'''
+    logging.info("Starting music information handler")
+    # Beet Options
+    beet = "/usr/local/bin/beet"
+    beetslog = '%s/logs/beets.log' % path.expanduser("~")
+    # Check for custom path in settings
+    if settings['log_file'] != '':
+        beetslog = settings['log_file']
+        logging.debug("Using custom beets log: %s", beetslog)
+    # Check that log file path exists
+    beetslog_dir = path.dirname(beetslog)
+    if not path.exists(beetslog_dir):
+        makedirs(beetslog_dir)
+    # Set Variables
+    if is_single:
+        m_type = "Song"
+        m_tags = "-sql"
+        m_query = r"Tagging track\:\s(.*)\nURL\:\n\s{1,4}(.*)\n"
+    else:
+        m_type = "Album"
+        m_tags = "-ql"
+        m_query = r"(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n"
+    # Set up query
+    m_cmd = [beet,
+             "import", file_path,
+             m_tags, beetslog]
+    logging.debug("Query: %s", m_cmd)
+    # Process query
+    m_open = Popen(m_cmd, stdout=PIPE, stderr=PIPE)
+    # Get output
+    (output, err) = m_open.communicate()
+    logging.debug("Query output: %s", output)
+    logging.debug("Query return errors: %s", err)
+    # Process output
+    if err != '':
+        return None
+    # Check for skip
+    if re.search(r"(Skipping\.)\n", output):
+        logging.warning("Beets is skipping the import: %s", output)
+        return None
+    # Extract Info
+    music_find = re.compile(m_query)
+    logging.debug("Search query: %s", m_query)
+    # Format data
+    music_data = music_find.search(output)
+    logging.info("MusicBrainz URL: %s", music_data.group(3))
+    # Return music data
+    return "%s: %s" % (m_type, music_data.group(2))

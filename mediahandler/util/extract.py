@@ -13,6 +13,8 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
+'''File extraction module'''
+
 
 # ======== IMPORT MODULES ======== #
 
@@ -24,20 +26,21 @@ from subprocess import Popen, PIPE
 # ======== GET FILES ======== #
 
 def get_files(file_name):
+    '''Extract files'''
     logging.info("Getting files from compressed folder")
     # Filebot path
     __filebot = "/usr/bin/filebot"
     # Set up query
     m_cmd = [__filebot,
-            "-extract",
-            file_name]
+             "-extract",
+             file_name]
     logging.debug("Query: %s", m_cmd)
     # Process query
-    p = Popen(m_cmd, stdout=PIPE)
+    m_open = Popen(m_cmd, stdout=PIPE)
     # Get output
-    (output, err) = p.communicate()
-    logging.debug("Query output: %s", output)
-    logging.debug("Query return errors: %s", err)
+    (output, err) = m_open.communicate()
+    logging.debug("Filebot output: %s", output)
+    logging.debug("Filebot return errors: %s", err)
     # Process output
     file_info = search(r"Extracting files \[(.*)\]\n", output)
     if file_info is None:

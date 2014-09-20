@@ -13,6 +13,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
+'''Notification module'''
 
 
 # ======== IMPORT MODULES ======== #
@@ -25,16 +26,18 @@ from httplib import HTTPSConnection
 # ======== PUSH CLASS DECLARTION ======== #
 
 class Push:
-
+    '''Push notification class'''
     # ======== INIT NOTIFY CLASS ======== #
 
     def __init__(self, settings):
+        '''Initialize push notifications'''
         logging.info("Initializing notification class")
         self.settings = settings
 
     # ======== SEND MESSAGE VIA PUSHOVER ======== #
 
     def __send_message(self, conn_msg):
+        '''Send message'''
         logging.info("Sending push notification")
         # Initialize connection with pushover
         conn = HTTPSConnection("api.pushover.net:443")
@@ -72,6 +75,7 @@ class Push:
     # ======== SET SUCCESS INFO ======== #
 
     def success(self, file_array):
+        '''Success notification'''
         logging.info("Starting success notifications")
         # Format file list
         media_list = '\n    '.join(file_array)
@@ -88,6 +92,7 @@ class Push:
     # ======== SET ERROR INFO & EXIT ======== #
 
     def failure(self, error_details):
+        '''Failure notification'''
         logging.info("Starting failure notifications")
         # Set error message
         conn_text = '''There was an error reported:

@@ -21,7 +21,6 @@
 import sys
 import mediahandler as mh
 from getopt import getopt, GetoptError
-from mediahandler.util.notify import Push
 
 
 # ======== COMMAND LINE USAGE ======== #
@@ -44,7 +43,7 @@ Options:
 
 Media types:
         %s
-    ''' % (mh.__version__, mh.__author__, '\n\t'.join(mh.typeslist))
+    ''' % (mh.__version__, mh.__author__, '\n\t'.join(mh.__mediatypes__))
     # Output text
     print usage_text
     # Exit program
@@ -81,18 +80,18 @@ def get_arguments():
     # Check for CLI
     if len(optlist) > 0:
         new_args = {}
-        f = False
-        for o, a in optlist:
-            if o == '-f':
-                f = True
-                new_args['media'] = a
-            if o == '-c':
-                new_args['config'] = a
-            if o == '-t':
-                if a not in mh.typeslist:
-                    Push.failure('Media type %s not recognized' % a)
-                new_args['type'] = a
-        if not f:
+        f_flag = False
+        for opt, arg in optlist:
+            if opt == '-f':
+                f_flag = True
+                new_args['media'] = arg
+            if opt == '-c':
+                new_args['config'] = arg
+            if opt == '-t':
+                if arg not in mh.__mediatypes__:
+                    raise Warning('Media type not recognized: %s' % arg)
+                new_args['type'] = arg
+        if not f_flag:
             print 'option -f not specified'
             __show_usage(2)
     return use_deluge, new_args

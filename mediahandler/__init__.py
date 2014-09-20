@@ -19,7 +19,7 @@ __version__ = '1.0'
 __author__ = 'Erin Morelli <erin@erinmorelli.com>'
 
 
-typeslist = ['TV',
+__mediatypes__ = ['TV',
              'TV Shows',
              'Television',
              'Movies',

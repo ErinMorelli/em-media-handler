@@ -13,7 +13,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-
+'''Movie media type module'''
 
 # ======== IMPORT MODULES ======== #
 
@@ -23,44 +23,36 @@ from mediahandler.types import getinfo
 from re import escape, search
 
 
-# ======== CLASS DECLARTION ======== #
+# ======== GET MOVIE ======== #
 
-class Movie:
-
-    # ======== INIT MOVIE CLASS ======== #
-
-    def __init__(self, settings):
-        logging.info("Initializing renaming class")
-        # Default TV path
-        self.mov_path = '%s/Media/Movies' % path.expanduser("~")
-        # Check for custom path in settings
-        if settings['folder'] != '':
-            if path.exists(settings['folder']):
-                self.mov_path = settings['folder']
-                logging.debug("Using custom path: %s" % self.tv_path)
-
-    # ======== GET MOVIE ======== #
-
-    def get_movie(self, file_path):
-        logging.info("Starting movie information handler")
-        # Set Variables
-        mov_format = "%s/{n} ({y})" % self.mov_path
-        mov_db = "themoviedb"
-        # Get info
-        new_file = getinfo(mov_format, mov_db, file_path)
-        logging.debug("New file: %s", new_file)
-        # Check for failure
-        if new_file is None:
-            return None
-        # Set search query
-        epath = escape(self.mov_path)
-        mov_find = "%s\/(.*\(\d{4}\))\.\w{3}" % epath
-        logging.debug("Search query: %s", mov_find)
-        # Extract info
-        movie = search(mov_find, new_file)
-        if movie is None:
-            return None
-        # Set title
-        mov_title = movie.group(1)
-        # Return Movie Title
-        return mov_title, new_file
+def get_movie(file_path, settings):
+    '''Get movie information'''
+    logging.info("Starting movie information handler")
+    # Default TV path
+    mov_path = '%s/Media/Movies' % path.expanduser("~")
+    # Check for custom path in settings
+    if settings['folder'] != '':
+        if path.exists(settings['folder']):
+            mov_path = settings['folder']
+            logging.debug("Using custom path: %s", mov_path)
+    # Set Variables
+    mov_format = "%s/{n} ({y})" % mov_path
+    mov_db = "themoviedb"
+    # Get info
+    new_file = getinfo(mov_format, mov_db, file_path)
+    logging.debug("New file: %s", new_file)
+    # Check for failure
+    if new_file is None:
+        return None, None
+    # Set search query
+    epath = escape(mov_path)
+    mov_find = (r"%s\/(.*\(\d{4}\))\.\w{3}" % epath)
+    logging.debug("Search query: %s", mov_find)
+    # Extract info
+    movie = search(mov_find, new_file)
+    if movie is None:
+        return None, None
+    # Set title
+    mov_title = movie.group(1)
+    # Return Movie Title
+    return mov_title, new_file

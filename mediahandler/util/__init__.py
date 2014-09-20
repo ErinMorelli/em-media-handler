@@ -13,6 +13,4 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-
-__version__ = '1.0'
-__author__ = 'Erin Morelli <erin@erinmorelli.com>'
+'''Media handler utility module'''

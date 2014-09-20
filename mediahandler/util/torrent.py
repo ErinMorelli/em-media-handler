@@ -13,6 +13,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
+'''Torrent module'''
 
 
 # ======== IMPORT MODULES ======== #
@@ -26,9 +27,10 @@ from deluge.ui.client import client
 # ======== REMOVE TORRENT ======== #
 
 def remove_torrent(settings, torrent_hash):
+    '''Remove torrent'''
     logging.info("Removing torrent from Deluge")
     # Connect to Deluge daemon
-    d = client.connect(
+    deluge = client.connect(
         host=settings['host'],
         port=int(settings['port']),
         username=settings['user'],
@@ -37,9 +39,11 @@ def remove_torrent(settings, torrent_hash):
 
     # We create a callback function to be called upon a successful connection
     def on_connect_success(result):
-        logging.debug("Connection was successful!")
+        '''Connect success callback'''
+        logging.debug("Connection was successful: %s", result)
 
         def on_remove_torrent(success):
+            '''On remove callback'''
             if success:
                 logging.debug("Torrent remove successful")
             else:
@@ -49,6 +53,7 @@ def remove_torrent(settings, torrent_hash):
             reactor.stop()
 
         def on_get_session_state(torrents):
+            '''On session state callback'''
             found = False
             # Look for completed torrent in list
             for tor in torrents:
@@ -69,12 +74,13 @@ def remove_torrent(settings, torrent_hash):
         # Get list of current torrent hashes
         client.core.get_session_state().addCallback(on_get_session_state)
     # We add the callback to the Deferred object we got from connect()
-    d.addCallback(on_connect_success)
+    deluge.addCallback(on_connect_success)
 
     # To be called when an error is encountered
     def on_connect_fail(result):
+        '''Connect fail callback'''
         logging.error("Connection failed: %s", result)
     # We add the callback (in this case it's an errback, for error)
-    d.addErrback(on_connect_fail)
+    deluge.addErrback(on_connect_fail)
     # Run the twisted main loop to make everything go
     reactor.run()

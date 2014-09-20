@@ -13,7 +13,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-
+'''TV media type module'''
 
 # ======== IMPORT MODULES ======== #
 
@@ -23,53 +23,45 @@ from mediahandler.types import getinfo
 from re import escape, search, sub
 
 
-# ======== CLASS DECLARTION ======== #
+# ======== GET EPISODE ======== #
 
-class Episode:
-
-    # ======== INIT EPISODE CLASS ======== #
-
-    def __init__(self, settings):
-        logging.info("Initializing episode renaming class")
-        # Default TV path
-        self.tv_path = '%s/Media/Television' % path.expanduser("~")
-        # Check for custom path in settings
-        if settings['folder'] != '':
-            if path.exists(settings['folder']):
-                self.tv_path = settings['folder']
-                logging.debug("Using custom path: %s" % self.tv_path)
-
-    # ======== GET EPISODE ======== #
-
-    def get_episode(self, file_path):
-        logging.info("Starting episode information handler")
-        # Set Variables
-        tv_form = ("%s/{n}/Season {s}/{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}"
-                  % self.tv_path)
-        tv_db = "thetvdb"
-        # Get info
-        new_file = getinfo(tv_form, tv_db, file_path)
-        logging.debug("New file: %s", new_file)
-        # Check for failure
-        if new_file is None:
-            return None
-        # Set search query
-        epath = escape(self.tv_path)
-        tv_find = "%s\/(.*)\/(.*)\/.*\.S\d{2,4}E(\d{2,3}).\w{3}" % epath
-        logging.debug("Search query: %s", tv_find)
-        # Extract info
-        episode = search(tv_find, new_file)
-        if episode is None:
-            return None
-        # Show title
-        show_name = episode.group(1)
-        # Season
-        season = episode.group(2)
-        # Episode
-        ep_num = episode.group(3)
-        ep_num_fix = sub('^0', '', ep_num)
-        episode = "Episode %s" % ep_num_fix
-        # Set title
-        ep_title = "%s (%s, %s)" % (show_name, season, episode)
-        # Return Show Name, Season, Episode (file)
-        return ep_title, new_file
+def get_episode(file_path, settings):
+    '''Get TV episode information'''
+    logging.info("Starting episode information handler")
+    # Default TV path
+    tv_path = '%s/Media/Television' % path.expanduser("~")
+    # Check for custom path in settings
+    if settings['folder'] != '':
+        if path.exists(settings['folder']):
+            tv_path = settings['folder']
+            logging.debug("Using custom path: %s", tv_path)
+    # Set Variables
+    tv_form = ("%s/{n}/Season {s}/{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}"
+              % tv_path)
+    tv_db = "thetvdb"
+    # Get info
+    new_file = getinfo(tv_form, tv_db, file_path)
+    logging.debug("New file: %s", new_file)
+    # Check for failure
+    if new_file is None:
+        return None, None
+    # Set search query
+    epath = escape(tv_path)
+    tv_find = (r"%s\/(.*)\/(.*)\/.*\.S\d{2,4}E(\d{2,3}).\w{3}" % epath)
+    logging.debug("Search query: %s", tv_find)
+    # Extract info
+    episode = search(tv_find, new_file)
+    if episode is None:
+        return None, None
+    # Show title
+    show_name = episode.group(1)
+    # Season
+    season = episode.group(2)
+    # Episode
+    ep_num = episode.group(3)
+    ep_num_fix = sub('^0', '', ep_num)
+    episode = "Episode %s" % ep_num_fix
+    # Set title
+    ep_title = "%s (%s, %s)" % (show_name, season, episode)
+    # Return Show Name, Season, Episode (file)
+    return ep_title, new_file
