@@ -33,7 +33,7 @@ setup(
     license='GNU',
     platforms='Linux',
     description='A comprehensive media library organizer.',
-    long_description=open('README.txt').read(),
+    long_description=open('README.rst').read(),
 
     packages=[
         'mediahandler',
