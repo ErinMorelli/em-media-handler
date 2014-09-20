@@ -18,3 +18,5 @@ test.py
 mediaHandler.conf
 
 ._mediaHandler.conf
+
+build/

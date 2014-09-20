@@ -144,7 +144,7 @@ def getconfig(config_file):
 def makeconfig(new_file):
     '''Generate default config file'''
     # Set default path
-    config_file = ('%s/.config/mediaHandler/mediaHandler.conf' %
+    config_file = ('%s/.config/mediahandler/settings.conf' %
                    path.expanduser("~"))
     # Check for user-provided path
     if new_file is not None:

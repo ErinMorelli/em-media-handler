@@ -1,0 +1,9 @@
+# Basic txt and doc includes
+include *.txt
+recursive-include docs *.txt
+
+# Include blacklist
+include mediahandler/util/blacklist.txt
+
+# Exclude junk
+global-exclude .DS_Store
