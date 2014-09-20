@@ -1,5 +1,6 @@
 # Basic txt and doc includes
 include *.txt
+include README.rst
 recursive-include docs *.txt
 
 # Include blacklist

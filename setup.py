@@ -18,7 +18,6 @@
 
 # ======== IMPORT MODULES ======== #
 
-from os import path
 from distutils.core import setup
 from mediahandler.util.config import makeconfig
 
