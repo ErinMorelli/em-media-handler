@@ -89,9 +89,10 @@ def get_arguments():
                 new_args['config'] = arg
             if opt == '-t':
                 if arg not in mh.__mediatypes__:
-                    raise Warning('Media type not recognized: %s' % arg)
+                    print '\nERROR: Media type not recognized: %s' % arg
+                    __show_usage(2)
                 new_args['type'] = arg
         if not f_flag:
-            print 'option -f not specified'
+            print '\nERROR: Option -f not specified'
             __show_usage(2)
     return use_deluge, new_args

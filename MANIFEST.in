@@ -4,7 +4,7 @@ include README.rst
 recursive-include docs *.txt
 
 # Include blacklist
-include mediahandler/util/blacklist.txt
+include mediahandler/types/blacklist.txt
 
 # Exclude junk
 global-exclude .DS_Store

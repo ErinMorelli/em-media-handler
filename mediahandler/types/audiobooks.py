@@ -66,7 +66,7 @@ class Book:
                 logging.debug("Using custom path: %s", self.handler['path'])
         # Look for Google api key
         if settings['api_key'] != '':
-            self.handler['apiKey'] = settings['api_key']
+            self.handler['api_key'] = settings['api_key']
             logging.debug("Found Google Books API key")
         else:
             logging.warning("Google Books API key not found")
@@ -90,8 +90,8 @@ class Book:
         '''Clean up path string'''
         logging.info("Cleaning up path string")
         # Get query from folder path
-        find_book = re.search(r"^((.*)?\/(Books|Audiobooks)\/(.*))$", str_path)
-        string = find_book.group(4)
+        find_book = re.search(r"^((.*)?\/(.*))$", str_path)
+        string = find_book.group(3)
         logging.debug("Initial string: %s", string)
         # Save original path for later
         self.handler['origPath'] = find_book.group(1)
@@ -330,8 +330,8 @@ class Book:
                     new_name = self.book_info['short_title'] + book_part
                 # Set new file path
                 new_path = book_dir + '/' + new_name + '.m4b'
-                # Move & rename the files
-                move(start_path, new_path)
+                # Copy & rename the files
+                copy(start_path, new_path)
             else:
                 # Set non-chaptered file paths & formatting
                 start_path = self.handler['orig_path'] + '/' + book_file
@@ -393,8 +393,8 @@ class Book:
             logging.info("Google Book ID: %s", book['id'])
             new_book_info = {
                 'id': book['id'],
-                'shortTitle': book['volumeInfo']['title'],
-                'longTitle': long_title,
+                'short_title': book['volumeInfo']['title'],
+                'long_title': long_title,
                 'subtitle': subtitle,
                 'year': year,
                 'genre': category,
@@ -429,12 +429,12 @@ class Book:
         # Move & rename files
         move_success = self.__move_files(book_files,
                                          self.handler['make_chapters'])
-        logging.debug(move_success)
+        logging.debug("Move was successful: %s", move_success)
         # Verify success
         if not move_success:
             return None
         # format book title
-        book_title = ('"' + self.book_info['longTitle'] +
+        book_title = ('"' + self.book_info['long_title'] +
                       '" by ' + self.book_info['author'])
         logging.info("Book title: %s", book_title)
         # return new book title

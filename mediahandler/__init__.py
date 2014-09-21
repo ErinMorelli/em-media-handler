@@ -15,10 +15,11 @@
 # included in all copies or substantial portions of the Software.
 '''Initialize module'''
 
-__version__ = '1.0.0'
+__version__ = '0.1.0'
 __author__ = 'Erin Morelli <erin@erinmorelli.com>'
 
 
+# Globally acceptable media types
 __mediatypes__ = ['TV',
              'TV Shows',
              'Television',
