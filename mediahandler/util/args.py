@@ -31,7 +31,7 @@ def __show_usage(code):
 EM Media Handler v%s / by %s
 
 Usage:
-        mediaHandler.py -f /path/to/file [..options]
+        addmedia -f /path/to/file [..options]
 
 
 Options:
