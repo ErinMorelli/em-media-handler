@@ -4,6 +4,8 @@
 *.tmp
 *._*
 
+.coverage
+
 mediaHandler.sublime-project
 
 mediaHandler.sublime-workspace
