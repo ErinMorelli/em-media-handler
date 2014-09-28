@@ -35,6 +35,8 @@ setup(
     description='A comprehensive media library organizer.',
     long_description=open('README.rst').read(),
 
+    data_files=[('', ['mediahandler/types/blacklist.txt'])],
+
     packages=[
         'mediahandler',
         'mediahandler.types',
