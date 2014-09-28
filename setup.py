@@ -26,7 +26,7 @@ from mediahandler.util.config import makeconfig
 
 setup(
     name='MediaHandler',
-    version='1.0.0',
+    version='0.2.0',
     author='Erin Morelli',
     author_email='erin@erinmorelli.com',
     url='http://code.erinmorelli.com/mediahandler/',
@@ -34,14 +34,12 @@ setup(
     platforms='Linux',
     description='A comprehensive media library organizer.',
     long_description=open('README.rst').read(),
-
-    data_files=[('', ['mediahandler/types/blacklist.txt'])],
-
+    package_dir={'mediahandler': 'mediahandler'},
+    package_data={'mediahandler': ['types/blacklist.txt']},
     packages=[
         'mediahandler',
         'mediahandler.types',
         'mediahandler.util'],
-
     scripts=['addmedia'],
 )
 
