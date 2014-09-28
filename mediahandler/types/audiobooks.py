@@ -99,19 +99,22 @@ class Book:
         blacklist = [line.strip() for line in open(self.handler['blacklist'])]
         # Convert blacklist array to regex string
         blacklist = "|".join(blacklist)
+        # Remove blacklist words
+        count = 1
+        while count > 0:
+            (string, count) = re.subn(blacklist, " ", string, 0, re.I)
         # setup order of regexes
         regexes = [
-            blacklist,
-            r"\(.*\)",
             r"[\(\[\{].*[\)\]\}]",
             r"[^a-zA-Z ]",
+            r"[A-Z]{3,4}",
             r"\s{2,10}",
         ]
         # Loop through regexes
         for regex in regexes:
             count = 1
             while count > 0:
-                (string, count) = re.subn(regex, " ", string, 0, re.I)
+                (string, count) = re.subn(regex, " ", string)
         # return cleaned up string
         return string
 
