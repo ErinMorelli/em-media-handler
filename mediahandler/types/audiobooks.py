@@ -94,7 +94,7 @@ class Book:
         string = find_book.group(3)
         logging.debug("Initial string: %s", string)
         # Save original path for later
-        self.handler['origPath'] = find_book.group(1)
+        self.handler['orig_path'] = find_book.group(1)
         # Get blacklist items from file
         blacklist = [line.strip() for line in open(self.handler['blacklist'])]
         # Convert blacklist array to regex string
@@ -111,7 +111,7 @@ class Book:
         for regex in regexes:
             count = 1
             while count > 0:
-                (string, count) = re.subn(regex, " ", string)
+                (string, count) = re.subn(regex, " ", string, 0, re.I)
         # return cleaned up string
         return string
 
