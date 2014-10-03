@@ -383,7 +383,6 @@ class Book:
         # Return new file folder
         return new_folder
 
-
     # ======== GET BOOK INFO FROM GOOGLE ======== #
 
     def ask_google(self, query):
