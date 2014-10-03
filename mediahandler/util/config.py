@@ -21,7 +21,11 @@
 import imp
 import logging
 from os import path, makedirs, access, R_OK
-from ConfigParser import ConfigParser
+
+try:
+    from ConfigParser import ConfigParser
+except ImportError:
+    from configparser import ConfigParser
 
 
 # ======== LOOK FOR MODULE ======== #
@@ -201,7 +205,7 @@ def makeconfig(new_file):
         if not path.exists(config_path):
             makedirs(config_path)
         # Write new configuration file to path
-        with open(config_file, 'wb') as config_file_open:
+        with open(config_file, 'w') as config_file_open:
             config.write(config_file_open)
     # Return with path to file
     return config_file

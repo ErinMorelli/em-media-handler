@@ -2,7 +2,13 @@
 EM Media Handler
 ================
 :Author: `Erin Morelli <mailto:erin@erinmorelli.com>`_
-:Version: 1.0.0
+:Version: 0.2.0
+
+.. image:: https://api.travis-ci.org/ErinMorelli/MediaHandler.svg?branch=master
+  :target: https://travis-ci.org//ErinMorelli/MediaHandler
+
+.. image:: https://coveralls.io/repos/ErinMorelli/MediaHandler/badge.png?branch=master
+  :target: https://coveralls.io/r/ErinMorelli/MediaHandler?branch=master
 
 A comprehensive media handler for use with Deluge to manage TV Shows, Movies, Music, and Audiobooks. Integrates with push notifications via Pushover.
 
@@ -14,3 +20,5 @@ A comprehensive media handler for use with Deluge to manage TV Shows, Movies, Mu
 * `ABC <http://www.ausge.de/ausge-download/abc-info-english>`_
 * `Google Books API <https://developers.google.com/api-client-library/python/apis/books/v1>`_
 * `Mutagen <https://bitbucket.org/lazka/mutagen>`_
+
+
