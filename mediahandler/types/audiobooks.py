@@ -94,7 +94,7 @@ class Book:
         string = find_book.group(3)
         logging.debug("Initial string: %s", string)
         # Save original path for later
-        self.handler['orig_path'] = find_book.group(1)
+        self.handler['orig_path'] = find_book.group(2)
         # Get blacklist items from file
         blacklist = [line.strip() for line in open(self.handler['blacklist'])]
         # Convert blacklist array to regex string
@@ -179,8 +179,11 @@ class Book:
             array_chunk = int(ceil(len(file_array) / book_parts))
             logging.debug("Array chunks: %s", array_chunk)
             # Create array chunks
-            chunks = [file_array[x:x+array_chunk]
-                      for x in xrange(0, len(file_array), array_chunk)]
+            if array_chunk > 0:
+                chunks = [file_array[x:x+array_chunk]
+                          for x in xrange(0, len(file_array), array_chunk)]
+            else:
+                chunks = [file_array]
         return chunks
 
     # ======== CHAPTERIZE FILES  ======== #
@@ -264,8 +267,10 @@ class Book:
         is_chapterized = False
         to_chapterize = []
         book_files = []
-        # loop through all the files in dir
+        file_list = []
+        # Get list of files
         file_list = listdir(file_dir)
+        # loop through all the files in dir
         for item in sorted(file_list):
             # Look for file types we want
             good_file = re.search(self.handler['regex']['c'], item, re.I)
@@ -351,6 +356,32 @@ class Book:
         # return success and list of moved files
         return True
 
+    # ======== DEAL WITH SINGLE FILES ======== #
+
+    def __single_file(self, file_path, path_name):
+        '''Move single file into its own folder'''
+        logging.info("Handling as single file")
+        # Set root path
+        path_root = self.handler['orig_path']
+        # Set new folder
+        new_folder = path.join(path_root, path_name)
+        logging.debug("New folder: %s", new_folder)
+        # Create folder
+        if not path.exists(new_folder):
+                makedirs(new_folder)
+        # Get file name
+        name_query = r"^%s\/(.*)$" % re.escape(path_root)
+        name_search = re.search(name_query, file_path)
+        file_name = name_search.group(1)
+        # Set new path
+        new_path = new_folder + '/' + file_name
+        logging.debug("New path: %s", new_path)
+        # Move file
+        move(file_path, new_path)
+        # Return new file folder
+        return new_folder
+
+
     # ======== GET BOOK INFO FROM GOOGLE ======== #
 
     def ask_google(self, query):
@@ -416,6 +447,9 @@ class Book:
         # Parse string & get query
         refined = self.__clean_string(raw)
         logging.debug("Cleaned search string: %s", refined)
+        # Deal with single files
+        if path.isfile(raw):
+            raw = self.__single_file(raw, refined)
         # Get book info from Google
         self.book_info = self.ask_google(refined)
         logging.debug(self.book_info)
