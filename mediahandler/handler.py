@@ -196,7 +196,7 @@ class Handler:
             added_files.append(added_file)
         else:
             # Otherwise process as folder
-            logging.debug("Proecessing as a folder")
+            logging.debug("Processing as a folder")
             if self.args['type'] == "Music":
                 added_file = self.add_music(files)
                 added_files.append(added_file)
@@ -217,6 +217,10 @@ class Handler:
                             return
                         added_file = video_info
                         added_files.append(added_file)
+        # Make sure files were added
+        if len(added_files) == 0:
+            self.push.failure("No %s files found: %s"
+                              % (self.args['type'], self.args['type']))
         # Remove old files
         if not self.settings['General']['keep_files']:
             if path.exists(files):

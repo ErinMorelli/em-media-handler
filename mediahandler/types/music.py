@@ -41,11 +41,9 @@ def get_music(file_path, settings, is_single=False):
         makedirs(beetslog_dir)
     # Set Variables
     if is_single:
-        m_type = "Song"
         m_tags = "-sql"
         m_query = r"Tagging track\:\s(.*)\nURL\:\n\s{1,4}(.*)\n"
     else:
-        m_type = "Album"
         m_tags = "-ql"
         m_query = r"(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n"
     # Set up query
@@ -59,18 +57,25 @@ def get_music(file_path, settings, is_single=False):
     (output, err) = m_open.communicate()
     logging.debug("Query output: %s", output)
     logging.debug("Query return errors: %s", err)
-    # Process output
-    if err != '':
-        return None
     # Check for skip
-    if re.search(r"(Skipping\.)\n", output):
-        logging.warning("Beets is skipping the import: %s", output)
-        return None
+    skips = re.findall(r"(Skipping\.)\n", output)
+    logging.warning("Beets skipped %s items", len(skips))
     # Extract Info
     music_find = re.compile(m_query)
     logging.debug("Search query: %s", m_query)
     # Format data
-    music_data = music_find.search(output)
-    logging.info("MusicBrainz URL: %s", music_data.group(3))
-    # Return music data
-    return "%s: %s" % (m_type, music_data.group(2))
+    music_data = music_find.findall(output)
+    logging.info("Additions detected: %s", music_data)
+    # Get results
+    results = ''
+    if len(music_data) > 0:
+        for music_item in music_data:
+            results = results + ("%s\n\t" % music_item[1])
+    if len(skips) > 0:
+        results = results + ("\n%s items were skipped (see beets log)"
+                             % len(skips))
+    # Return error if nothing found
+    if len(skips) == 0 and len(music_data) == 0:
+        return None
+    # Return results
+    return results
