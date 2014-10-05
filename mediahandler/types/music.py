@@ -59,7 +59,7 @@ def get_music(file_path, settings, is_single=False):
     logging.debug("Query return errors: %s", err)
     # Check for skip
     skips = re.findall(r"(Skipping\.)\n", output)
-    logging.warning("Beets skipped %s items", len(skips))
+    logging.info("Beets skipped %s items", len(skips))
     # Extract Info
     music_find = re.compile(m_query)
     logging.debug("Search query: %s", m_query)

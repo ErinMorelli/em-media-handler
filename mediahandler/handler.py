@@ -219,7 +219,7 @@ class Handler:
                         added_files.append(added_file)
         # Make sure files were added
         if len(added_files) == 0:
-            self.push.failure("No %s files found: %s"
+            self.push.failure("No %s files found for: %s"
                               % (self.args['type'], self.args['name']))
         # Remove old files
         if not self.settings['General']['keep_files']:
