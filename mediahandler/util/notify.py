@@ -36,7 +36,7 @@ class Push:
 
     # ======== SEND MESSAGE VIA PUSHOVER ======== #
 
-    def __send_message(self, conn_msg):
+    def send_message(self, conn_msg):
         '''Send message'''
         logging.info("Sending push notification")
         # Initialize connection with pushover
