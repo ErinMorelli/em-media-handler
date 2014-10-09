@@ -86,7 +86,7 @@ class Push:
         # If push notifications enabled
         if self.settings['enabled']:
             # Send message
-            self.__send_message(conn_text)
+            self.send_message(conn_text)
         logging.warning(conn_text)
 
     # ======== SET ERROR INFO & EXIT ======== #
@@ -101,7 +101,7 @@ class Push:
         # If push notifications enabled
         if self.settings['enabled']:
             # Send message
-            self.__send_message(conn_text)
+            self.send_message(conn_text)
         # Raise python warning
         logging.warning(error_details)
         raise Warning(error_details)
