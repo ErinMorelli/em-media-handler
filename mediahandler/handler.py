@@ -20,7 +20,7 @@
 import logging
 from re import search, I
 from shutil import rmtree
-from os import path, listdir
+from os import path, listdir, remove
 import mediahandler as mh
 import mediahandler.util.notify as Notify
 from mediahandler.util.config import getconfig, makeconfig
@@ -155,6 +155,7 @@ class Handler:
         '''Process single files'''
         # Single file, treat differently
         logging.debug("Processing as a single file")
+        self.settings['is_single'] = True 
         # Look for zipped file first
         if search(r".(zip|rar|7z)$", files, I):
             logging.debug("Zipped file type detected")
@@ -197,6 +198,8 @@ class Handler:
         else:
             # Otherwise process as folder
             logging.debug("Processing as a folder")
+            self.settings['is_single'] = False
+            # Check for music
             if self.args['type'] == "Music":
                 added_file = self.add_music(files)
                 added_files.append(added_file)
@@ -224,8 +227,12 @@ class Handler:
         # Remove old files
         if not self.settings['General']['keep_files']:
             if path.exists(files):
-                logging.debug("Removing extra files")
-                rmtree(files)
+                if self.settings['is_single']:
+                    logging.debug("Removing extra single file")
+                    remove(files)
+                else:
+                    logging.debug("Removing extra files folder")
+                    rmtree(files)
         # Send success notification
         self.push.success(added_files)
         # Finish
