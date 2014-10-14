@@ -176,7 +176,6 @@ class Handler:
             src = files
             # Move file
             video_info = self.add_video(src)
-            logging.debug("Added video: %s", video_info)
             # Check for problems
             if video_info is None:
                 return
@@ -237,7 +236,6 @@ class Handler:
         else:
             added_file = self.__process_folder(files)
             added_files.append(added_file)
-        logging.debug("Added files: %s", added_files)
         # Make sure files were added
         if len(added_files) == 0:
             self.push.failure("No %s files found for: %s"
@@ -339,7 +337,8 @@ class Handler:
             new_files = self.__file_handler(file_path)
             # Check that files were returned
             if new_files is None:
-                self.push.failure("No media files found: %s" % self.args['name'])
+                self.push.failure("No media files found: %s" %
+                                  self.args['name'])
         else:
             # There was a problem, no files found
             self.push.failure("No media files found: %s" % self.args['name'])

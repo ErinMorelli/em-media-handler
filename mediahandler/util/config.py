@@ -91,7 +91,7 @@ def __check_modules(settings):
         settings['has_filebot'] = False
         # Check for Filebot
         if (not path.isfile('/usr/bin/filebot') and
-           not path.isfile('/usr/local/bin/filebot')):
+                not path.isfile('/usr/local/bin/filebot')):
             raise ImportError('Filebot application not found')
         else:
             settings['has_filebot'] = True

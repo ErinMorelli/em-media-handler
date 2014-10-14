@@ -345,8 +345,9 @@ class Book:
             else:
                 # Set non-chaptered file paths & formatting
                 start_path = self.handler['orig_path'] + '/' + book_file
-                new_path = ("%s/%02d - %s.%s" % (book_dir, i+1,
-                            new_name, self.handler['file_type']))
+                new_path = ("%s/%02d - %s.%s" %
+                            (book_dir, i+1, new_name,
+                             self.handler['file_type']))
                 # Copy the files
                 copy(start_path, new_path)
             logging.debug("Start path: %s", start_path)
@@ -370,7 +371,7 @@ class Book:
         logging.debug("New folder: %s", new_folder)
         # Create folder
         if not path.exists(new_folder):
-                makedirs(new_folder)
+            makedirs(new_folder)
         # Get file name
         name_query = r"^%s\/(.*)$" % re.escape(path_root)
         name_search = re.search(name_query, file_path)

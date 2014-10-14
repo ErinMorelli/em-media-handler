@@ -37,7 +37,7 @@ def get_episode(file_path, settings):
             logging.debug("Using custom path: %s", tv_path)
     # Set Variables
     tv_form = ("%s/{n}/Season {s}/{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}"
-              % tv_path)
+               % tv_path)
     tv_db = "thetvdb"
     # Get info
     new_file = getinfo(tv_form, tv_db, file_path)
