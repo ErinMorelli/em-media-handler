@@ -88,10 +88,13 @@ def __check_modules(settings):
         __find_module('deluge', 'log')
     # Check video requirements
     if settings['TV']['enabled'] or settings['Movies']['enabled']:
+        settings['has_filebot'] = False
         # Check for Filebot
         if (not path.isfile('/usr/bin/filebot') and
            not path.isfile('/usr/local/bin/filebot')):
             raise ImportError('Filebot application not found')
+        else:
+            settings['has_filebot'] = True
     # Check music requirements
     if settings['Music']['enabled']:
         # Check for Beets

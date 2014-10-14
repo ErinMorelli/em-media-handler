@@ -155,19 +155,7 @@ class Handler:
         '''Process single files'''
         # Single file, treat differently
         logging.debug("Processing as a single file")
-        self.settings['is_single'] = True 
-        # Look for zipped file first
-        if search(r".(zip|rar|7z)$", files, I):
-            logging.debug("Zipped file type detected")
-            # Send to extractor
-            if (self.settings['TV']['enabled'] or
-               self.settings['Movies']['enabled']):
-                get_files = self.__extract_files(files)
-                # Check for failure
-                if get_files is None:
-                    return None
-                # Rescan files
-                self.__file_handler(get_files)
+        self.settings['is_single'] = True
         # otherwise treat like other files
         if self.args['type'] == "Music":
             return self.add_music(files, True)
@@ -181,12 +169,50 @@ class Handler:
                 return
             return video_info
 
+    # ======== FOLDER HANDLER ======== #
+
+    def __process_folder(self, files):
+        '''Process as folder'''
+        # Otherwise process as folder
+        logging.debug("Processing as a folder")
+        self.settings['is_single'] = False
+        # Check for music
+        if self.args['type'] == "Music":
+            return self.add_music(files)
+        else:
+            # Get a list of files
+            file_list = listdir(files)
+            # Locate video file in folder
+            for item in file_list:
+                # Look for file types we want
+                if search(r"\.(mkv|avi|m4v|mp4)$", item, I):
+                    # Set info
+                    file_name = item
+                    src = files+'/'+file_name
+                    # Move file
+                    video_info = self.__add_video(src)
+                    # Check for problems
+                    if video_info is None:
+                        return
+                    return video_info
+
     # ======== MAIN FILE HANDLER ======== #
 
     def __file_handler(self, files):
         '''Handle files by type'''
         logging.info("Starting files handler")
         added_files = []
+        # Look for zipped file first
+        if search(r".(zip|rar|7z)$", files, I):
+            logging.debug("Zipped file type detected")
+            # Send to extractor
+            if self.settings['has_filebot']:
+                get_files = self.__extract_files(files)
+                # Check for failure
+                if get_files is None:
+                    return None
+                # Rescan files
+                self.__file_handler(get_files)
         # Process books first
         if self.args['type'] == "Books" or self.args['type'] == "Audiobooks":
             added_file = self.add_book(files)
@@ -196,30 +222,8 @@ class Handler:
             added_file = self.__single_file(files)
             added_files.append(added_file)
         else:
-            # Otherwise process as folder
-            logging.debug("Processing as a folder")
-            self.settings['is_single'] = False
-            # Check for music
-            if self.args['type'] == "Music":
-                added_file = self.add_music(files)
-                added_files.append(added_file)
-            else:
-                # Get a list of files
-                file_list = listdir(files)
-                # Locate video file in folder
-                for item in file_list:
-                    # Look for file types we want
-                    if search(r"\.(mkv|avi|m4v|mp4)$", item, I):
-                        # Set info
-                        file_name = item
-                        src = files+'/'+file_name
-                        # Move file
-                        video_info = self.__add_video(src)
-                        # Check for problems
-                        if video_info is None:
-                            return
-                        added_file = video_info
-                        added_files.append(added_file)
+            added_file = self.__process_folder(files)
+            added_files.append(added_file)
         # Make sure files were added
         if len(added_files) == 0:
             self.push.failure("No %s files found for: %s"
