@@ -19,6 +19,7 @@
 # ======== IMPORT MODULES ======== #
 
 import logging
+from os import path
 from re import search
 from subprocess import Popen, PIPE
 
@@ -42,11 +43,11 @@ def get_files(file_name):
     logging.debug("Filebot output: %s", output)
     logging.debug("Filebot return errors: %s", err)
     # Process output
-    file_info = search(r"Extracting files \[(.*)\]\n", output)
+    file_info = search(r"extract to \[(.*)\]\n", output)
     if file_info is None:
         return None
-    extracted = file_info.group(1)
-    # Break into array
-    new_files = extracted.split(", ")
-    # Return array of extracted files
+    # Set new files
+    new_files = file_info.group(1)
+    logging.debug("Extracted files: %s", new_files)
+    # Return path of extracted files
     return new_files

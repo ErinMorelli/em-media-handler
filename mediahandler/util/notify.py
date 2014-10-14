@@ -19,6 +19,7 @@
 # ======== IMPORT MODULES ======== #
 
 import logging
+import sys
 from urllib import urlencode
 from httplib import HTTPSConnection
 
@@ -29,10 +30,11 @@ class Push:
     '''Push notification class'''
     # ======== INIT NOTIFY CLASS ======== #
 
-    def __init__(self, settings):
+    def __init__(self, settings, is_deluge):
         '''Initialize push notifications'''
         logging.info("Initializing notification class")
         self.settings = settings
+        self.is_deluge = is_deluge
 
     # ======== SEND MESSAGE VIA PUSHOVER ======== #
 
@@ -87,7 +89,15 @@ class Push:
         if self.settings['enabled']:
             # Send message
             self.send_message(conn_text)
+        # If via CLI, print a message as well
+        if not self.is_deluge:
+            print "\nMedia successfully added!\n"
+            for added_file in file_array:
+                print "\t%s" % str(added_file)
+            print "\n"
+        # Exit
         logging.warning(conn_text)
+        sys.exit(1)
 
     # ======== SET ERROR INFO & EXIT ======== #
 

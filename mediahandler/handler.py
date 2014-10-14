@@ -138,6 +138,7 @@ class Handler:
     def extract_files(self, raw):
         '''Send files to be extracted'''
         logging.info("Extracting files from compressed file")
+        self.settings['extracted'] = raw
         # Import extract module
         import mediahandler.util.extract as Extract
         # Send to handler
@@ -156,6 +157,17 @@ class Handler:
         # Single file, treat differently
         logging.debug("Processing as a single file")
         self.settings['is_single'] = True
+        # Look for zipped file first
+        if search(r".(zip|rar|7z)$", files, I):
+            logging.debug("Zipped file type detected")
+            # Send to extractor
+            if self.settings['has_filebot']:
+                get_files = self.extract_files(files)
+                # Check for failure
+                if get_files is None:
+                    return None
+                # Rescan files
+                self.__file_handler(get_files)
         # otherwise treat like other files
         if self.args['type'] == "Music":
             return self.add_music(files, True)
@@ -164,6 +176,7 @@ class Handler:
             src = files
             # Move file
             video_info = self.add_video(src)
+            logging.debug("Added video: %s", video_info)
             # Check for problems
             if video_info is None:
                 return
@@ -176,12 +189,23 @@ class Handler:
         # Otherwise process as folder
         logging.debug("Processing as a folder")
         self.settings['is_single'] = False
+        # Get a list of files
+        file_list = listdir(files)
+        # Look for zipped file first
+        if search(r".(zip|rar|7z)\n", '\n'.join(file_list), I):
+            logging.debug("Zipped file type detected")
+            # Send to extractor
+            if self.settings['has_filebot']:
+                get_files = self.extract_files(files)
+                # Check for failure
+                if get_files is None:
+                    return None
+                # Rescan files
+                self.__file_handler(get_files)
         # Check for music
         if self.args['type'] == "Music":
             return self.add_music(files)
         else:
-            # Get a list of files
-            file_list = listdir(files)
             # Locate video file in folder
             for item in file_list:
                 # Look for file types we want
@@ -202,20 +226,6 @@ class Handler:
         '''Handle files by type'''
         logging.info("Starting files handler")
         added_files = []
-        print files
-        print self.settings['has_filebot']
-        return
-        # Look for zipped file first
-        if search(r".(zip|rar|7z)$", files, I):
-            logging.debug("Zipped file type detected")
-            # Send to extractor
-            if self.settings['has_filebot']:
-                get_files = self.extract_files(files)
-                # Check for failure
-                if get_files is None:
-                    return None
-                # Rescan files
-                self.__file_handler(get_files)
         # Process books first
         if self.args['type'] == "Books" or self.args['type'] == "Audiobooks":
             added_file = self.add_book(files)
@@ -227,6 +237,7 @@ class Handler:
         else:
             added_file = self.__process_folder(files)
             added_files.append(added_file)
+        logging.debug("Added files: %s", added_files)
         # Make sure files were added
         if len(added_files) == 0:
             self.push.failure("No %s files found for: %s"
@@ -234,7 +245,10 @@ class Handler:
         # Remove old files
         if not self.settings['General']['keep_files']:
             if path.exists(files):
-                if self.settings['is_single']:
+                if 'extracted' in self.settings.keys():
+                    logging.debug("Removing extracted files folder")
+                    rmtree(self.settings['extracted'])
+                elif self.settings['is_single']:
                     logging.debug("Removing extra single file")
                     remove(files)
                 else:
@@ -291,7 +305,7 @@ class Handler:
             if not path.exists(media_dir):
                 # There was a problem, no files found
                 self.push.failure("No media files found: %s"
-                                  % self.args['name'])
+                                  % self.args['media'])
             # Extract info from path
             parse_path = search(r"^((.*)?\/(.*))\/(.*)$",
                                 media_dir, I)
@@ -323,6 +337,9 @@ class Handler:
                     self.args['hash'])
             # Send to handler
             new_files = self.__file_handler(file_path)
+            # Check that files were returned
+            if new_files is None:
+                self.push.failure("No media files found: %s" % self.args['name'])
         else:
             # There was a problem, no files found
             self.push.failure("No media files found: %s" % self.args['name'])
@@ -344,7 +361,7 @@ class Handler:
         # Get settings from config
         self.settings = getconfig(__config_path)
         # Set up notify instance
-        self.push = Notify.Push(self.settings['Pushover'])
+        self.push = Notify.Push(self.settings['Pushover'], use_deluge)
         # Start main function
         new_files = self.__handle_media(use_deluge)
         # Exit

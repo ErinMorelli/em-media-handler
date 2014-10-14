@@ -26,14 +26,7 @@ import mediahandler.handler as mh
 def main():
     '''Main CLI function'''
     new_handler = mh.Handler()
-    added_files = new_handler.addmedia()
-    if len(added_files) > 0:
-        print "\nMedia successfully added!\n"
-        for added_file in added_files:
-            print "\t%s" % str(added_file)
-        print "\n"
-    else:
-        raise Warning("No media added")
+    new_handler.addmedia()
 
 
 # ======== COMMAND LINE ======== #
