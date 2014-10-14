@@ -42,14 +42,14 @@ class Handler:
 
     # ======== MOVE VIDEO FILES ======== #
 
-    def __add_video(self, src):
+    def add_video(self, src):
         '''Process video files'''
         logging.info("Moving file(s)")
         # Set which handler to use
         if self.args['type'] in ["TV", "Television", "TV Shows"]:
-            (new_name, dst) = self.__add_episode(src)
+            (new_name, dst) = self.add_episode(src)
         elif self.args['type'] == 'Movies':
-            (new_name, dst) = self.__add_movie(src)
+            (new_name, dst) = self.add_movie(src)
         # Check for errors
         if new_name is None:
             return None
@@ -63,7 +63,7 @@ class Handler:
 
     # ======== ADD TV EPISODE ======== #
 
-    def __add_episode(self, raw):
+    def add_episode(self, raw):
         '''Get and process TV episode information'''
         logging.info("Getting TV episode information")
         # Check that TV is enabled
@@ -81,7 +81,7 @@ class Handler:
 
     # ======== ADD MOVIE ======== #
 
-    def __add_movie(self, raw):
+    def add_movie(self, raw):
         '''Get and process movie information'''
         logging.info("Getting movie information")
         # Check that Movies are enabled
@@ -135,7 +135,7 @@ class Handler:
 
     # ======== EXTRACT FILES ======== #
 
-    def __extract_files(self, raw):
+    def extract_files(self, raw):
         '''Send files to be extracted'''
         logging.info("Extracting files from compressed file")
         # Import extract module
@@ -163,7 +163,7 @@ class Handler:
             # Set single file as source
             src = files
             # Move file
-            video_info = self.__add_video(src)
+            video_info = self.add_video(src)
             # Check for problems
             if video_info is None:
                 return
@@ -190,7 +190,7 @@ class Handler:
                     file_name = item
                     src = files+'/'+file_name
                     # Move file
-                    video_info = self.__add_video(src)
+                    video_info = self.add_video(src)
                     # Check for problems
                     if video_info is None:
                         return
@@ -202,12 +202,15 @@ class Handler:
         '''Handle files by type'''
         logging.info("Starting files handler")
         added_files = []
+        print files
+        print self.settings['has_filebot']
+        return
         # Look for zipped file first
         if search(r".(zip|rar|7z)$", files, I):
             logging.debug("Zipped file type detected")
             # Send to extractor
             if self.settings['has_filebot']:
-                get_files = self.__extract_files(files)
+                get_files = self.extract_files(files)
                 # Check for failure
                 if get_files is None:
                     return None
