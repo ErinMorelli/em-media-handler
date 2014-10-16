@@ -30,7 +30,7 @@ class Push:
     '''Push notification class'''
     # ======== INIT NOTIFY CLASS ======== #
 
-    def __init__(self, settings, is_deluge):
+    def __init__(self, settings, is_deluge=False):
         '''Initialize push notifications'''
         logging.info("Initializing notification class")
         self.settings = settings
