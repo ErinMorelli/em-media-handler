@@ -124,9 +124,9 @@ class Book:
         '''Save cover image'''
         logging.info("Saving audiobook cover image")
         # Set new image file path
-        img_path = path.dirname(img_dir) + "/cover.jpg"
+        img_path = img_dir + "/cover.jpg"
         logging.debug("Image URL: %s", img_url)
-        logging.debug("Image dir: %s", img_dir)
+        logging.debug("Image Path: %s", img_path)
         # Check to see if file exists
         if path.isfile(img_path):
             logging.warning("Cover image already exists")
