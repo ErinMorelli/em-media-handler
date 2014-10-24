@@ -107,10 +107,15 @@ class Handler:
         # Import music module
         import mediahandler.types.music as Music
         # Send info to handler
-        music_info = Music.get_music(raw, self.settings['Music'], is_single)
+        music_return = Music.get_music(raw, self.settings['Music'], is_single)
+        (has_skips, music_info) = music_return
+        # Check for no info
         if music_info is None:
             self.push.failure(
                 "Unable to match music: %s" % self.args['name'])
+        # Don't remove files if has skips
+        if has_skips:
+            self.settings['General']['keep_files'] = True
         # return album info
         return music_info
 

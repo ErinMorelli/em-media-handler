@@ -68,14 +68,16 @@ def get_music(file_path, settings, is_single=False):
     logging.info("Additions detected: %s", music_data)
     # Get results
     results = ''
+    has_skips = False
     if len(music_data) > 0:
         for music_item in music_data:
             results = results + ("%s\n\t" % music_item[1])
     if len(skips) > 0:
+        has_skips = True
         results = results + ("\n%s items were skipped (see beets log)"
                              % len(skips))
     # Return error if nothing found
     if len(skips) == 0 and len(music_data) == 0:
         return None
     # Return results
-    return results
+    return has_skips, results
