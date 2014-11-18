@@ -27,23 +27,29 @@ from getopt import getopt, GetoptError
 
 def __show_usage(code):
     '''Show command line usage'''
+    mtypes = mh.__mediakeys__
+    types = []
+    # Get list of types
+    for mtype in mtypes:
+        types.append( "%s : %s" % (mtype, mtypes[mtype]) )
+    # Generate usage text
     usage_text = '''
 EM Media Handler v%s / by %s
 
 Usage:
-        addmedia -f /path/to/file [..options]
+        addmedia --files=/path/to/files --type=1 [..options]
 
 
 Options:
-        -f     : (required) Set path to media files
-                  Assumes path structure /path/to/<media type>/<media name>
-        -c     : Set a custom config file path
-        -t     : Force a specific media type for processing
+        -f / --files=     : (required) Set path to media files
+                            Assumes path structure /path/to/<media type>/<media name>
+        -c / --config=    : Set a custom config file path
+        -t / --type=      : Force a specific media type for processing
 
 
 Media types:
         %s
-    ''' % (mh.__version__, mh.__author__, '\n\t'.join(mh.__mediatypes__))
+    ''' % (mh.__version__, mh.__author__, '\n\t'.join(types))
     # Output text
     print usage_text
     # Exit program
@@ -57,7 +63,7 @@ def get_arguments():
     use_deluge = False
     # Parse args
     try:
-        (optlist, get_args) = getopt(sys.argv[1:], 'f:c:t:')
+        (optlist, get_args) = getopt(sys.argv[1:], 'hf:c:t:', ["help", "files=", "config=", "type="])
     except GetoptError as err:
         print str(err)
         __show_usage(2)
@@ -82,17 +88,17 @@ def get_arguments():
         new_args = {}
         f_flag = False
         for opt, arg in optlist:
-            if opt == '-f':
+            if opt in ( "-f", "--files" ):
                 f_flag = True
                 new_args['media'] = arg
-            if opt == '-c':
+            if opt in ( "-c", "--config" ):
                 new_args['config'] = arg
-            if opt == '-t':
-                if arg not in mh.__mediatypes__:
-                    print '\nERROR: Media type not recognized: %s' % arg
+            if opt in ( "-t", "--type" ):
+                if arg not in mh.__mediakeys__:
+                    print '\nERROR: Media type not valid: %s' % arg
                     __show_usage(2)
-                new_args['type'] = arg
+                new_args['type'] = mh.__mediakeys__[arg]
         if not f_flag:
-            print '\nERROR: Option -f not specified'
+            print '\nERROR: Files not specified'
             __show_usage(2)
     return use_deluge, new_args
