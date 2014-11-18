@@ -452,6 +452,9 @@ class Book:
         # Deal with single files
         if path.isfile(raw):
             raw = self.__single_file(raw, refined)
+        # Use custom search string, if defined
+        if 'search' in self.args.keys():
+            refined = self.args['search']
         # Get book info from Google
         self.book_info = self.ask_google(refined)
         logging.debug(self.book_info)

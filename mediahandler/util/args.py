@@ -42,12 +42,12 @@ Usage:
 
 
 Options:
-        -h / --help       : Displays this usage info
+        -h / --help       : Displays this help info
         -f / --files      : (required) Set path to media files
                             Assumes structure /path/to/<media type>/<media>
         -t / --type       : Force a specific media type for processing
         -c / --config     : Set a custom config file path
-        -n / --name      : Set a custom search string for online databases
+        -s / --search     : Set a custom search string for audiobooks
                             Useful for for fixing "Unable to match" errors
 
 Media types:
@@ -72,8 +72,8 @@ def get_arguments():
     try:
         (optlist, get_args) = getopt(
             sys.argv[1:],
-            'hf:c:t:n:',
-            ["help", "files=", "config=", "type=", "name="]
+            'hf:c:t:s:',
+            ["help", "files=", "config=", "type=", "search="]
         )
     except GetoptError as err:
         show_usage(2, str(err))
@@ -113,8 +113,8 @@ def parse_arguments(optlist):
             new_args['media'] = path.abspath(arg)
         elif opt in ("-c", "--config"):
             new_args['config'] = arg
-        elif opt in ("-n", "--name"):
-            new_args['custom_name'] = arg
+        elif opt in ("-s", "--search"):
+            new_args['search'] = arg
         elif opt in ("-t", "--type"):
             if arg not in mh.__mediakeys__:
                 show_usage(2, ("Media type not valid: %s" % arg))

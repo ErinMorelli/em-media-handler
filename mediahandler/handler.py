@@ -273,11 +273,7 @@ class Handler:
                             rawpath, I)
         if parse_path:
             self.args['path'] = parse_path.group(1)
-            # Look for custom name
-            if 'custom_name' in self.args.keys():
-                self.args['name'] = self.args['custom_name']
-            else:
-                self.args['name'] = parse_path.group(4)
+            self.args['name'] = parse_path.group(4)
             # Look for custom type
             if 'type' not in self.args.keys():
                 self.args['type'] = parse_path.group(3)
