@@ -132,6 +132,7 @@ class Handler:
         # Send to handler
         bok = Audiobooks.Book(self.settings['Audiobooks'])
         book_info = bok.get_book(raw)
+        logging.debug(book_info)
         if book_info is None:
             self.push.failure("Unable to match book: %s" % self.args['name'])
             return None
@@ -272,7 +273,11 @@ class Handler:
                             rawpath, I)
         if parse_path:
             self.args['path'] = parse_path.group(1)
-            self.args['name'] = parse_path.group(4)
+            # Look for custom name
+            if 'custom_name' in self.args.keys():
+                self.args['name'] = self.args['custom_name']
+            else:
+                self.args['name'] = parse_path.group(4)
             # Look for custom type
             if 'type' not in self.args.keys():
                 self.args['type'] = parse_path.group(3)

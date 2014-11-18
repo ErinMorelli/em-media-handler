@@ -42,14 +42,17 @@ Usage:
 
 
 Options:
-        -f / --files=     : (required) Set path to media files
+        -h / --help       : Displays this usage info
+        -f / --files      : (required) Set path to media files
                             Assumes structure /path/to/<media type>/<media>
-        -c / --config=    : Set a custom config file path
-        -t / --type=      : Force a specific media type for processing
-
+        -t / --type       : Force a specific media type for processing
+        -c / --config     : Set a custom config file path
+        -n / --name      : Set a custom search string for online databases
+                            Useful for for fixing "Unable to match" errors
 
 Media types:
         %s
+
     ''' % (mh.__version__, mh.__author__, '\n\t'.join(types))
     # Print error, if it exists
     if msg is not None:
@@ -63,15 +66,17 @@ Media types:
 # ======== GET ARGUMENTS ======== #
 
 def get_arguments():
-    '''Parse arguments'''
+    '''Get arguments'''
     use_deluge = False
     # Parse args
     try:
-        (optlist, get_args) = getopt(sys.argv[1:], 'hf:c:t:',
-                                     ["help", "files=", "config=", "type="])
+        (optlist, get_args) = getopt(
+            sys.argv[1:],
+            'hf:c:t:n:',
+            ["help", "files=", "config=", "type=", "name="]
+        )
     except GetoptError as err:
-        print str(err)
-        show_usage(2)
+        show_usage(2, str(err))
     # Check for failure conditions
     if len(optlist) > 0 and len(get_args) > 0:
         show_usage(2)
@@ -90,18 +95,30 @@ def get_arguments():
         show_usage(2)
     # Check for CLI
     if len(optlist) > 0:
-        new_args = {}
-        f_flag = False
-        for opt, arg in optlist:
-            if opt in ("-f", "--files"):
-                f_flag = True
-                new_args['media'] = path.abspath(arg)
-            if opt in ("-c", "--config"):
-                new_args['config'] = arg
-            if opt in ("-t", "--type"):
-                if arg not in mh.__mediakeys__:
-                    show_usage(2, ("Media type not valid: %s" % arg))
-                new_args['type'] = mh.__mediakeys__[arg]
-        if not f_flag:
-            show_usage(2, "Files not specified")
+        new_args = parse_arguments(optlist)
     return use_deluge, new_args
+
+
+# ======== PARSE ARGUMENTS ======== #
+
+def parse_arguments(optlist):
+    '''Parse arguments'''
+    new_args = {}
+    f_flag = False
+    for opt, arg in optlist:
+        if opt in ("-h", "--help"):
+            show_usage(1)
+        elif opt in ("-f", "--files"):
+            f_flag = True
+            new_args['media'] = path.abspath(arg)
+        elif opt in ("-c", "--config"):
+            new_args['config'] = arg
+        elif opt in ("-n", "--name"):
+            new_args['custom_name'] = arg
+        elif opt in ("-t", "--type"):
+            if arg not in mh.__mediakeys__:
+                show_usage(2, ("Media type not valid: %s" % arg))
+            new_args['type'] = mh.__mediakeys__[arg]
+    if not f_flag:
+        show_usage(2, "Files not specified")
+    return new_args
