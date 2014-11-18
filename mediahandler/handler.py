@@ -279,7 +279,7 @@ class Handler:
                 if self.args['type'] not in mh.__mediatypes__:
                     self.push.failure(
                         'Media type %s not recognized' %
-                        self.args['type'])
+                        self.args['type'], True)
             logging.debug("Type detected: %s", self.args['type'])
         else:
             logging.debug("No type detected")
@@ -292,7 +292,7 @@ class Handler:
             # Notify about failure
             self.push.failure(
                 "No type or name specified for media: %s" %
-                self.args['name'])
+                self.args['name'], True)
         return
 
     # ======== HANDLE MEDIA ======== #
@@ -311,7 +311,7 @@ class Handler:
         # Check to see that files exist
         if not path.exists(media_dir):
             # There was a problem, no files found
-            self.push.failure("No media files found: %s" % media_dir)
+            self.push.failure("No media files found: %s" % media_dir, True)
         # Parse directory structure
         self.__parse_dir(media_dir)
         # Check that file was downloaded
@@ -328,10 +328,11 @@ class Handler:
             # Check that files were returned
             if new_files is None:
                 self.push.failure("No media files found: %s" %
-                                  self.args['name'])
+                                  self.args['name'], True)
         else:
             # There was a problem, no files found
-            self.push.failure("No media files found: %s" % self.args['name'])
+            self.push.failure("No media files found: %s" %
+                              self.args['name'], True)
         return new_files
 
     # ======== MAIN ADD MEDIA FUNCTION ======== #
