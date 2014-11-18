@@ -38,7 +38,7 @@ def show_usage(code, msg=None):
 EM Media Handler v%s / by %s
 
 Usage:
-        addmedia --files=/path/to/files --type=1 [..options]
+        addmedia --files /path/to/files --type 1 [..options]
 
 
 Options:

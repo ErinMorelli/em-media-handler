@@ -124,6 +124,10 @@ class Handler:
     def add_book(self, raw):
         '''Get and process book information'''
         logging.info("Getting audiobook information")
+        # Set custom search query, if defined
+        custom_search = None
+        if 'search' in self.args.keys():
+            custom_search = self.args['search']
         # Check that Movies are enabled
         if not self.settings['Audiobooks']['enabled']:
             self.push.failure("Audiobooks type is not enabled")
@@ -131,8 +135,7 @@ class Handler:
         import mediahandler.types.audiobooks as Audiobooks
         # Send to handler
         bok = Audiobooks.Book(self.settings['Audiobooks'])
-        book_info = bok.get_book(raw, self.args['search'])
-        logging.debug(book_info)
+        book_info = bok.get_book(raw, custom_search)
         if book_info is None:
             self.push.failure("Unable to match book: %s" % self.args['name'])
             return None
@@ -193,7 +196,6 @@ class Handler:
         '''Process as folder'''
         # Otherwise process as folder
         logging.debug("Processing as a folder")
-        self.settings['is_single'] = False
         # Get a list of files
         file_list = listdir(files)
         # Look for zipped file first
@@ -231,6 +233,7 @@ class Handler:
         '''Handle files by type'''
         logging.info("Starting files handler")
         added_files = []
+        self.settings['is_single'] = False
         # Process books first
         if self.args['type'] == "Books" or self.args['type'] == "Audiobooks":
             added_file = self.add_book(files)
@@ -268,12 +271,15 @@ class Handler:
     def __parse_dir(self, rawpath):
         '''Parse input directory structure'''
         logging.info("Extracing info from path")
+        logging.debug(rawpath)
         # Extract info from path
         parse_path = search(r"^((.*)?\/(.*))?\/(.*)$",
                             rawpath, I)
         if parse_path:
             self.args['path'] = parse_path.group(1)
-            self.args['name'] = parse_path.group(4)
+            # Don't override deluge-defined name
+            if 'name' not in self.args.keys():
+                self.args['name'] = parse_path.group(4)
             # Look for custom type
             if 'type' not in self.args.keys():
                 self.args['type'] = parse_path.group(3)
@@ -302,21 +308,16 @@ class Handler:
         '''Sort args based on input'''
         logging.debug("Inputs: %s", self.args)
         # Determing if using deluge or not
-        media_dir = ''
+        file_path = ''
         if use_deluge:
             logging.info("Processing from deluge")
-            media_dir = self.args['path']
+            file_path = path.join(self.args['path'], self.args['name'])
         else:
             logging.info("Processing from command line")
-            media_dir = path.dirname(self.args['media'])
-        # Check to see that files exist
-        if not path.exists(media_dir):
-            # There was a problem, no files found
-            self.push.failure("No media files found: %s" % media_dir, True)
+            file_path = self.args['media']
         # Parse directory structure
-        self.__parse_dir(media_dir)
+        self.__parse_dir(file_path)
         # Check that file was downloaded
-        file_path = self.args['path'] + "/" + self.args['name']
         if path.exists(file_path):
             if self.settings['Deluge']['enabled'] and use_deluge:
                 # Remove torrent
