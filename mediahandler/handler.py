@@ -262,23 +262,24 @@ class Handler:
         # Finish
         return added_files
 
-    # ======== PROCESS DELUGE ======== #
+    # ======== PARSE DIRECTORY ======== #
 
-    def __process_deluge(self):
-        '''Process args from deluge'''
-        # Make sure path exists
-        if not path.exists(self.args['path']):
-            # There was a problem, no files found
-            self.push.failure("No media files found: %s"
-                              % self.args['name'])
-        # Extract media type from path
-        find_type = search(r"^(.*)?\/(.*)$", self.args['path'], I)
-        if find_type:
-            self.args['type'] = find_type.group(2)
-            # Check is valid type
-            if self.args['type'] not in mh.__mediatypes__:
-                self.push.failure(
-                    'Media type %s not recognized' % self.args['type'])
+    def __parse_dir(self, rawpath):
+        '''Parse input directory structure'''
+        logging.info("Extracing info from path")
+        # Extract info from path
+        parse_path = search(r"^((.*)?\/(.*))?\/(.*)$",
+                            rawpath, I)
+        if parse_path:
+            self.args['path'] = parse_path.group(1)
+            self.args['name'] = parse_path.group(4)
+            # Look for custom type
+            if 'type' not in self.args.keys():
+                self.args['type'] = parse_path.group(3)
+                if self.args['type'] not in mh.__mediatypes__:
+                    self.push.failure(
+                        'Media type %s not recognized' %
+                        self.args['type'])
             logging.debug("Type detected: %s", self.args['type'])
         else:
             logging.debug("No type detected")
@@ -290,7 +291,9 @@ class Handler:
                     self.args['hash'])
             # Notify about failure
             self.push.failure(
-                "No type specified for download: %s" % self.args['name'])
+                "No type or name specified for media: %s" %
+                self.args['name'])
+        return
 
     # ======== HANDLE MEDIA ======== #
 
@@ -298,37 +301,19 @@ class Handler:
         '''Sort args based on input'''
         logging.debug("Inputs: %s", self.args)
         # Determing if using deluge or not
+        media_dir = ''
         if use_deluge:
             logging.info("Processing from deluge")
-            self.__process_deluge()
+            media_dir = self.args['path']
         else:
             logging.info("Processing from command line")
-            # Make sure path exists
             media_dir = path.dirname(self.args['media'])
-            if not path.exists(media_dir):
-                # There was a problem, no files found
-                self.push.failure("No media files found: %s"
-                                  % self.args['media'])
-            # Extract info from path
-            parse_path = search(r"^((.*)?\/(.*))\/(.*)$",
-                                media_dir, I)
-            if parse_path:
-                self.args['path'] = parse_path.group(1)
-                self.args['name'] = parse_path.group(4)
-                # Look for custom type
-                if 'type' not in self.args.keys():
-                    self.args['type'] = parse_path.group(3)
-                    if self.args['type'] not in mh.__mediatypes__:
-                        self.push.failure(
-                            'Media type %s not recognized' %
-                            self.args['type'])
-                logging.debug("Type detected: %s", self.args['type'])
-            else:
-                logging.debug("No type detected")
-                # Notify about failure
-                self.push.failure(
-                    "No type or name specified for media: %s" %
-                    self.args['name'])
+        # Check to see that files exist
+        if not path.exists(media_dir):
+            # There was a problem, no files found
+            self.push.failure("No media files found: %s" % media_dir)
+        # Parse directory structure
+        self.__parse_dir(media_dir)
         # Check that file was downloaded
         file_path = self.args['path'] + "/" + self.args['name']
         if path.exists(file_path):

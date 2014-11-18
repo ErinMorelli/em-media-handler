@@ -20,18 +20,20 @@ __author__ = 'Erin Morelli <erin@erinmorelli.com>'
 
 
 # Globally acceptable media types & their CLI keys
-__mediakeys__ = { 
-    "1" : "TV Shows",
-    "2" : "Movies",
-    "3" : "Music",
-    "4" : "Audiobooks"
+__mediakeys__ = {
+    "1": "TV Shows",
+    "2": "Movies",
+    "3": "Music",
+    "4": "Audiobooks"
 }
 
 # Globally acceptable media type names
-__mediatypes__ = ['TV',
-                  'TV Shows',
-                  'Television',
-                  'Movies',
-                  'Music',
-                  'Books',
-                  'Audiobooks']
+__mediatypes__ = [
+    'TV',
+    'TV Shows',
+    'Television',
+    'Movies',
+    'Music',
+    'Books',
+    'Audiobooks'
+]

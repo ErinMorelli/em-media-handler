@@ -20,18 +20,19 @@
 
 import sys
 import mediahandler as mh
+from os import path
 from getopt import getopt, GetoptError
 
 
 # ======== COMMAND LINE USAGE ======== #
 
-def __show_usage(code):
+def show_usage(code, msg=None):
     '''Show command line usage'''
     mtypes = mh.__mediakeys__
     types = []
     # Get list of types
-    for mtype in mtypes:
-        types.append( "%s : %s" % (mtype, mtypes[mtype]) )
+    for mtype in sorted(mtypes):
+        types.append("%s : %s" % (mtype, mtypes[mtype]))
     # Generate usage text
     usage_text = '''
 EM Media Handler v%s / by %s
@@ -42,7 +43,7 @@ Usage:
 
 Options:
         -f / --files=     : (required) Set path to media files
-                            Assumes path structure /path/to/<media type>/<media name>
+                            Assumes structure /path/to/<media type>/<media>
         -c / --config=    : Set a custom config file path
         -t / --type=      : Force a specific media type for processing
 
@@ -50,6 +51,9 @@ Options:
 Media types:
         %s
     ''' % (mh.__version__, mh.__author__, '\n\t'.join(types))
+    # Print error, if it exists
+    if msg is not None:
+        print "\nERROR: %s\n" % msg
     # Output text
     print usage_text
     # Exit program
@@ -63,15 +67,16 @@ def get_arguments():
     use_deluge = False
     # Parse args
     try:
-        (optlist, get_args) = getopt(sys.argv[1:], 'hf:c:t:', ["help", "files=", "config=", "type="])
+        (optlist, get_args) = getopt(sys.argv[1:], 'hf:c:t:',
+                                     ["help", "files=", "config=", "type="])
     except GetoptError as err:
         print str(err)
-        __show_usage(2)
+        show_usage(2)
     # Check for failure conditions
     if len(optlist) > 0 and len(get_args) > 0:
-        __show_usage(2)
+        show_usage(2)
     if len(optlist) == 0 and len(get_args) == 0:
-        __show_usage(2)
+        show_usage(2)
     # Check for deluge
     if len(get_args) == 3:
         # Treat like deluge
@@ -82,23 +87,21 @@ def get_arguments():
             'path': get_args[2]
         }
     elif len(get_args) > 0:
-        __show_usage(2)
+        show_usage(2)
     # Check for CLI
     if len(optlist) > 0:
         new_args = {}
         f_flag = False
         for opt, arg in optlist:
-            if opt in ( "-f", "--files" ):
+            if opt in ("-f", "--files"):
                 f_flag = True
-                new_args['media'] = arg
-            if opt in ( "-c", "--config" ):
+                new_args['media'] = path.abspath(arg)
+            if opt in ("-c", "--config"):
                 new_args['config'] = arg
-            if opt in ( "-t", "--type" ):
+            if opt in ("-t", "--type"):
                 if arg not in mh.__mediakeys__:
-                    print '\nERROR: Media type not valid: %s' % arg
-                    __show_usage(2)
+                    show_usage(2, ("Media type not valid: %s" % arg))
                 new_args['type'] = mh.__mediakeys__[arg]
         if not f_flag:
-            print '\nERROR: Files not specified'
-            __show_usage(2)
+            show_usage(2, "Files not specified")
     return use_deluge, new_args

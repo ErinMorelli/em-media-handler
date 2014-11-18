@@ -22,6 +22,7 @@ import logging
 import sys
 from urllib import urlencode
 from httplib import HTTPSConnection
+import mediahandler.util.args as Args
 
 
 # ======== PUSH CLASS DECLARTION ======== #
@@ -101,7 +102,7 @@ class Push:
 
     # ======== SET ERROR INFO & EXIT ======== #
 
-    def failure(self, error_details):
+    def failure(self, error_details, usage=False):
         '''Failure notification'''
         logging.info("Starting failure notifications")
         # Set error message
@@ -114,4 +115,8 @@ class Push:
             self.send_message(conn_text)
         # Raise python warning
         logging.warning(error_details)
-        raise Warning(error_details)
+        if usage:
+            Args.show_usage(2, error_details)
+        else:
+            print "\nERROR: %s\n" % error_details
+            sys.exit(2)
