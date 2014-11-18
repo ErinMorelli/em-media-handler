@@ -443,7 +443,7 @@ class Book:
 
     # ======== MAIN BOOK FUNCTION (public) ======== #
 
-    def get_book(self, raw):
+    def get_book(self, raw, custom_search=None):
         '''Main get book function'''
         logging.info("Getting audiobook")
         # Parse string & get query
@@ -453,8 +453,9 @@ class Book:
         if path.isfile(raw):
             raw = self.__single_file(raw, refined)
         # Use custom search string, if defined
-        if 'search' in self.args.keys():
-            refined = self.args['search']
+        if custom_search is not None:
+            logging.debug("Custom search query: %s", custom_search)
+            refined = custom_search
         # Get book info from Google
         self.book_info = self.ask_google(refined)
         logging.debug(self.book_info)

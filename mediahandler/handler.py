@@ -131,7 +131,7 @@ class Handler:
         import mediahandler.types.audiobooks as Audiobooks
         # Send to handler
         bok = Audiobooks.Book(self.settings['Audiobooks'])
-        book_info = bok.get_book(raw)
+        book_info = bok.get_book(raw, self.args['search'])
         logging.debug(book_info)
         if book_info is None:
             self.push.failure("Unable to match book: %s" % self.args['name'])
