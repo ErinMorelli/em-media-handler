@@ -2,7 +2,7 @@
 EM Media Handler
 ================
 :Author: `Erin Morelli <mailto:erin@erinmorelli.com>`_
-:Version: 0.3.0
+:Version: 0.3.1
 
 .. image:: https://api.travis-ci.org/ErinMorelli/em-media-handler.svg?branch=master
   :target: https://travis-ci.org//ErinMorelli/em-media-handler
@@ -20,5 +20,3 @@ A comprehensive media handler for use with Deluge to manage TV Shows, Movies, Mu
 * `ABC <http://www.ausge.de/ausge-download/abc-info-english>`_
 * `Google Books API <https://developers.google.com/api-client-library/python/apis/books/v1>`_
 * `Mutagen <https://bitbucket.org/lazka/mutagen>`_
-
-
