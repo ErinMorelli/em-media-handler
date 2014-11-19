@@ -71,7 +71,7 @@ def get_music(file_path, settings, is_single=False):
     has_skips = False
     if len(music_data) > 0:
         for music_item in music_data:
-            results = results + ("%s\n\t" % music_item[1])
+            results = results + ("%s\n\t" % music_item[0])
     if len(skips) > 0:
         has_skips = True
         results = results + ("\n%s items were skipped (see beets log)"
