@@ -42,7 +42,7 @@ def get_music(file_path, settings, is_single=False):
     # Set Variables
     if is_single:
         m_tags = "-sql"
-        m_query = r"Tagging track\:\s(.*)\nURL\:\n\s{1,4}(.*)\n"
+        m_query = r"(Tagging track)\:\s(.*)\nURL\:\n\s{1,4}(.*)\n"
     else:
         m_tags = "-ql"
         m_query = r"(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n"
@@ -71,7 +71,7 @@ def get_music(file_path, settings, is_single=False):
     has_skips = False
     if len(music_data) > 0:
         for music_item in music_data:
-            results = results + ("%s\n\t" % music_item[0])
+            results = results + ("%s\n\t" % music_item[1])
     if len(skips) > 0:
         has_skips = True
         results = results + ("\n%s items were skipped (see beets log)"
