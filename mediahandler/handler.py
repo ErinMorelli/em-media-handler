@@ -104,6 +104,9 @@ class Handler:
         # Check that Movies are enabled
         if not self.settings['Movies']['enabled']:
             self.push.failure("Movies type is not enabled")
+        # Check for forced single import
+        if 'single_track' in self.args.keys():
+            is_single = self.args['single_track']
         # Import music module
         import mediahandler.types.music as Music
         # Send info to handler
@@ -179,7 +182,7 @@ class Handler:
                 self.__file_handler(get_files)
         # otherwise treat like other files
         if self.args['type'] == "Music":
-            return self.add_music(files, True)
+            return self.add_music(files, self.settings['is_single'])
         else:
             # Set single file as source
             src = files

@@ -42,13 +42,14 @@ Usage:
 
 
 Options:
-        -h / --help       : Displays this help info
-        -f / --files      : (required) Set path to media files
-                            Assumes structure /path/to/<media type>/<media>
-        -t / --type       : Force a specific media type for processing
-        -c / --config     : Set a custom config file path
-        -s / --search     : Set a custom search string for audiobooks
-                            Useful for for fixing "Unable to match" errors
+        -h / --help        : Displays this help info
+        -f / --files=      : (required) Set path to media files
+                             Assumes structure /path/to/<media type>/<media>
+        -t / --type=       : Force a specific media type for processing
+        -c / --config=     : Set a custom config file path
+        -q / --query=      : Set a custom query string for audiobooks
+                             Useful for for fixing "Unable to match" errors
+        -s / --single      : Force beet to import music as a single track
 
 Media types:
         %s
@@ -72,8 +73,8 @@ def get_arguments():
     try:
         (optlist, get_args) = getopt(
             sys.argv[1:],
-            'hf:c:t:s:',
-            ["help", "files=", "config=", "type=", "search="]
+            'hf:c:t:q:s',
+            ["help", "files=", "config=", "type=", "query=", "single"]
         )
     except GetoptError as err:
         show_usage(2, str(err))
@@ -113,8 +114,10 @@ def parse_arguments(optlist):
             new_args['media'] = path.abspath(arg)
         elif opt in ("-c", "--config"):
             new_args['config'] = arg
-        elif opt in ("-s", "--search"):
+        elif opt in ("-q", "--query"):
             new_args['search'] = arg
+        elif opt in ("-s", "--single"):
+            new_args['single_track'] = True
         elif opt in ("-t", "--type"):
             if arg not in mh.__mediakeys__:
                 show_usage(2, ("Media type not valid: %s" % arg))

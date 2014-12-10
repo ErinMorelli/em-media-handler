@@ -26,7 +26,7 @@ from mediahandler.util.config import makeconfig
 
 setup(
     name='EM Media Handler',
-    version='0.3.1',
+    version='0.3.2',
     author='Erin Morelli',
     author_email='erin@erinmorelli.com',
     url='http://code.erinmorelli.com/em-media-handler/',

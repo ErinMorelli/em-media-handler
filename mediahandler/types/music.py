@@ -41,9 +41,11 @@ def get_music(file_path, settings, is_single=False):
         makedirs(beetslog_dir)
     # Set Variables
     if is_single:
+        logging.info("Importing as single track")
         m_tags = "-sql"
         m_query = r"(Tagging track)\:\s(.*)\nURL\:\n\s{1,4}(.*)\n"
     else:
+        logging.info("Importing as an album")
         m_tags = "-ql"
         m_query = r"(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n"
     # Set up query
