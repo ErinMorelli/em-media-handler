@@ -35,10 +35,23 @@ class Handler:
 
     def __init__(self):
         '''Initialize handler class'''
-        # Set global variables
+         # Set global variables
         self.args = {}
         self.settings = {}
         self.push = ''
+        # Get arguments
+        (self.use_deluge, self.args) = get_arguments()
+        # User-provided path
+        __new_path = None
+        # Check for user-specified config
+        if 'config' in self.args.keys():
+            __new_path = self.args['config']
+        # Set paths
+        __config_path = makeconfig(__new_path)
+        # Get settings from config
+        self.settings = getconfig(__config_path)
+        # Set up notify instance
+        self.push = Notify.Push(self.settings['Pushover'], self.use_deluge)
 
     # ======== MOVE VIDEO FILES ======== #
 
@@ -307,12 +320,12 @@ class Handler:
 
     # ======== HANDLE MEDIA ======== #
 
-    def __handle_media(self, use_deluge):
+    def __handle_media(self):
         '''Sort args based on input'''
         logging.debug("Inputs: %s", self.args)
         # Determing if using deluge or not
         file_path = ''
-        if use_deluge:
+        if self.use_deluge:
             logging.info("Processing from deluge")
             file_path = path.join(self.args['path'], self.args['name'])
         else:
@@ -322,7 +335,7 @@ class Handler:
         self.__parse_dir(file_path)
         # Check that file was downloaded
         if path.exists(file_path):
-            if self.settings['Deluge']['enabled'] and use_deluge:
+            if self.settings['Deluge']['enabled'] and self.use_deluge:
                 # Remove torrent
                 import mediahandler.util.torrent as Torrent
                 Torrent.remove_torrent(
@@ -344,20 +357,7 @@ class Handler:
 
     def addmedia(self):
         '''Main function'''
-        # Get arguments
-        (use_deluge, self.args) = get_arguments()
-        # User-provided path
-        __new_path = None
-        # Check for user-specified config
-        if 'config' in self.args.keys():
-            __new_path = self.args['config']
-        # Set paths
-        __config_path = makeconfig(__new_path)
-        # Get settings from config
-        self.settings = getconfig(__config_path)
-        # Set up notify instance
-        self.push = Notify.Push(self.settings['Pushover'], use_deluge)
         # Start main function
-        new_files = self.__handle_media(use_deluge)
+        new_files = self.__handle_media()
         # Exit
         return new_files
