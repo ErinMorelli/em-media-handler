@@ -37,24 +37,39 @@ def show_usage(code, msg=None):
     usage_text = '''
 EM Media Handler v%s / by %s
 
-USAGE:
+Usage:
         addmedia --files /path/to/files --type [TYPE] [OPTIONS]
 
+Options:
+        --files / -f
+            Required. Set path to media files.
+            Assumes structure: /path/to/<media type>/<media>
 
-OPTIONS:
-        -h / --help        : Displays this help info
-        -f / --files=      : (required) Set path to media files
-                              Assumes structure /path/to/<type name>/<media>
-        -t / --type=       : Force a specific media type for processing
-                              e.g. --type 1 for a TV Show
-        -c / --config=     : Set a custom config file path
-        -q / --query=      : Set a custom query string for audiobooks
-                              Useful for for fixing "Unable to match" errors
-        -s / --single      : Force beet to import music as a single track
-        -n / --nopush      : Disable push notifications
-                              Overrides the "enabled" config file setting
+        --type / -t
+            Force a specific media type for processing.
+            e.g. --type 1 for a TV Show
+            Default: <media type> derived from --files path
 
-TYPES:
+        --config / -c
+            Set a custom config file path.
+            Default: ~/.config/mediahandler/settings.conf
+
+        --query / -q
+            Set a custom query string for audiobooks.
+            Useful for fixing "Unable to match" errors.
+
+        --single / -s
+            Force beet to import music as a single track.
+            Useful for fixing "items were skipped" errors.
+
+        --nopush / -n
+            Disable push notifications.
+            Overrides the "enabled" config file setting.
+
+        --help / -h
+            Displays this usage message.
+
+Types:
         %s
 
     ''' % (mh.__version__, mh.__author__, '\n\t'.join(types))
