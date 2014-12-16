@@ -130,6 +130,8 @@ def get_arguments():
 def parse_arguments(optlist):
     '''Parse arguments'''
     new_args = {}
+    new_args['single_track'] = False
+    new_args['no_push'] = False
     f_flag = False
     for opt, arg in optlist:
         if opt in ("-h", "--help"):

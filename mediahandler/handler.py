@@ -51,6 +51,8 @@ class Handler(object):
         # Get settings from config
         self.settings = getconfig(__config_path)
         # Set up notify instance
+        if 'no_push' not in self.args.keys():
+            self.args['no_push'] = False
         self.push = Notify.Push(self.settings['Pushover'],
                                 self.args['use_deluge'],
                                 self.args['no_push'])
