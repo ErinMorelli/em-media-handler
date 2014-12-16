@@ -136,7 +136,7 @@ class Handler(object):
             self.push.failure("Unable to match music: %s" % self.args['name'])
         # Don't remove files if has skips
         if has_skips:
-            self.settings = ('General', 'keep_files', True)
+            self.settings['General']['keep_files'] = True
         # return album info
         return music_info
 
@@ -168,7 +168,7 @@ class Handler(object):
     def extract_files(self, raw):
         '''Send files to be extracted'''
         logging.info("Extracting files from compressed file")
-        self.settings = ('extracted', raw)
+        self.settings['extracted'] = raw
         # Import extract module
         import mediahandler.util.extract as Extract
         # Send to handler
@@ -186,7 +186,7 @@ class Handler(object):
         '''Process single files'''
         # Single file, treat differently
         logging.debug("Processing as a single file")
-        self.settings = ('is_single', True)
+        self.settings['is_single'] = True
         # Look for zipped file first
         if search(r".(zip|rar|7z)$", files, I):
             logging.debug("Zipped file type detected")
@@ -254,7 +254,7 @@ class Handler(object):
         '''Handle files by type'''
         logging.info("Starting files handler")
         added_files = []
-        self.settings = ('is_single', False)
+        self.settings['is_single'] = False
         # Process books first
         if self.args['type'] in ["Books", "Audiobooks"]:
             added_file = self.add_book(files)
