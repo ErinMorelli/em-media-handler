@@ -80,6 +80,6 @@ def get_music(file_path, settings, is_single=False):
                              % len(skips))
     # Return error if nothing found
     if len(skips) == 0 and len(music_data) == 0:
-        return None
+        return None, None
     # Return results
     return has_skips, results

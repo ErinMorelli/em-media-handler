@@ -27,7 +27,7 @@ import mediahandler.util.args as Args
 
 # ======== PUSH CLASS DECLARTION ======== #
 
-class Push:
+class Push(object):
     '''Push notification class'''
     # ======== INIT NOTIFY CLASS ======== #
 
@@ -36,16 +36,6 @@ class Push:
         logging.info("Initializing notification class")
         self.settings = settings
         self.is_deluge = is_deluge
-
-    # ======== GETTERS ======== #
-
-    def get_setting(self, key):
-        '''Get setting by key'''
-        return self.settings[key]
-
-    def get_is_deluge(self):
-        '''Get is deluge state'''
-        return self.is_deluge
 
     # ======== SEND MESSAGE VIA PUSHOVER ======== #
 
@@ -57,12 +47,12 @@ class Push:
         # Set default title
         conn_title = "EM Media Handler"
         # Look for custom notify name
-        if self.get_setting('notify_name') != '':
-            conn_title = self.get_setting('notify_name')
+        if self.settings['notify_name'] != '':
+            conn_title = self.settings['notify_name']
         # Encode request URL
         conn_url = urlencode({
-            "token": self.get_setting('api_key'),
-            "user": self.get_setting('user_key'),
+            "token": self.settings['api_key'],
+            "user": self.settings['user_key'],
             "title": conn_title,
             "message": conn_msg,
         })
@@ -97,11 +87,11 @@ class Push:
 %s
         ''' % media_list
         # If push notifications enabled
-        if self.get_setting('enabled'):
+        if self.settings['enabled']:
             # Send message
             self.send_message(conn_text)
         # If via CLI, print a message as well
-        if not self.get_is_deluge():
+        if not self.is_deluge:
             print "\nMedia successfully added!\n"
             for added_file in file_array:
                 print "\t%s" % str(added_file)
@@ -120,7 +110,7 @@ class Push:
 %s
         ''' % error_details
         # If push notifications enabled
-        if self.get_setting('enabled'):
+        if self.settings['enabled']:
             # Send message
             self.send_message(conn_text)
         # Raise python warning

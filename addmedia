@@ -30,7 +30,7 @@ def main():
     args = get_arguments()
     # Run handler
     new_handler = mh.Handler(args)
-    new_handler.addmedia()
+    new_handler.add_media()
 
 
 # ======== COMMAND LINE ======== #
