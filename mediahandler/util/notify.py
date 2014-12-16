@@ -31,11 +31,12 @@ class Push(object):
     '''Push notification class'''
     # ======== INIT NOTIFY CLASS ======== #
 
-    def __init__(self, settings, is_deluge=False):
+    def __init__(self, settings, is_deluge=False, disable=False):
         '''Initialize push notifications'''
         logging.info("Initializing notification class")
         self.settings = settings
         self.is_deluge = is_deluge
+        self.disable = disable
 
     # ======== SEND MESSAGE VIA PUSHOVER ======== #
 
@@ -87,7 +88,7 @@ class Push(object):
 %s
         ''' % media_list
         # If push notifications enabled
-        if self.settings['enabled']:
+        if self.settings['enabled'] and not self.disable:
             # Send message
             self.send_message(conn_text)
         # If via CLI, print a message as well
@@ -110,7 +111,7 @@ class Push(object):
 %s
         ''' % error_details
         # If push notifications enabled
-        if self.settings['enabled']:
+        if self.settings['enabled'] and not self.disable:
             # Send message
             self.send_message(conn_text)
         # Raise python warning

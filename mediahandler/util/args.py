@@ -37,21 +37,24 @@ def show_usage(code, msg=None):
     usage_text = '''
 EM Media Handler v%s / by %s
 
-Usage:
-        addmedia --files /path/to/files --type 1 [..options]
+USAGE:
+        addmedia --files /path/to/files --type [TYPE] [OPTIONS]
 
 
-Options:
+OPTIONS:
         -h / --help        : Displays this help info
         -f / --files=      : (required) Set path to media files
-                             Assumes structure /path/to/<media type>/<media>
+                              Assumes structure /path/to/<type name>/<media>
         -t / --type=       : Force a specific media type for processing
+                              e.g. --type 1 for a TV Show
         -c / --config=     : Set a custom config file path
         -q / --query=      : Set a custom query string for audiobooks
-                             Useful for for fixing "Unable to match" errors
+                              Useful for for fixing "Unable to match" errors
         -s / --single      : Force beet to import music as a single track
+        -n / --nopush      : Disable push notifications
+                              Overrides the "enabled" config file setting
 
-Media types:
+TYPES:
         %s
 
     ''' % (mh.__version__, mh.__author__, '\n\t'.join(types))
@@ -73,8 +76,14 @@ def get_arguments():
     try:
         (optlist, get_args) = getopt(
             sys.argv[1:],
-            'hf:c:t:q:s',
-            ["help", "files=", "config=", "type=", "query=", "single"]
+            'hf:c:t:q:sdn',
+            ["help",
+             "files=",
+             "config=",
+             "type=",
+             "query=",
+             "single",
+             "nopush"]
         )
     except GetoptError as err:
         show_usage(2, str(err))
@@ -119,6 +128,8 @@ def parse_arguments(optlist):
             new_args['search'] = arg
         elif opt in ("-s", "--single"):
             new_args['single_track'] = True
+        elif opt in ("-n", "--nopush"):
+            new_args['no_push'] = True
         elif opt in ("-t", "--type"):
             if arg not in mh.__mediakeys__:
                 show_usage(2, ("Media type not valid: %s" % arg))

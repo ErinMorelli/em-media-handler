@@ -52,7 +52,8 @@ class Handler(object):
         self.settings = getconfig(__config_path)
         # Set up notify instance
         self.push = Notify.Push(self.settings['Pushover'],
-                                self.args['use_deluge'])
+                                self.args['use_deluge'],
+                                self.args['no_push'])
 
     # ======== MOVE VIDEO FILES ======== #
 
