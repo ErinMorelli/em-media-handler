@@ -308,7 +308,7 @@ class Handler:
         if len(added_files) == 0:
             self.get_push().failure("No %s files found for: %s" %
                                     (self.get_arg('type'),
-                                     self.get_args('name')))
+                                     self.get_arg('name')))
         # Remove old files
         if not self.get_setting('General', 'keep_files'):
             if path.exists(files):
@@ -372,7 +372,7 @@ class Handler:
         use_deluge = self.get_arg('use_deluge')
         if use_deluge:
             logging.info("Processing from deluge")
-            file_path = path.join(self.get_arg('path'), self.get_args('name'))
+            file_path = path.join(self.get_arg('path'), self.get_arg('name'))
         else:
             logging.info("Processing from command line")
             file_path = self.get_arg('media')
