@@ -36,6 +36,7 @@ class Handler(object):
         '''Initialize handler class'''
         # Set global variables
         self.args = {}
+        self.settings = {}
         if not args_input:
             raise ValueError("Missing input arguments for Handler class")
         if type(args_input) is not dict:
