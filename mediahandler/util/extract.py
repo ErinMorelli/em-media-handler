@@ -29,9 +29,9 @@ def get_files(file_name):
     '''Extract files'''
     logging.info("Getting files from compressed folder")
     # Filebot path
-    __filebot = "/usr/bin/filebot"
+    filebot = "/usr/bin/filebot"
     # Set up query
-    m_cmd = [__filebot,
+    m_cmd = [filebot,
              "-extract",
              file_name]
     logging.debug("Query: %s", m_cmd)

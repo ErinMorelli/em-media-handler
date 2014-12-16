@@ -44,10 +44,10 @@ class Book:
         # Set global bookinfo
         self.book_info = {}
         # Get blacklist path
-        __list_path = path.dirname(__file__) + '/blacklist.txt'
+        list_path = path.dirname(__file__) + '/blacklist.txt'
         # Set up handler info
         self.handler = {
-            'blacklist': __list_path,
+            'blacklist': list_path,
             'regex': {
                 "nc": r".(mp3|ogg|wav)$",
                 "c": r".(m4b)$",
@@ -84,6 +84,39 @@ class Book:
         if settings['make_chapters'] != '':
             self.handler['make_chapters'] = settings['make_chapters']
 
+    # ======== GETTERS ======== #
+
+    def get_handle(self, key, sub_key=None):
+        '''Get handler value by key and sub key'''
+        if sub_key is not None:
+            return self.handler[key][sub_key]
+        else:
+            return self.handler[key]
+
+    def get_book_info(self, key, sub_key=None):
+        '''Get book info value by key and sub key'''
+        if sub_key is not None:
+            return self.book_info[key][sub_key]
+        else:
+            return self.book_info[key]
+
+    # ======== SETTERS ======== #
+
+    def set_handle(self, key, value):
+        '''Set handler value by key'''
+        self.handler[key] = value
+        return
+
+    def set_all_book_info(self, value):
+        '''Set all book info'''
+        self.book_info = value
+        return
+
+    def set_book_info(self, key, value):
+        '''Set book info by key'''
+        self.book_info[key] = value
+        return
+
     # ======== CLEAN UP SEARCH STRING ======== #
 
     def __clean_string(self, str_path):
@@ -94,9 +127,10 @@ class Book:
         string = find_book.group(3)
         logging.debug("Initial string: %s", string)
         # Save original path for later
-        self.handler['orig_path'] = find_book.group(2)
+        self.set_handle('orig_path', find_book.group(2))
         # Get blacklist items from file
-        blacklist = [line.strip() for line in open(self.handler['blacklist'])]
+        blacklist_file = self.get_handle('blacklist')
+        blacklist = [line.strip() for line in open(blacklist_file)]
         # Convert blacklist array to regex string
         blacklist = "|".join(blacklist)
         # Remove blacklist words
@@ -147,7 +181,7 @@ class Book:
         # Close open file
         output.close()
         # Add image to book info
-        self.book_info['cover_image'] = img_path
+        self.set_book_info('cover_image', img_path)
         # Return new image path
         return img_path
 
@@ -162,18 +196,19 @@ class Book:
         # Sum all the file durations
         for get_file in file_array:
             full_path = file_path + '/' + get_file
-            audio_track = self.handler['audio'][file_type](full_path)
+            audio_track = self.get_handle('audio', file_type)(full_path)
             total_length += audio_track.info.length
             logging.debug("%s:  %s", get_file, audio_track.info.length)
         logging.debug("Total book length: %s seconds", total_length)
         # Check against defined max part length
-        if total_length <= self.handler['max_length']:
+        if total_length <= self.get_handle('max_length'):
             book_parts = 1
             logging.debug("Parts: %s", book_parts)
             chunks = [file_array]
         else:
             # Determine how many parts should be made
-            book_parts = int(ceil(total_length / self.handler['max_length']))
+            max_length = self.get_handle('max_length')
+            book_parts = int(ceil(total_length / max_length))
             logging.debug("Parts: %s", book_parts)
             # Count files
             logging.debug("File count: %s", len(file_array))
@@ -222,20 +257,20 @@ class Book:
         logging.info("Chapterizing audiobook files")
         new_files = []
         # Get chapter parts
-        file_parts = self.__get_chapters(file_path,
-                                         file_array, self.handler['file_type'])
+        file_parts = self.__get_chapters(file_path, file_array,
+                                         self.get_handle('file_type'))
         # Create m4b for each file part
         for i, file_part in enumerate(file_parts):
             part_path = file_path + '/Part ' + str(i+1)
             # Define chapter query
             b_cmd = ['/usr/bin/php', '-f', '/usr/bin/abc.php',
                      file_part,  # Path to book files
-                     self.book_info['author'].encode("utf8"),  # artist
-                     self.book_info['long_title'].encode("utf8"),  # album
-                     self.book_info['short_title'].encode("utf8"),  # title
-                     self.book_info['genre'].encode("utf8"),  # genre
-                     self.book_info['year'].encode("utf8"),  # year
-                     self.handler['file_type']]  # file type
+                     self.get_book_info('author').encode("utf8"),  # artist
+                     self.get_book_info('long_title').encode("utf8"),  # album
+                     self.get_book_info('short_title').encode("utf8"),  # title
+                     self.get_book_info('genre').encode("utf8"),  # genre
+                     self.get_book_info('year').encode("utf8"),  # year
+                     self.get_handle('file_type')]  # file type
             logging.debug("ABC query:\n%s", b_cmd)
             # Process query
             b_open = Popen(b_cmd, stdout=PIPE, stderr=PIPE)
@@ -275,14 +310,14 @@ class Book:
         # loop through all the files in dir
         for item in sorted(file_list):
             # Look for file types we want
-            good_file = re.search(self.handler['regex']['c'], item, re.I)
+            good_file = re.search(self.get_handle('regex', 'c'), item, re.I)
             if good_file:
                 full_path = file_dir + '/' + item
                 book_files.append(full_path)
             # Look for file types we can chapterize
-            bad_file = re.search(self.handler['regex']['nc'], item, re.I)
+            bad_file = re.search(self.get_handle('regex', 'nc'), item, re.I)
             if bad_file:
-                self.handler['file_type'] = bad_file.group(1)
+                self.set_handle('file_type', bad_file.group(1))
                 to_chapterize.append(item)
         # See if any files need chapterizing
         if make_chapters:
@@ -311,14 +346,14 @@ class Book:
         '''Move audiobook files'''
         logging.info("Moving audiobook files")
         # Create folder-friendly title
-        if self.book_info['subtitle'] is None:
-            folder_title = self.book_info['short_title']
+        if self.get_book_info('subtitle') is None:
+            folder_title = self.get_book_info('short_title')
         else:
-            folder_title = (self.book_info['short_title'] +
-                            '_ ' + self.book_info['subtitle'])
+            folder_title = (self.get_book_info('short_title') +
+                            '_ ' + self.get_book_info('subtitle'))
         # Set new book directory path
-        book_dir = (self.handler['path'] + '/' +
-                    self.book_info['author'] + '/' + folder_title)
+        book_dir = (self.get_handle('path') + '/' +
+                    self.get_book_info('author') + '/' + folder_title)
         logging.debug("New directory: %s", book_dir)
         # Create the folder
         if not path.exists(book_dir):
@@ -329,7 +364,7 @@ class Book:
         moved_files = []
         for i, book_file in enumerate(sorted_array):
             # Set new name
-            new_name = self.book_info['short_title']
+            new_name = self.get_book_info('short_title')
             # Use chapter naming for chapters
             if has_chapters:
                 # Set start path
@@ -337,17 +372,17 @@ class Book:
                 # Check for multiple parts
                 if len(file_array) > 1:
                     book_part = ', Part %s' % str(i+1)
-                    new_name = self.book_info['short_title'] + book_part
+                    new_name = self.get_book_info('short_title') + book_part
                 # Set new file path
                 new_path = book_dir + '/' + new_name + '.m4b'
                 # Copy & rename the files
                 copy(start_path, new_path)
             else:
                 # Set non-chaptered file paths & formatting
-                start_path = self.handler['orig_path'] + '/' + book_file
+                start_path = self.get_handle('orig_path') + '/' + book_file
                 new_path = ("%s/%02d - %s.%s" %
                             (book_dir, i+1, new_name,
-                             self.handler['file_type']))
+                             self.get_handle('file_type')))
                 # Copy the files
                 copy(start_path, new_path)
             logging.debug("Start path: %s", start_path)
@@ -365,7 +400,7 @@ class Book:
         '''Move single file into its own folder'''
         logging.info("Handling as single file")
         # Set root path
-        path_root = self.handler['orig_path']
+        path_root = self.get_handle('orig_path')
         # Set new folder
         new_folder = path.join(path_root, path_name)
         logging.debug("New folder: %s", new_folder)
@@ -390,7 +425,7 @@ class Book:
         '''Get metadata from google books api '''
         logging.info("Querying Google Books")
         # Connect to Google Books API
-        service = build('books', 'v1', developerKey=self.handler['api_key'])
+        service = build('books', 'v1', developerKey=self.get_handle('api_key'))
         # Make API request
         request = service.volumes().list(
             q=query,
@@ -457,13 +492,13 @@ class Book:
             logging.debug("Custom search query: %s", custom_search)
             refined = custom_search
         # Get book info from Google
-        self.book_info = self.ask_google(refined)
+        self.set_all_book_info(self.ask_google(refined))
         logging.debug(self.book_info)
         # Save cover image to file
-        cover_file = self.__save_cover(raw, self.book_info['cover'])
+        cover_file = self.__save_cover(raw, self.get_book_info('cover'))
         logging.debug("Cover image: %s", cover_file)
         # Get files and chapterize files, if enabled
-        get_result = self.__get_files(raw, self.handler['make_chapters'])
+        get_result = self.__get_files(raw, self.get_handle('make_chapters'))
         (is_chapterized, book_files) = get_result
         logging.debug(book_files)
         # Verify success
@@ -471,14 +506,14 @@ class Book:
             return None
         # Move & rename files
         move_success = self.__move_files(book_files,
-                                         self.handler['make_chapters'])
+                                         self.get_handle('make_chapters'))
         logging.debug("Move was successful: %s", move_success)
         # Verify success
         if not move_success:
             return None
         # format book title
-        book_title = ('"' + self.book_info['long_title'] +
-                      '" by ' + self.book_info['author'])
+        book_title = ('"' + self.get_book_info('long_title') +
+                      '" by ' + self.get_book_info('author'))
         logging.info("Book title: %s", book_title)
         # return new book title
         return book_title

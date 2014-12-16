@@ -19,13 +19,17 @@
 # ======== IMPORT MODULES ======== #
 
 import mediahandler.handler as mh
+from mediahandler.util.args import get_arguments
 
 
 # ======== MAIN FUNCTION ======== #
 
 def main():
     '''Main CLI function'''
-    new_handler = mh.Handler()
+    # Get arguments
+    args = get_arguments()
+    # Run handler
+    new_handler = mh.Handler(args)
     new_handler.addmedia()
 
 

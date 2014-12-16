@@ -29,17 +29,17 @@ def getinfo(m_format, m_db, file_path):
     '''Get video info from filebot'''
     logging.info("Getting video media information")
     # Filebot Options
-    __filebot = "/usr/bin/filebot"
-    __action = "COPY"
-    __strict = "-non-strict"
-    __analytics = "-no-analytics"
+    filebot = "/usr/bin/filebot"
+    action = "COPY"
+    strict = "-non-strict"
+    analytics = "-no-analytics"
     # Set up query
-    m_cmd = [__filebot,
+    m_cmd = [filebot,
              "-rename", file_path,
              "--db", m_db,
              "--format", m_format,
-             "--action", __action.lower(),
-             __strict, __analytics]
+             "--action", action.lower(),
+             strict, analytics]
     logging.debug("Query: %s", m_cmd)
     # Process query
     m_open = Popen(m_cmd, stdout=PIPE)
@@ -48,7 +48,7 @@ def getinfo(m_format, m_db, file_path):
     logging.debug("Query output: %s", output)
     logging.debug("Query return errors: %s", err)
     # Process output
-    query = r"\[%s\] Rename \[.*\] to \[(.*)\]" % __action
+    query = r"\[%s\] Rename \[.*\] to \[(.*)\]" % action
     file_info = search(query, output)
     if file_info is None:
         return None

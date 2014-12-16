@@ -97,7 +97,8 @@ def get_arguments():
     # Check for CLI
     if len(optlist) > 0:
         new_args = parse_arguments(optlist)
-    return use_deluge, new_args
+    new_args['use_deluge'] = use_deluge
+    return new_args
 
 
 # ======== PARSE ARGUMENTS ======== #
