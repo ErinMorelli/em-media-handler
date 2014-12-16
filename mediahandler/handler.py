@@ -294,13 +294,13 @@ class Handler(object):
         parse_path = search(r"^((.*)?\/(.*))?\/(.*)$",
                             rawpath, I)
         if parse_path:
-            self.args = ('path', parse_path.group(1))
+            self.args['path'] = parse_path.group(1))
             # Don't override deluge-defined name
             if 'name' not in self.args.keys():
-                self.args = ('name', parse_path.group(4))
+                self.args['name'] = parse_path.group(4))
             # Look for custom type
             if 'type' not in self.args.keys():
-                self.args = ('type', parse_path.group(3))
+                self.args['type'] = parse_path.group(3))
                 if self.args['type'] not in mh.__mediatypes__:
                     self.push.failure('Media type %s not recognized'
                                       % self.args['type'], True)
