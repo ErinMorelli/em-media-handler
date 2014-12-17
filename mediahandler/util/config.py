@@ -121,6 +121,7 @@ def getconfig(config_file):
     # Bool options
     __bool_options = ["enabled",
                       "keep_files",
+                      "keep_duplicates"
                       "make_chapters"]
     # Read config file
     config = ConfigParser()
