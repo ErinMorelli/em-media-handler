@@ -40,11 +40,11 @@ def get_episode(file_path, settings):
                % tv_path)
     tv_db = "thetvdb"
     # Get info
-    new_file = getinfo(tv_form, tv_db, file_path)
+    (new_file, skipped) = getinfo(tv_form, tv_db, file_path)
     logging.debug("New file: %s", new_file)
-    # Check for failure
+    # Check for failure & skips
     if new_file is None:
-        return None, None
+        return None, None, None
     # Set search query
     epath = escape(tv_path)
     tv_find = (r"%s\/(.*)\/(.*)\/.*\.S\d{2,4}E(\d{2,3}).\w{3}" % epath)
@@ -52,7 +52,7 @@ def get_episode(file_path, settings):
     # Extract info
     episode = search(tv_find, new_file)
     if episode is None:
-        return None, None
+        return None, None, None
     # Show title
     show_name = episode.group(1)
     # Season
@@ -64,4 +64,4 @@ def get_episode(file_path, settings):
     # Set title
     ep_title = "%s (%s, %s)" % (show_name, season, episode)
     # Return Show Name, Season, Episode (file)
-    return ep_title, new_file
+    return ep_title, new_file, skipped

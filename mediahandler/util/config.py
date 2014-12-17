@@ -18,9 +18,9 @@
 
 # ======== IMPORT MODULES ======== #
 
+import os
 import imp
 import logging
-from os import path, makedirs, access, R_OK
 
 try:
     from ConfigParser import ConfigParser
@@ -47,7 +47,7 @@ def __find_module(parent_mod, sub_mod):
 def __init_logging(settings):
     '''Turn on logging'''
     # Set defaults
-    log_file = '%s/logs/mediaHandler.log' % path.expanduser("~")
+    log_file = '%s/logs/mediaHandler.log' % os.path.expanduser("~")
     log_level = 40
     # Look for exceptions
     if settings['Logging']['file_path'] is not None:
@@ -55,9 +55,9 @@ def __init_logging(settings):
     if settings['Logging']['level'] is not None:
         log_level = int(settings['Logging']['level'])
     # Make sure log file dir exists
-    log_path = path.dirname(log_file)
-    if not path.exists(log_path):
-        makedirs(log_path)
+    log_path = os.path.dirname(log_file)
+    if not os.path.exists(log_path):
+        os.makedirs(log_path)
     # Config logging
     logging.basicConfig(
         filename=log_file,
@@ -90,8 +90,8 @@ def __check_modules(settings):
     if settings['TV']['enabled'] or settings['Movies']['enabled']:
         settings['has_filebot'] = False
         # Check for Filebot
-        if (not path.isfile('/usr/bin/filebot') and
-                not path.isfile('/usr/local/bin/filebot')):
+        if (not os.path.isfile('/usr/bin/filebot') and
+                not os.path.isfile('/usr/local/bin/filebot')):
             raise ImportError('Filebot application not found')
         else:
             settings['has_filebot'] = True
@@ -109,7 +109,7 @@ def __check_modules(settings):
             __find_module('mutagen', 'mp3')
             __find_module('mutagen', 'ogg')
             # Check fo ABC
-            if not path.isfile('/usr/bin/abc.php'):
+            if not os.path.isfile('/usr/bin/abc.php'):
                 raise ImportError('ABC application not found')
     return
 
@@ -152,20 +152,21 @@ def makeconfig(new_file):
     '''Generate default config file'''
     # Set default path
     config_file = ('%s/.config/mediahandler/settings.conf' %
-                   path.expanduser("~"))
+                   os.path.expanduser("~"))
     # Check for user-provided path
     if new_file is not None:
         config_file = new_file
     # Check that config exists
-    if path.isfile(config_file):
+    if os.path.isfile(config_file):
         # Check config file permissions
-        if not access(config_file, R_OK):
+        if not os.access(config_file, os.R_OK):
             raise Warning('Configuration file cannot be opened')
     else:
         config = ConfigParser()
         # General section defaults
         config.add_section('General')
         config.set('General', 'keep_files', 'true')
+        config.set('General', 'keep_duplicates', 'true')
         # Deluge section defaults
         config.add_section('Deluge')
         config.set('Deluge', 'enabled', 'false')
@@ -204,9 +205,10 @@ def makeconfig(new_file):
         config.set('Audiobooks', 'make_chapters', 'false')
         config.set('Audiobooks', 'chapter_length', '8')
         # Make directories for config file
-        config_path = path.dirname(config_file)
-        if not path.exists(config_path):
-            makedirs(config_path)
+        config_path = os.path.dirname(config_file)
+        if not os.path.exists(config_path):
+            os.makedirs(config_path)
+            os.chmod(config_path, 0777)
         # Write new configuration file to path
         with open(config_file, 'w') as config_file_open:
             config.write(config_file_open)

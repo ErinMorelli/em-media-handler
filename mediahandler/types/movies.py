@@ -39,11 +39,11 @@ def get_movie(file_path, settings):
     mov_format = "%s/{n} ({y})" % mov_path
     mov_db = "themoviedb"
     # Get info
-    new_file = getinfo(mov_format, mov_db, file_path)
+    (new_file, skipped) = getinfo(mov_format, mov_db, file_path)
     logging.debug("New file: %s", new_file)
     # Check for failure
     if new_file is None:
-        return None, None
+        return None, None, None
     # Set search query
     epath = escape(mov_path)
     mov_find = (r"%s\/(.*\(\d{4}\))\.\w{3}" % epath)
@@ -51,8 +51,8 @@ def get_movie(file_path, settings):
     # Extract info
     movie = search(mov_find, new_file)
     if movie is None:
-        return None, None
+        return None, None, None
     # Set title
     mov_title = movie.group(1)
     # Return Movie Title
-    return mov_title, new_file
+    return mov_title, new_file, skipped

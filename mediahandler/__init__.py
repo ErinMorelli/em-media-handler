@@ -15,7 +15,7 @@
 # included in all copies or substantial portions of the Software.
 '''Initialize module'''
 
-__version__ = '0.3.3'
+__version__ = '0.3.4'
 __author__ = 'Erin Morelli <erin@erinmorelli.com>'
 
 

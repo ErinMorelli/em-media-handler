@@ -327,9 +327,11 @@ class Book(object):
         sorted_array = sorted(file_array)
         # Loop through files
         moved_files = []
+        skipped_files = []
         for i, book_file in enumerate(sorted_array):
             # Set new name
             new_name = self.book_info['short_title']
+            new_path = ''
             # Use chapter naming for chapters
             if has_chapters:
                 # Set start path
@@ -340,24 +342,31 @@ class Book(object):
                     new_name = self.book_info['short_title'] + book_part
                 # Set new file path
                 new_path = book_dir + '/' + new_name + '.m4b'
-                # Copy & rename the files
-                copy(start_path, new_path)
             else:
                 # Set non-chaptered file paths & formatting
                 start_path = self.handler['orig_path'] + '/' + book_file
                 new_path = ("%s/%02d - %s.%s" %
                             (book_dir, i+1, new_name,
                              self.handler['file_type']))
-                # Copy the files
-                copy(start_path, new_path)
             logging.debug("Start path: %s", start_path)
             logging.debug("New path: %s", new_path)
-            # Add to moved file list
-            moved_files.append(new_name)
-        if len(moved_files) == 0:
-            return False
+            # Check for duplicate
+            if path.isfile(new_path):
+                # Add to skipped file list
+                skipped_files.append(new_path)
+                logging.warning("Duplicate file found: %s", new_path)
+            else:
+                # Copy the file
+                copy(start_path, new_path)
+                # Add to moved file list
+                moved_files.append(new_name)
+        skips = False
+        if len(skipped_files) > 0:
+            skips = True
+        if len(moved_files) == 0 and not skips:
+            return None, skips
         # return success and list of moved files
-        return True
+        return moved_files, skips
 
     # ======== DEAL WITH SINGLE FILES ======== #
 
@@ -468,17 +477,17 @@ class Book(object):
         logging.debug(book_files)
         # Verify success
         if not is_chapterized:
-            return None
+            return None, None
         # Move & rename files
-        move_success = self.__move_files(book_files,
-                                         self.handler['make_chapters'])
-        logging.debug("Move was successful: %s", move_success)
+        (move_files, skips) = self.__move_files(book_files,
+                                                self.handler['make_chapters'])
+        logging.debug("Move was successful: %s", move_files)
         # Verify success
-        if not move_success:
-            return None
+        if move_files is None:
+            return None, None
         # format book title
         book_title = ('"' + self.book_info['long_title'] +
                       '" by ' + self.book_info['author'])
         logging.info("Book title: %s", book_title)
         # return new book title
-        return book_title
+        return book_title, skips

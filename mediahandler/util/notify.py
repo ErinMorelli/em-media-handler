@@ -78,15 +78,23 @@ class Push(object):
 
     # ======== SET SUCCESS INFO ======== #
 
-    def success(self, file_array):
+    def success(self, file_array, skipped=None):
         '''Success notification'''
         logging.info("Starting success notifications")
         # Format file list
         media_list = '\n    '.join(file_array)
+        skipped_msg = ''
+        # Set skipped message if set
+        if skipped is not None:
+            skipped_list = '\n    '.join(skipped)
+            skipped_msg = '''
+Files were skipped!
+%s
+        ''' % skipped_list
         # Set success message
         conn_text = '''Media was successfully added to your server:
 %s
-        ''' % media_list
+%s     ''' % media_list, skipped_msg
         # If push notifications enabled
         if self.settings['enabled'] and not self.disable:
             # Send message
