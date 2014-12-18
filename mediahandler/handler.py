@@ -223,6 +223,7 @@ class Handler(object):
 
     def __convert_type(self):
         '''Convert string type to int'''
+        logging.info("Contverting type")
         # Make lowercase for comparison
         xtype = self.args['type'].lower()
         # Convert values
@@ -234,12 +235,13 @@ class Handler(object):
         for key, value in mh.__mediakeys__.items():
             regex = r"%s" % value
             if search(regex, xtype, I):
-                string = value
+                stype = value
                 xtype = int(key)
-        # Store string
-        self.args['stype'] = string
-        # Set new int value
+        # Store string & int values
+        self.args['stype'] = stype
         self.args['type'] = xtype
+        # Return
+        logging.debug("Converted type (%s: %s)", xtype, stype)
         return
 
     # ======== PARSE DIRECTORY ======== #
