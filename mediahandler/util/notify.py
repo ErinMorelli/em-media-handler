@@ -87,14 +87,15 @@ class Push(object):
         if len(file_array) > 0:
             media_list = '\n    '.join(file_array)
             conn_text = '''Media was successfully added to your server:
-%s''' % media_list
+%s
+''' % media_list
         # Set skipped message if set
-        if skipped is not None:
+        if skipped is not None or len(skipped) > 0:
             skipped_list = '\n    '.join(skipped)
             skipped_msg = '''
 Some files were skipped:
     %s
-        ''' % skipped_list
+''' % skipped_list
             conn_text = conn_text + skipped_msg
         # If push notifications enabled
         if self.settings['enabled'] and not self.disable:
