@@ -19,7 +19,6 @@
 
 import logging
 import mediahandler.types
-from os import path
 from re import escape, search, sub
 
 
@@ -32,9 +31,8 @@ class Episode(mediahandler.types.Media):
 
     def __init__(self, settings, push):
         '''Episode class constuctor'''
+        self.ptype = 'TV'
         super(Episode, self).__init__(settings, push)
-        # Specific
-        self.dst_path = '%s/Media/Television' % path.expanduser("~")
         # Filebot
         self.filebot['db'] = "thetvdb"
         form = "/{n}/Season {s}/{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}"
@@ -53,7 +51,7 @@ class Episode(mediahandler.types.Media):
         # Extract info
         episode = search(tv_find, new_file)
         if episode is None:
-            return self.__match_error(new_file)
+            return self.match_error(new_file)
         # Show title
         show_name = episode.group(1)
         # Season

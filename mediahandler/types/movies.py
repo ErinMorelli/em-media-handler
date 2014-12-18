@@ -19,7 +19,6 @@
 
 import logging
 import mediahandler.types
-from os import path
 from re import escape, search
 
 
@@ -32,9 +31,8 @@ class Movie(mediahandler.types.Media):
 
     def __init__(self, settings, push):
         '''Movie class constuctor'''
+        self.ptype = 'Movies'
         super(Movie, self).__init__(settings, push)
-        # Specific
-        self.dst_path = '%s/Media/Movies' % path.expanduser("~")
         # Filebot
         self.filebot['db'] = "themoviedb"
         self.filebot['format'] = "%s/{n} ({y})" % self.dst_path
@@ -52,7 +50,7 @@ class Movie(mediahandler.types.Media):
         # Extract info
         movie = search(mov_find, new_file)
         if movie is None:
-            return self.__match_error(new_file)
+            return self.match_error(new_file)
         # Set title
         mov_title = movie.group(1)
         # Return Movie Title

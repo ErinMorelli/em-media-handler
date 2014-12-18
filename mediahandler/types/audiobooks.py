@@ -42,9 +42,9 @@ class Book(mediahandler.types.Media):
     def __init__(self, settings, push):
         '''Init book class'''
         logging.info("Starting audiobook handler class")
+        super(Book, self).__init__(settings, push)
         # Set global bookinfo
         self.book_info = {}
-        self.push = push
         # Get blacklist path
         list_path = path.dirname(__file__) + '/blacklist.txt'
         # Set up handler info
@@ -63,9 +63,12 @@ class Book(mediahandler.types.Media):
         self.handler['path'] = '%s/Media/Audiobooks' % path.expanduser("~")
         # Check for custom path in settings
         if settings['folder'] != '':
-            if path.exists(settings['folder']):
-                self.handler['path'] = settings['folder']
-                logging.debug("Using custom path: %s", self.handler['path'])
+            self.handler['path'] = settings['folder']
+            logging.debug("Using custom path: %s", self.handler['path'])
+        # Check destination exists
+        if not path.exists(self.handler['path']):
+            self.push.failure("Folder for Audiobooks not found: %s"
+                              % self.handler['path'])
         # Look for Google api key
         if settings['api_key'] != '':
             self.handler['api_key'] = settings['api_key']

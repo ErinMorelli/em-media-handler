@@ -34,6 +34,8 @@ class Media(object):
     def __init__(self, settings, push):
         '''Init media class'''
         self.type = type(self).__name__.lower()
+        if not hasattr(self, 'ptype'):
+            self.ptype = 'Media'
         # Input
         self.settings = settings
         self.push = push
@@ -46,18 +48,21 @@ class Media(object):
             'flags': ['-non-strict', '-no-analytics']
         }
         # Type specific
-        self.dst_path = ''
+        self.dst_path = '%s/Media/%s' % (path.expanduser("~"), self.ptype)
+        # Check for custom path in settings
+        if self.settings['folder'] != '':
+            self.dst_path = self.settings['folder']
+            logging.debug("Using custom path: %s", self.dst_path)
+        # Check destination exists
+        if not path.exists(self.dst_path):
+            self.push.failure("Folder for %s not found: %s"
+                              % (self.ptype, self.dst_path))
 
     # ======== GET VIDEO ======== #
 
     def add(self, file_path):
         '''A new media file'''
         logging.info("Starting %s information handler", self.type)
-        # Check for custom path in settings
-        if self.settings['folder'] != '':
-            if path.exists(self.settings['folder']):
-                self.dst_path = self.settings['folder']
-                logging.debug("Using custom path: %s", self.dst_path)
         # Set up query
         m_cmd = [self.filebot['bin'],
                  '-rename', file_path,
@@ -73,6 +78,7 @@ class Media(object):
     def __media_info(self, cmd, file_path):
         '''Get video info from filebot'''
         logging.info("Getting %s information", self.type)
+        logging.debug("Query: %s", cmd)
         # Process query
         query = Popen(cmd, stdout=PIPE)
         # Get output
@@ -105,13 +111,13 @@ class Media(object):
             logging.warning("Duplicate file was skipped: %s", new_file)
         # Check for failure
         if new_file is None:
-            return self.__match_error(file_path)
+            return self.match_error(file_path)
         # Return info
         logging.debug("New file: %s", new_file)
         return new_file, skipped
 
     # ======== MATCH ERROR ======== #
 
-    def __match_error(self, name):
+    def match_error(self, name):
         '''Return a match error'''
         return self.push.failure("Unable to match %s: %s" % (self.type, name))

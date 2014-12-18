@@ -90,6 +90,6 @@ class Tracks(mediahandler.types.Media):
                                  % len(skipped))
         # Return error if nothing found
         if len(skips) == 0 and len(music_data) == 0:
-            return self.__match_error(file_path)
+            return self.match_error(file_path)
         # Return results
         return results, skips

@@ -19,7 +19,7 @@
 
 import sys
 import logging
-from re import search, I
+from re import search, match, I
 from shutil import rmtree
 from os import path, listdir, remove
 import mediahandler as mh
@@ -31,6 +31,7 @@ from mediahandler.util.config import getconfig, makeconfig
 
 class Handler(object):
     '''Media handler class'''
+
     # ======== INIT CLASS ======== #
 
     def __init__(self, args_input):
@@ -76,11 +77,11 @@ class Handler(object):
         # Check for forced single import (Music)
         if 'single_track' in self.args.keys():
             single = self.args['single_track']
-        self.settings['Music']['single_track'] = single
+            self.settings['Music']['single_track'] = single
         # Check for custom search (Audiobooks)
         if 'search' in self.args.keys():
             query = self.args['search']
-        self.settings['Audiobooks']['custom_search'] = query
+            self.settings['Audiobooks']['custom_search'] = query
         # Check that type is enabled
         if not self.settings[stype]['enabled']:
             self.push.failure("%s type is not enabled" % stype)
@@ -223,7 +224,8 @@ class Handler(object):
 
     def __convert_type(self):
         '''Convert string type to int'''
-        logging.info("Contverting type")
+        logging.info("Converting type")
+        stype = ''
         # Make lowercase for comparison
         xtype = self.args['type'].lower()
         # Convert values
@@ -234,14 +236,15 @@ class Handler(object):
         # Look for int
         for key, value in mh.__mediakeys__.items():
             regex = r"%s" % value
-            if search(regex, xtype, I):
+            if match(regex, xtype, I):
                 stype = value
                 xtype = int(key)
+                break
         # Store string & int values
         self.args['stype'] = stype
         self.args['type'] = xtype
         # Return
-        logging.debug("Converted type (%s: %s)", xtype, stype)
+        logging.debug("Converted type - %s, %s", xtype, stype)
         return
 
     # ======== PARSE DIRECTORY ======== #
