@@ -17,6 +17,7 @@
 
 # ======== IMPORT MODULES ======== #
 
+import sys
 import logging
 from re import search, I
 from shutil import rmtree
@@ -57,109 +58,46 @@ class Handler(object):
         self.push = Notify.Push(self.settings['Pushover'],
                                 self.args['use_deluge'],
                                 self.args['no_push'])
+        # Media classes hash
+        self.media_classes = {
+            1: "Episode",
+            2: "Movie",
+            3: "Tracks",
+            4: "Book"
+        }
 
     # ======== MOVE VIDEO FILES ======== #
 
-    def add_video(self, src):
-        '''Process video files'''
-        logging.info("Moving file(s)")
-        # Set which handler to use
-        if self.args['type'] in ["TV", "Television", "TV Shows"]:
-            (new_name, dst, skip) = self.add_episode(src)
-        elif self.args['type'] == 'Movies':
-            (new_name, dst, skip) = self.add_movie(src)
-        # Check for errors
-        if new_name is None:
-            return None, None
-        logging.debug("Name: %s", new_name)
-        logging.debug("DST: %s", dst)
-        if skip:
-            logging.warning("")
-        # Check that new file exists
-        if not path.isfile(dst):
-            self.push.failure("File failed to move: %s" % self.args['name'])
-        # Return new file name
-        return new_name, skip
-
-    # ======== ADD TV EPISODE ======== #
-
-    def add_episode(self, raw):
-        '''Get and process TV episode information'''
-        logging.info("Getting TV episode information")
-        # Check that TV is enabled
-        if not self.settings['TV']['enabled']:
-            self.push.failure("TV type is not enabled")
-        # Import TV module
-        import mediahandler.types.tv as TV
-        # Send info to handler
-        (ep_title, new_file, skip) = TV.get_episode(raw, self.settings['TV'])
-        if ep_title is None:
-            self.push.failure("Unable to match episode: %s"
-                              % self.args['name'])
-        # return folder and file paths
-        return ep_title, new_file, skip
-
-    # ======== ADD MOVIE ======== #
-
-    def add_movie(self, raw):
-        '''Get and process movie information'''
-        logging.info("Getting movie information")
-        # Check that Movies are enabled
-        if not self.settings['Movies']['enabled']:
-            self.push.failure("Movies type is not enabled")
-        # Import movie module
-        import mediahandler.types.movies as Movies
-        # Send info to handler
-        (mov_title, new_file, skip) = Movies.get_movie(raw,
-                                                       self.settings['Movies'])
-        if mov_title is None:
-            self.push.failure("Unable to match movie: %s" % self.args['name'])
-        # return folder and file paths
-        return mov_title, new_file, skip
-
-    # ======== ADD MUSIC ======== #
-
-    def add_music(self, raw, is_single=False):
-        '''Get and process music information'''
-        logging.info("Getting music information")
-        # Check that Movies are enabled
-        if not self.settings['Movies']['enabled']:
-            self.push.failure("Movies type is not enabled")
-        # Check for forced single import
+    def add_media_files(self, files):
+        '''Process media files'''
+        logging.info("Getting media information")
+        itype = self.args['type']
+        stype = self.args['stype']
+        # Check for forced single import (Music)
         if 'single_track' in self.args.keys():
-            is_single = self.args['single_track']
-        # Import music module
-        import mediahandler.types.music as Music
-        # Send info to handler
-        music_return = Music.get_music(raw, self.settings['Music'], is_single)
-        (music_info, skip) = music_return
-        # Check for no info
-        if music_info is None:
-            self.push.failure("Unable to match music: %s" % self.args['name'])
-        # return album info
-        return music_info, skip
-
-    # ======== ADD AUDIOBOOK ======== #
-
-    def add_book(self, raw):
-        '''Get and process book information'''
-        logging.info("Getting audiobook information")
-        # Set custom search query, if defined
-        custom_search = None
+            single = self.args['single_track']
+        self.settings['Music']['single_track'] = single
+        # Check for custom search (Audiobooks)
         if 'search' in self.args.keys():
-            custom_search = self.args['search']
-        # Check that Movies are enabled
-        if not self.settings['Audiobooks']['enabled']:
-            self.push.failure("Audiobooks type is not enabled")
-        # Import audiobooks module
-        import mediahandler.types.audiobooks as Audiobooks
-        # Send to handler
-        bok = Audiobooks.Book(self.settings['Audiobooks'])
-        (book_info, skip) = bok.get_book(raw, custom_search)
-        if book_info is None:
-            self.push.failure("Unable to match book: %s" % self.args['name'])
-        # return book info
-        return book_info, skip
+            query = self.args['search']
+        self.settings['Audiobooks']['custom_search'] = query
+        # Check that type is enabled
+        if not self.settings[stype]['enabled']:
+            self.push.failure("%s type is not enabled" % stype)
+        # Set module
+        module = "mediahandler.types.%s" % stype.lower()
+        logging.debug("Importing module: %s", module)
+        # Import module
+        __import__(module)
+        mod = sys.modules[module]
+        # Get class from module
+        const = getattr(mod, self.media_classes[itype])
+        logging.debug("Found class type: %s", const.__name__)
+        # Initiate class
+        media = const(self.settings[stype], self.push)
+        logging.debug("Configured media type: %s", media.type)
+        # Return
+        return media.add(files)
 
     # ======== EXTRACT FILES ======== #
 
@@ -183,30 +121,17 @@ class Handler(object):
         '''Process single files'''
         # Single file, treat differently
         logging.debug("Processing as a single file")
-        self.settings['is_single'] = True
+        self.settings['Music']['single_track'] = True
         # Look for zipped file first
         if search(r".(zip|rar|7z)$", files, I):
             logging.debug("Zipped file type detected")
             # Send to extractor
             if self.settings['has_filebot']:
                 get_files = self.extract_files(files)
-                # Check for failure
-                if get_files is None:
-                    return None, None
                 # Rescan files
                 self.__file_handler(get_files)
         # otherwise treat like other files
-        if self.args['type'] == "Music":
-            return self.add_music(files, self.settings['is_single'])
-        else:
-            # Set single file as source
-            src = files
-            # Move file
-            (video_info, skip) = self.add_video(src)
-            # Check for problems
-            if video_info is None:
-                return None, None
-            return video_info, skip
+        return self.add_media_files(files)
 
     # ======== FOLDER HANDLER ======== #
 
@@ -214,6 +139,7 @@ class Handler(object):
         '''Process as folder'''
         # Otherwise process as folder
         logging.debug("Processing as a folder")
+        self.settings['Music']['single_track'] = False
         # Get a list of files
         file_list = listdir(files)
         # Look for zipped file first
@@ -222,14 +148,11 @@ class Handler(object):
             # Send to extractor
             if self.settings['has_filebot']:
                 get_files = self.extract_files(files)
-                # Check for failure
-                if get_files is None:
-                    return None, None
                 # Rescan files
                 self.__file_handler(get_files)
         # Check for music
-        if self.args['type'] == "Music":
-            return self.add_music(files)
+        if self.args['type'] is 3:
+            return self.add_media_files(files)
         else:
             # Locate video file in folder
             for item in file_list:
@@ -239,11 +162,7 @@ class Handler(object):
                     file_name = item
                     src = files+'/'+file_name
                     # Move file
-                    (video_info, skip) = self.add_video(src)
-                    # Check for problems
-                    if video_info is None:
-                        return None, None
-                    return video_info, skip
+                    return self.add_media_files(src)
 
     # ======== REMOVE FILES ======== #
 
@@ -258,7 +177,7 @@ class Handler(object):
             if 'extracted' in self.settings.keys():
                 logging.debug("Removing extracted files folder")
                 rmtree(self.settings['extracted'])
-            elif self.settings['is_single']:
+            elif self.settings['Music']['single_track']:
                 logging.debug("Removing extra single file")
                 remove(files)
             else:
@@ -275,10 +194,9 @@ class Handler(object):
         added_file = ''
         skipped_files = []
         skip = False
-        self.settings['is_single'] = False
         # Process books first
-        if self.args['type'] in ["Books", "Audiobooks"]:
-            (added_file, skip) = self.add_book(files)
+        if self.args['type'] is 4:
+            (added_file, skip) = self.add_media_files(files)
         # Then check for folders/files
         elif path.isfile(files):
             (added_file, skip) = self.__single_file(files)
@@ -292,7 +210,7 @@ class Handler(object):
         # Make sure files were added
         if len(added_files) == 0 and len(skipped_files) == 0:
             self.push.failure("No %s files found for: %s" %
-                              (self.args['type'], self.args['name']))
+                              (self.args['stype'], self.args['name']))
         # Remove old files
         if not self.settings['General']['keep_files']:
             self.__remove_files(files, skip)
@@ -301,12 +219,34 @@ class Handler(object):
         # Finish
         return added_files
 
+    # ======== CONVERT TYPE ======== #
+
+    def __convert_type(self):
+        '''Convert string type to int'''
+        # Make lowercase for comparison
+        xtype = self.args['type'].lower()
+        # Convert values
+        if xtype in ['tv shows', 'television']:
+            xtype = 'tv'
+        elif xtype == 'books':
+            xtype = 'audiobooks'
+        # Look for int
+        for key, value in mh.__mediakeys__.items():
+            regex = r"%s" % value
+            if search(regex, xtype, I):
+                string = value
+                xtype = int(key)
+        # Store string
+        self.args['stype'] = string
+        # Set new int value
+        self.args['type'] = xtype
+        return
+
     # ======== PARSE DIRECTORY ======== #
 
     def __parse_dir(self, rawpath):
         '''Parse input directory structure'''
-        logging.info("Extracing info from path")
-        logging.debug(rawpath)
+        logging.info("Extracing info from path: %s", rawpath)
         # Extract info from path
         parse_path = search(r"^((.*)?\/(.*))?\/(.*)$",
                             rawpath, I)
@@ -318,7 +258,7 @@ class Handler(object):
             # Look for custom type
             if 'type' not in self.args.keys():
                 self.args['type'] = parse_path.group(3)
-                if self.args['type'] not in mh.__mediatypes__:
+                if self.args['type'].lower() not in mh.__mediatypes__:
                     self.push.failure('Media type %s not recognized'
                                       % self.args['type'], True)
             logging.debug("Type detected: %s", self.args['type'])
@@ -334,6 +274,8 @@ class Handler(object):
             self.push.failure(
                 "No type or name specified for media: %s" %
                 self.args['name'], True)
+        # Convert type to number
+        self.__convert_type()
         return
 
     # ======== HANDLE MEDIA ======== #

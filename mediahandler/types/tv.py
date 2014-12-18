@@ -18,50 +18,51 @@
 # ======== IMPORT MODULES ======== #
 
 import logging
+import mediahandler.types
 from os import path
-from mediahandler.types import getinfo
 from re import escape, search, sub
 
 
-# ======== GET EPISODE ======== #
+# ======== EPISODE CLASS DECLARTION ======== #
 
-def get_episode(file_path, settings):
-    '''Get TV episode information'''
-    logging.info("Starting episode information handler")
-    # Default TV path
-    tv_path = '%s/Media/Television' % path.expanduser("~")
-    # Check for custom path in settings
-    if settings['folder'] != '':
-        if path.exists(settings['folder']):
-            tv_path = settings['folder']
-            logging.debug("Using custom path: %s", tv_path)
-    # Set Variables
-    tv_form = ("%s/{n}/Season {s}/{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}"
-               % tv_path)
-    tv_db = "thetvdb"
-    # Get info
-    (new_file, skipped) = getinfo(tv_form, tv_db, file_path)
-    logging.debug("New file: %s", new_file)
-    # Check for failure & skips
-    if new_file is None:
-        return None, None, None
-    # Set search query
-    epath = escape(tv_path)
-    tv_find = (r"%s\/(.*)\/(.*)\/.*\.S\d{2,4}E(\d{2,3}).\w{3}" % epath)
-    logging.debug("Search query: %s", tv_find)
-    # Extract info
-    episode = search(tv_find, new_file)
-    if episode is None:
-        return None, None, None
-    # Show title
-    show_name = episode.group(1)
-    # Season
-    season = episode.group(2)
-    # Episode
-    ep_num = episode.group(3)
-    ep_num_fix = sub('^0', '', ep_num)
-    episode = "Episode %s" % ep_num_fix
-    # Set title
-    ep_title = "%s (%s, %s)" % (show_name, season, episode)
-    # Return Show Name, Season, Episode (file)
-    return ep_title, new_file, skipped
+class Episode(mediahandler.types.Media):
+    '''Episode handler class'''
+
+    # ======== EPISODE CONSTRUCTOR ======== #
+
+    def __init__(self, settings, push):
+        '''Episode class constuctor'''
+        super(Episode, self).__init__(settings, push)
+        # Specific
+        self.dst_path = '%s/Media/Television' % path.expanduser("~")
+        # Filebot
+        self.filebot['db'] = "thetvdb"
+        form = "/{n}/Season {s}/{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}"
+        self.filebot['format'] = self.dst_path + form
+
+    # ======== EPISODE OUTOUT PROCESSING ======== #
+
+    def process_output(self, output, file_path):
+        '''Episode class output processor'''
+        info = super(Episode, self).process_output(output, file_path)
+        (new_file, skip) = info
+        # Set search query
+        epath = escape(self.dst_path)
+        tv_find = (r"%s\/(.*)\/(.*)\/.*\.S\d{2,4}E(\d{2,3}).\w{3}" % epath)
+        logging.debug("Search query: %s", tv_find)
+        # Extract info
+        episode = search(tv_find, new_file)
+        if episode is None:
+            return self.__match_error(new_file)
+        # Show title
+        show_name = episode.group(1)
+        # Season
+        season = episode.group(2)
+        # Episode
+        ep_num = episode.group(3)
+        ep_num_fix = sub('^0', '', ep_num)
+        episode = "Episode %s" % ep_num_fix
+        # Set title
+        ep_title = "%s (%s, %s)" % (show_name, season, episode)
+        # Return episode & skips
+        return ep_title, skip

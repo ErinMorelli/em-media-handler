@@ -19,59 +19,99 @@
 # ======== IMPORT MODULES ======== #
 
 import logging
+from os import path
 from re import search
 from subprocess import Popen, PIPE
 
 
-# ======== GET MEDIA INFO FROM FILEBOT ======== #
+# ======== VIDEO CLASS ======== #
 
-def getinfo(m_format, m_db, file_path):
-    '''Get video info from filebot'''
-    logging.info("Getting video media information")
-    # Filebot Options
-    filebot = "/usr/bin/filebot"
-    action = "COPY"
-    strict = "-non-strict"
-    analytics = "-no-analytics"
-    # Set up query
-    m_cmd = [filebot,
-             "-rename", file_path,
-             "--db", m_db,
-             "--format", m_format,
-             "--action", action.lower(),
-             strict, analytics]
-    logging.debug("Query: %s", m_cmd)
-    # Process query
-    m_open = Popen(m_cmd, stdout=PIPE)
-    # Get output
-    (output, err) = m_open.communicate()
-    logging.debug("Query output: %s", output)
-    logging.debug("Query return errors: %s", err)
-    # Process output
-    (new_file, skips) = __process_output(output, action)
-    # Return new file
-    return new_file, skips
+class Media(object):
+    '''Media handler parent class'''
 
+    # ======== SET GLOBAL CLASS OPTIONS ======== #
 
-# ======== PROCESS FILEBOT OUTPUT ======== #
+    def __init__(self, settings, push):
+        '''Init media class'''
+        self.type = type(self).__name__.lower()
+        # Input
+        self.settings = settings
+        self.push = push
+        # Filebot
+        self.filebot = {
+            'bin': '/usr/bin/filebot',
+            'action': 'copy',
+            'db': '',
+            'format': '',
+            'flags': ['-non-strict', '-no-analytics']
+        }
+        # Type specific
+        self.dst_path = ''
 
-def __process_output(output, action):
-    '''Check for good response or skipped content'''
-    logging.info("Processing query output")
-    new_file = None
-    skipped = False
-    # Set up regexes
-    good_query = r"\[%s\] Rename \[.*\] to \[(.*)\]" % action
-    skip_query = r"Skipped \[(.*)\] because \[(.*)\] already exists"
-    # Look for content
-    get_good = search(good_query, output)
-    get_skip = search(skip_query, output)
-    # Check return
-    if get_good is not None:
-        new_file = get_good.group(1)
-    elif get_skip is not None:
-        skipped = True
-        new_file = get_skip.group(2)
-        logging.warning("Duplicate file was skipped: %s", new_file)
-    # Return info
-    return new_file, skipped
+    # ======== GET VIDEO ======== #
+
+    def add(self, file_path):
+        '''A new media file'''
+        logging.info("Starting %s information handler", self.type)
+        # Check for custom path in settings
+        if self.settings['folder'] != '':
+            if path.exists(self.settings['folder']):
+                self.dst_path = self.settings['folder']
+                logging.debug("Using custom path: %s", self.dst_path)
+        # Set up query
+        m_cmd = [self.filebot['bin'],
+                 '-rename', file_path,
+                 '--db', self.filebot['db'],
+                 '--format', self.filebot['format'],
+                 '--action', self.filebot['action']]
+        m_cmd.extend(self.filebot['flags'])
+        # Get info
+        return self.__media_info(m_cmd, file_path)
+
+    # ======== GET VIDEO INFO FROM FILEBOT ======== #
+
+    def __media_info(self, cmd, file_path):
+        '''Get video info from filebot'''
+        logging.info("Getting %s information", self.type)
+        # Process query
+        query = Popen(cmd, stdout=PIPE)
+        # Get output
+        (output, err) = query.communicate()
+        logging.debug("Query output: %s", output)
+        logging.debug("Query return errors: %s", err)
+        # Process output
+        return self.process_output(output, file_path)
+
+    # ======== PROCESS FILEBOT OUTPUT ======== #
+
+    def process_output(self, output, file_path):
+        '''Check for good response or skipped content'''
+        logging.info("Processing query output")
+        new_file = None
+        skipped = False
+        # Set up regexes
+        action = self.filebot['action'].upper()
+        good_query = r"\[%s\] Rename \[.*\] to \[(.*)\]" % action
+        skip_query = r"Skipped \[(.*)\] because \[(.*)\] already exists"
+        # Look for content
+        get_good = search(good_query, output)
+        get_skip = search(skip_query, output)
+        # Check return
+        if get_good is not None:
+            new_file = get_good.group(1)
+        elif get_skip is not None:
+            skipped = True
+            new_file = get_skip.group(2)
+            logging.warning("Duplicate file was skipped: %s", new_file)
+        # Check for failure
+        if new_file is None:
+            return self.__match_error(file_path)
+        # Return info
+        logging.debug("New file: %s", new_file)
+        return new_file, skipped
+
+    # ======== MATCH ERROR ======== #
+
+    def __match_error(self, name):
+        '''Return a match error'''
+        return self.push.failure("Unable to match %s: %s" % (self.type, name))

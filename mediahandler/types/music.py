@@ -19,67 +19,77 @@
 
 import re
 import logging
+import mediahandler.types
 from os import path, makedirs
-from subprocess import Popen, PIPE
 
 
-# ======== ADD MUSIC ======== #
+# ======== MUSIC CLASS DECLARTION ======== #
 
-def get_music(file_path, settings, is_single=False):
-    '''Add music to beets library'''
-    logging.info("Starting music information handler")
-    # Beet Options
-    beet = "/usr/local/bin/beet"
-    beetslog = '%s/logs/beets.log' % path.expanduser("~")
-    # Check for custom path in settings
-    if settings['log_file'] != '':
-        beetslog = settings['log_file']
-        logging.debug("Using custom beets log: %s", beetslog)
-    # Check that log file path exists
-    beetslog_dir = path.dirname(beetslog)
-    if not path.exists(beetslog_dir):
-        makedirs(beetslog_dir)
-    # Set Variables
-    if is_single:
-        logging.info("Importing as single track")
-        m_tags = "-sql"
-        m_query = r"(Tagging track)\:\s(.*)\nURL\:\n\s{1,4}(.*)\n"
-    else:
-        logging.info("Importing as an album")
-        m_tags = "-ql"
-        m_query = r"(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n"
-    # Set up query
-    m_cmd = [beet,
-             "import", file_path,
-             m_tags, beetslog]
-    logging.debug("Query: %s", m_cmd)
-    # Process query
-    m_open = Popen(m_cmd, stdout=PIPE, stderr=PIPE)
-    # Get output
-    (output, err) = m_open.communicate()
-    logging.debug("Query output: %s", output)
-    logging.debug("Query return errors: %s", err)
-    # Check for skip
-    skips = re.findall(r"(Skipping\.)\n", output)
-    logging.info("Beets skipped %s items", len(skips))
-    # Extract Info
-    music_find = re.compile(m_query)
-    logging.debug("Search query: %s", m_query)
-    # Format data
-    music_data = music_find.findall(output)
-    logging.info("Additions detected: %s", music_data)
-    # Get results
-    results = ''
-    has_skips = False
-    if len(music_data) > 0:
-        for music_item in music_data:
-            results = results + ("%s\n\t" % music_item[1])
-    if len(skips) > 0:
-        has_skips = True
-        results = results + ("\n%s items were skipped (see beets log)"
-                             % len(skips))
-    # Return error if nothing found
-    if len(skips) == 0 and len(music_data) == 0:
-        return None, None
-    # Return results
-    return results, has_skips
+class Tracks(mediahandler.types.Media):
+    '''Tracks handler class'''
+
+    # ======== SET GLOBAL CLASS OPTIONS ======== #
+
+    def __init__(self, settings, push):
+        '''Tracks class constuctor'''
+        super(Tracks, self).__init__(settings, push)
+        self.type = 'music'
+        # Beet
+        self.beet = "/usr/local/bin/beet"
+        self.beetslog = '%s/logs/beets.log' % path.expanduser("~")
+        # Query
+        self.tags = '-ql'
+        self.query = r"(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n"
+        # Check for single track
+        if self.settings['single_track']:
+            self.tags = "-sql"
+            self.query = r"(Tagging track)\:\s(.*)\nURL\:\n\s{1,4}(.*)\n"
+
+    # ======== ADD MUSIC ======== #
+
+    def add(self, file_path):
+        '''Add music to beets library'''
+        logging.info("Starting %s information handler", self.type)
+        # Check for custom path in settings
+        if self.settings['log_file'] != '':
+            beetslog = self.settings['log_file']
+            logging.debug("Using custom beets log: %s", beetslog)
+        # Check that log file path exists
+        beetslog_dir = path.dirname(beetslog)
+        if not path.exists(beetslog_dir):
+            makedirs(beetslog_dir)
+        # Set up query
+        m_cmd = [self.beet,
+                 "import", file_path,
+                 self.tags, self.beetslog]
+        # Get info
+        return self.__media_info(m_cmd, file_path)
+
+    # ======== MUSIC OUTOUT PROCESSING ======== #
+
+    def process_output(self, output, file_path):
+        '''Tracks class output processor'''
+        # Check for skips
+        skipped = re.findall(r"(Skipping\.)\n", output)
+        logging.info("Beets skipped %s items", len(skipped))
+        # Extract Info
+        music_find = re.compile(self.query)
+        logging.debug("Search query: %s", self.query)
+        # Format data
+        music_data = music_find.findall(output)
+        logging.info("Additions detected: %s", music_data)
+        # Get results
+        results = ''
+        skips = False
+        if len(music_data) > 0:
+            for music_item in music_data:
+                results = results + ("%s\n\t" % music_item[1])
+        if len(skips) > 0:
+            skips = True
+            results = results + ("\n%s items were skipped (see beets log)"
+                                 % len(skipped))
+        # Return error if nothing found
+        if len(skips) == 0 and len(music_data) == 0:
+            return self.__match_error(file_path)
+        # Return results
+        return results, skips

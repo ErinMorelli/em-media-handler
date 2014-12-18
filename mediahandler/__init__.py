@@ -15,13 +15,13 @@
 # included in all copies or substantial portions of the Software.
 '''Initialize module'''
 
-__version__ = '0.3.4'
+__version__ = '0.4.0'
 __author__ = 'Erin Morelli <erin@erinmorelli.com>'
 
 
 # Globally acceptable media types & their CLI keys
 __mediakeys__ = {
-    "1": "TV Shows",
+    "1": "TV",
     "2": "Movies",
     "3": "Music",
     "4": "Audiobooks"
@@ -29,11 +29,11 @@ __mediakeys__ = {
 
 # Globally acceptable media type names
 __mediatypes__ = [
-    'TV',
-    'TV Shows',
-    'Television',
-    'Movies',
-    'Music',
-    'Books',
-    'Audiobooks'
+    'tv',
+    'tv shows',
+    'television',
+    'movies',
+    'music',
+    'books',
+    'audiobooks'
 ]

@@ -20,6 +20,7 @@
 
 import re
 import logging
+import mediahandler.types
 from re import search
 from math import ceil
 from shutil import copy, move
@@ -34,15 +35,16 @@ from mutagen.ogg import OggFileType
 
 # ======== BOOK CLASS DECLARTION ======== #
 
-class Book(object):
+class Book(mediahandler.types.Media):
     ''' Audiobook handler class'''
     # ======== SET GLOBAL CLASS OPTIONS ======== #
 
-    def __init__(self, settings):
+    def __init__(self, settings, push):
         '''Init book class'''
         logging.info("Starting audiobook handler class")
         # Set global bookinfo
         self.book_info = {}
+        self.push = push
         # Get blacklist path
         list_path = path.dirname(__file__) + '/blacklist.txt'
         # Set up handler info
@@ -83,6 +85,9 @@ class Book(object):
                           self.handler['max_length'])
         if settings['make_chapters'] != '':
             self.handler['make_chapters'] = settings['make_chapters']
+        # Look for custom search query
+        if 'custom_search' in settings.keys():
+            self.handler['custom_search'] = settings['custom_search']
 
     # ======== CLEAN UP SEARCH STRING ======== #
 
@@ -354,7 +359,7 @@ class Book(object):
             if path.isfile(new_path):
                 # Add to skipped file list
                 skipped_files.append(new_path)
-                logging.warning("Duplicate file found: %s", new_path)
+                logging.warning("Duplicate file was skipped: %s", new_path)
             else:
                 # Copy the file
                 copy(start_path, new_path)
@@ -452,7 +457,7 @@ class Book(object):
 
     # ======== MAIN BOOK FUNCTION (public) ======== #
 
-    def get_book(self, raw, custom_search=None):
+    def add(self, raw):
         '''Main get book function'''
         logging.info("Getting audiobook")
         # Parse string & get query
@@ -462,9 +467,9 @@ class Book(object):
         if path.isfile(raw):
             raw = self.__single_file(raw, refined)
         # Use custom search string, if defined
-        if custom_search is not None:
-            logging.debug("Custom search query: %s", custom_search)
-            refined = custom_search
+        if 'custom_search' in self.handler.keys():
+            refined = self.handler['custom_search']
+            logging.debug("Custom search query: %s", refined)
         # Get book info from Google
         self.book_info = self.ask_google(refined)
         logging.debug(self.book_info)
@@ -477,14 +482,14 @@ class Book(object):
         logging.debug(book_files)
         # Verify success
         if not is_chapterized:
-            return None, None
+            self.push.failure("Unable to chapterize book: %s" % raw)
         # Move & rename files
         (move_files, skips) = self.__move_files(book_files,
                                                 self.handler['make_chapters'])
         logging.debug("Move was successful: %s", move_files)
         # Verify success
         if move_files is None:
-            return None, None
+            return self.push.failure("Unable to move book files: %s" % raw)
         # format book title
         book_title = ('"' + self.book_info['long_title'] +
                       '" by ' + self.book_info['author'])
