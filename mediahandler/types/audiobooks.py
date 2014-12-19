@@ -155,7 +155,7 @@ class Book(mediahandler.types.Media):
         # Close open file
         output.close()
         # Add image to book info
-        self.book_info = ('cover_image', img_path)
+        self.book_info['cover_image'] = img_path
         # Return new image path
         return img_path
 
