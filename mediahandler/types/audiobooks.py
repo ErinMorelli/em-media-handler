@@ -102,7 +102,7 @@ class Book(mediahandler.types.Media):
         string = find_book.group(3)
         logging.debug("Initial string: %s", string)
         # Save original path for later
-        self.handler = ('orig_path', find_book.group(2))
+        self.handler['orig_path'] = find_book.group(2)
         # Get blacklist items from file
         blacklist = [line.strip() for line in open(self.handler['blacklist'])]
         # Convert blacklist array to regex string
@@ -290,7 +290,7 @@ class Book(mediahandler.types.Media):
             # Look for file types we can chapterize
             bad_file = re.search(self.handler['regex']['nc'], item, re.I)
             if bad_file:
-                self.handler = ('file_type', bad_file.group(1))
+                self.handler['file_type'] = bad_file.group(1)
                 to_chapterize.append(item)
         # See if any files need chapterizing
         if make_chapters:
