@@ -50,7 +50,7 @@ class Media(object):
         # Type specific
         self.dst_path = '%s/Media/%s' % (path.expanduser("~"), self.ptype)
         # Check for custom path in settings
-        if self.settings['folder'] != '':
+        if self.settings['folder'] is not None:
             self.dst_path = self.settings['folder']
             logging.debug("Using custom path: %s", self.dst_path)
         # Check destination exists

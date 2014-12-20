@@ -71,8 +71,7 @@ Options:
 
 Types:
         %s
-
-    ''' % (mh.__version__, mh.__author__, '\n\t'.join(types))
+''' % (mh.__version__, mh.__author__, '\n\t'.join(types))
     # Print error, if it exists
     if msg is not None:
         print "\nERROR: %s\n" % msg
@@ -130,7 +129,6 @@ def get_arguments():
 def parse_arguments(optlist):
     '''Parse arguments'''
     new_args = {}
-    new_args['single_track'] = False
     new_args['no_push'] = False
     f_flag = False
     for opt, arg in optlist:

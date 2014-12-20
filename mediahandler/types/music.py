@@ -51,7 +51,7 @@ class Tracks(mediahandler.types.Media):
         '''Add music to beets library'''
         logging.info("Starting %s information handler", self.type)
         # Check for custom path in settings
-        if self.settings['log_file'] != '':
+        if self.settings['log_file'] is not None:
             beetslog = self.settings['log_file']
             logging.debug("Using custom beets log: %s", beetslog)
         # Check that log file path exists

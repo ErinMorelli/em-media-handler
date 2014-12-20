@@ -24,7 +24,7 @@ from shutil import rmtree
 from os import path, listdir, remove
 import mediahandler as mh
 import mediahandler.util.notify as Notify
-from mediahandler.util.config import getconfig, makeconfig
+import mediahandler.util.config as Config
 
 
 # ======== DEFINE HANDLER CLASS ======== #
@@ -50,9 +50,8 @@ class Handler(object):
         if 'config' in self.args.keys():
             __new_path = self.args['config']
         # Set paths
-        __config_path = makeconfig(__new_path)
-        # Get settings from config
-        self.settings = getconfig(__config_path)
+        __config_file = Config.make_config(__new_path)
+        self.settings = Config.parse_config(__config_file)
         # Set up notify instance
         if 'no_push' not in self.args.keys():
             self.args['no_push'] = False
@@ -75,9 +74,10 @@ class Handler(object):
         itype = self.args['type']
         stype = self.args['stype']
         # Check for forced single import (Music)
+        single = self.settings['single_file']
         if 'single_track' in self.args.keys():
             single = self.args['single_track']
-            self.settings['Music']['single_track'] = single
+        self.settings['Music']['single_track'] = single
         # Check for custom search (Audiobooks)
         if 'search' in self.args.keys():
             query = self.args['search']
@@ -122,7 +122,7 @@ class Handler(object):
         '''Process single files'''
         # Single file, treat differently
         logging.debug("Processing as a single file")
-        self.settings['Music']['single_track'] = True
+        self.settings['single_file'] = True
         # Look for zipped file first
         if search(r".(zip|rar|7z)$", files, I):
             logging.debug("Zipped file type detected")
@@ -140,7 +140,7 @@ class Handler(object):
         '''Process as folder'''
         # Otherwise process as folder
         logging.debug("Processing as a folder")
-        self.settings['Music']['single_track'] = False
+        self.settings['single_file'] = False
         # Get a list of files
         file_list = listdir(files)
         # Look for zipped file first
@@ -167,18 +167,22 @@ class Handler(object):
 
     # ======== REMOVE FILES ======== #
 
-    def __remove_files(self, files, skips):
+    def __remove_files(self, files, skip):
         '''Remove original files'''
-        keep = self.settings['General']['keep_duplicates']
-        # Check keep settings
-        if skips and keep:
+        keep = self.settings['General']['keep_files']
+        keep_dups = self.settings['General']['keep_if_duplicates']
+        # Exit if we're not deleting anything
+        if keep:
+            return
+        # Exit if we're keeping duplicates
+        if skip and keep_dups:
             return
         # Otherwise, remove
         if path.exists(files):
             if 'extracted' in self.settings.keys():
                 logging.debug("Removing extracted files folder")
                 rmtree(self.settings['extracted'])
-            elif self.settings['Music']['single_track']:
+            elif self.settings['single_file']:
                 logging.debug("Removing extra single file")
                 remove(files)
             else:
@@ -213,8 +217,7 @@ class Handler(object):
             self.push.failure("No %s files found for: %s" %
                               (self.args['stype'], self.args['name']))
         # Remove old files
-        if not self.settings['General']['keep_files']:
-            self.__remove_files(files, skip)
+        self.__remove_files(files, skip)
         # Send success notification
         self.push.success(added_files, skipped_files)
         # Finish

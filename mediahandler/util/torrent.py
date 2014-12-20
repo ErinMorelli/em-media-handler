@@ -32,7 +32,7 @@ def remove_torrent(settings, torrent_hash):
     # Connect to Deluge daemon
     deluge = client.connect(
         host=settings['host'],
-        port=int(settings['port']),
+        port=settings['port'],
         username=settings['user'],
         password=settings['pass']
     )

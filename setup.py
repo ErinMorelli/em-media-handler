@@ -19,14 +19,14 @@
 # ======== IMPORT MODULES ======== #
 
 from distutils.core import setup
-from mediahandler.util.config import makeconfig
+from mediahandler.util.config import make_config
 
 
 # ======== MODULE SETUP ======== #
 
 setup(
     name='EM Media Handler',
-    version='0.4.0',
+    version='0.4.1',
     author='Erin Morelli',
     author_email='erin@erinmorelli.com',
     url='http://code.erinmorelli.com/em-media-handler/',
@@ -44,4 +44,4 @@ setup(
 )
 
 # Generate default config file
-makeconfig(None)
+make_config()
