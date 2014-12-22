@@ -103,7 +103,7 @@ STRUCT = [
 
 # ======== LOOK FOR MODULE ======== #
 
-def __find_module(parent_mod, sub_mod):
+def _find_module(parent_mod, sub_mod):
     '''Look to see if module is installed'''
     try:
         mod_info = imp.find_module(parent_mod)
@@ -117,7 +117,7 @@ def __find_module(parent_mod, sub_mod):
 
 # ======== LOGGING ======== #
 
-def __init_logging(settings):
+def init_logging(settings):
     '''Turn on logging'''
     # Set defaults
     log_file = '%s/logs/mediahandler.log' % os.path.expanduser("~")
@@ -146,19 +146,19 @@ def __init_logging(settings):
 
 # ======== CHECK MODULES ======== #
 
-def __check_modules(settings):
+def _check_modules(settings):
     '''Check that needed modules are installed'''
     # Check for logging
     if settings['Logging']['enabled']:
-        __init_logging(settings)
+        init_logging(settings)
         logging.info('Logging enabled')
     # Check deluge requirements
     if settings['Deluge']['enabled']:
         # Check for Twisted
-        __find_module('twisted', 'internet')
+        _find_module('twisted', 'internet')
         # Check for Deluge
-        __find_module('deluge', 'ui')
-        __find_module('deluge', 'log')
+        _find_module('deluge', 'ui')
+        _find_module('deluge', 'log')
     # Check video requirements
     if (settings['TV']['enabled']
        or settings['Movies']['enabled']):
@@ -172,16 +172,16 @@ def __check_modules(settings):
     # Check music requirements
     if settings['Music']['enabled']:
         # Check for Beets
-        __find_module('beets', 'util')
+        _find_module('beets', 'util')
     # Check audiobook requirements
     if settings['Audiobooks']['enabled']:
         # Check for Google API
-        __find_module('apiclient', 'discovery')
+        _find_module('apiclient', 'discovery')
         # Is chaptering enabled
         if settings['Audiobooks']['make_chapters']:
             # Check for Mutagen
-            __find_module('mutagen', 'mp3')
-            __find_module('mutagen', 'ogg')
+            _find_module('mutagen', 'mp3')
+            _find_module('mutagen', 'ogg')
             # Check fo ABC
             if not os.path.isfile('/usr/bin/abc.php'):
                 raise ImportError('ABC application not found')
@@ -214,7 +214,7 @@ def parse_config(file_path):
         # Populate hash
         settings[section] = new_options
     # Check that appropriate modules are installed
-    __check_modules(settings)
+    _check_modules(settings)
     # Return setting hash
     return settings
 
@@ -300,7 +300,7 @@ def make_config(new_file=None):
         config_path = os.path.dirname(config_file)
         if not os.path.exists(config_path):
             os.makedirs(config_path)
-            os.chmod(config_path, 0775)
+            os.chmod(config_path, 0o775)
         # Write new configuration file to path
         with open(config_file, 'w') as config_file_open:
             PARSER.write(config_file_open)
