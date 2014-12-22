@@ -16,7 +16,7 @@
 '''Initialize module'''
 
 import os
-import zipfile
+#import zipfile
 import tempfile
 
 import _common
@@ -28,7 +28,7 @@ import mediahandler.util.extract as Extract
 class ExtractTests(unittest.TestCase):
 
     def setUp(self):
-        # Conf 
+        # Conf
         self.conf = _common.get_conf_file()
         # Bad zip non without extension
         get_bad_non_zip = tempfile.NamedTemporaryFile(
@@ -67,22 +67,26 @@ class ExtractTests(unittest.TestCase):
         # good_zip.close()
 
     def tearDown(self):
-        os.unlink(self.good_zip1)
-        os.unlink(self.good_zip2)
         os.unlink(self.bad_zip)
         os.unlink(self.bad_non_zip)
-        #os.unlink(self.zip_name)
+        # os.unlink(self.good_zip1)
+        # os.unlink(self.good_zip2)
+        # os.unlink(self.zip_name)
 
-    def test_good_extract(self):
-        return
+    # def test_good_extract(self):
+    #     return
 
     def test_bad_extract(self):
         # Test 1
         self.assertRaises(OSError,
-            Extract.get_files, self.bad_zip)
+                          Extract.get_files, self.bad_zip)
         # Test 2
         self.assertRaises(OSError,
-            Extract.get_files, self.bad_non_zip)
+                          Extract.get_files, self.bad_non_zip)
+
+
+def suite():
+    return unittest.TestLoader().loadTestsFromName(__name__)
 
 
 if __name__ == '__main__':

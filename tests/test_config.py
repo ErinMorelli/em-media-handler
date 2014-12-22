@@ -44,7 +44,7 @@ class FindModulesTests(unittest.TestCase):
         submod = _common.random_string(5)
         regex = "Module %s.%s is not installed" % (module, submod)
         self.assertRaisesRegexp(ImportError, regex,
-            Config._find_module, module, submod)
+                                Config._find_module, module, submod)
 
 
 class InitLoggingTests(unittest.TestCase):
@@ -57,7 +57,7 @@ class InitLoggingTests(unittest.TestCase):
         self.conf = _common.get_conf_file()
 
     def test_init_logging(self):
-        #Override
+        # Override
         settings = _common.get_settings(self.conf)
         settings['Logging']['log_file'] = self.log_file
         settings['Logging']['level'] = 20
@@ -82,7 +82,7 @@ class InitLoggingTests(unittest.TestCase):
 
 class SimpleValidationConfigTests(unittest.TestCase):
 
-    def setUp (self):
+    def setUp(self):
         self.conf = _common.get_conf_file()
 
     def test_valid_bool(self):
@@ -143,9 +143,9 @@ class FileValidationConfigTests(unittest.TestCase):
         file_good = Config._get_valid_file('Music', 'log_file')
         self.assertEqual(file_good, self.tmp_file)
         # Invalid case
-        regex = r"Path to file provided for 'Logging: log_file' does not exist: .*"
+        regex = "Path to file provided for 'Logging: log_file' does not exist:"
         self.assertRaisesRegexp(CP.Error, regex,
-            Config._get_valid_file, 'Logging', 'log_file')
+                                Config._get_valid_file, 'Logging', 'log_file')
 
     def test_valid_folder(self):
         tmp_folder = tempfile.gettempdir()
@@ -160,7 +160,7 @@ class FileValidationConfigTests(unittest.TestCase):
         # Invalid case
         regex = r"Path provided for 'Movies: folder' does not exist: .*"
         self.assertRaisesRegexp(CP.Error, regex,
-            Config._get_valid_folder, 'Movies', 'folder')
+                                Config._get_valid_folder, 'Movies', 'folder')
 
     def modify_conf_file_options(self, tmp_file):
         # Get conf file content
@@ -267,6 +267,10 @@ class FileValidationConfigTests(unittest.TestCase):
 #         new_conf.write(conf_content)
 #         new_conf.close()
 #         return
+
+
+def suite():
+    return unittest.TestLoader().loadTestsFromName(__name__)
 
 
 if __name__ == '__main__':

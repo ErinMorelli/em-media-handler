@@ -7,19 +7,15 @@
 .coverage
 
 mediaHandler.sublime-project
-
 mediaHandler.sublime-workspace
 
 *.sublime-project
-
 *.sublime-workspace
 
 TO DOs
 
 test.py
 
-mediaHandler.conf
-
-._mediaHandler.conf
-
+EM_Media_Handler.egg-info/
 build/
+dist/

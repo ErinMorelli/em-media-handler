@@ -23,8 +23,9 @@ try:
     import unittest2 as unittest
 except ImportError:
     import unittest
-    
+
 import mediahandler.util.config as Config
+
 
 def get_test_id(size=4):
     num = []
@@ -34,17 +35,21 @@ def get_test_id(size=4):
         size -= 1
     return ''.join(num)
 
+
 def random_string(size=5):
     chars = string.ascii_uppercase + string.digits
     return ''.join(choice(chars) for x in range(size))
+
 
 def temp_file(name=None):
     if name is None:
         name = "%s.tmp" % random_string(6)
     return tempfile.gettempdir() + '/' + name
 
+
 def get_conf_file():
     return Config.make_config()
+
 
 def get_settings(conf=None):
     if conf is None:

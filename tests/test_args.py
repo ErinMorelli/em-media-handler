@@ -17,7 +17,6 @@
 
 import sys
 
-import _common
 from _common import unittest
 
 import mediahandler.util.args as Args
@@ -64,19 +63,23 @@ class ArgsTests(unittest.TestCase):
 
     def test_cli_all_args(self):
         sys.argv = ['', '-f', '/path/to/files',
-            '-t', '1', '-c', '/path/to/test.conf',
-            '-q', 'test query', '-s', '-n']
+                    '-t', '1', '-c', '/path/to/test.conf',
+                    '-q', 'test query', '-s', '-n']
         args = Args.get_arguments()
         expected = {
             'single_track': True,
             'search': 'test query',
             'use_deluge': False,
-            'media': '/path/to/files', 
-            'no_push': True, 
+            'media': '/path/to/files',
+            'no_push': True,
             'type': 'TV',
             'config': '/path/to/test.conf'
         }
         self.assertEqual(args, expected)
+
+
+def suite():
+    return unittest.TestLoader().loadTestsFromName(__name__)
 
 
 if __name__ == '__main__':

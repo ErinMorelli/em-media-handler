@@ -13,14 +13,33 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''Initialize module'''
+'''Common testing functions module'''
+
+import os
+import re
+import sys
 
 from _common import unittest
 
+pkgpath = os.path.dirname(__file__) or '.'
+sys.path.append(pkgpath)
+os.chdir(pkgpath)
+
+# try:
+#     del sys.modules["mediahandler"]
+# except KeyError:
+#     pass
+
 
 def suite():
-    return unittest.TestLoader().loadTestsFromName(__name__)
+    s = unittest.TestSuite()
+    for fname in os.listdir(pkgpath):
+        match = re.match(r'(test_\S+)\.py$', fname)
+        if match:
+            modname = match.group(1)
+            s.addTest(__import__(modname).suite())
+    return s
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(defaultTest='suite')

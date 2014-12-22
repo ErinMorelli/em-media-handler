@@ -18,7 +18,7 @@
 
 # ======== IMPORT MODULES ======== #
 
-from distutils.core import setup
+from setuptools import setup
 from mediahandler.util.config import make_config
 
 
@@ -26,7 +26,7 @@ from mediahandler.util.config import make_config
 
 setup(
     name='EM Media Handler',
-    version='0.4.1',
+    version='0.4.2',
     author='Erin Morelli',
     author_email='erin@erinmorelli.com',
     url='http://code.erinmorelli.com/em-media-handler/',
@@ -34,6 +34,7 @@ setup(
     platforms='Linux',
     description='A comprehensive media library manager.',
     long_description=open('README.rst').read(),
+    test_suite='tests.testall.suite',
     package_dir={'mediahandler': 'mediahandler'},
     package_data={'mediahandler': ['types/blacklist.txt']},
     packages=[
