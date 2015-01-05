@@ -16,13 +16,14 @@
 '''Initialize module'''
 
 import os
-import logging
 import re
-import tempfile
 import shutil
+import logging
 
 import _common
 from _common import unittest
+from _common import tempfile
+
 import mediahandler.util.config as Config
 
 try:
@@ -54,13 +55,24 @@ class InitLoggingTests(unittest.TestCase):
         self.id = _common.get_test_id()
         # Temp file
         self.log_file = _common.temp_file()
-        self.conf = _common.get_conf_file()
+
+    def tearDown(self):
+        # Remove tmp file
+        if self.log_file != '':
+            os.unlink(self.log_file)
 
     def test_init_logging(self):
-        # Override
-        settings = _common.get_settings(self.conf)
-        settings['Logging']['log_file'] = self.log_file
-        settings['Logging']['level'] = 20
+        # Use custom settings
+        settings = {
+            'Logging': {
+                'log_file': self.log_file,
+                'level': 20,
+            },
+            'Deluge': {
+                'enabled': False,
+            },
+        }
+        # Send to logging config
         Config.init_logging(settings)
         # Make messages
         logging.error("Error message %s", self.id)
@@ -84,29 +96,31 @@ class SimpleValidationConfigTests(unittest.TestCase):
 
     def setUp(self):
         self.conf = _common.get_conf_file()
+        self.parser = CP.ConfigParser()
+        self.parser.read(self.conf)
 
     def test_valid_bool(self):
         # Empty string case
-        bool_null = Config._get_valid_bool('Deluge', 'user')
+        bool_null = Config._get_valid_bool(self.parser, 'Deluge', 'user')
         self.assertFalse(bool_null)
         # Valid case
-        bool_reg = Config._get_valid_bool('TV', 'enabled')
+        bool_reg = Config._get_valid_bool(self.parser, 'TV', 'enabled')
         self.assertTrue(bool_reg)
 
     def test_valid_string(self):
         # Empty string case
-        string_null = Config._get_valid_string('Deluge', 'pass')
+        string_null = Config._get_valid_string(self.parser, 'Deluge', 'pass')
         self.assertIs(string_null, None)
         # Valid case
-        string_reg = Config._get_valid_string('Deluge', 'host')
+        string_reg = Config._get_valid_string(self.parser, 'Deluge', 'host')
         self.assertTrue(string_reg)
 
     def test_valid_number(self):
         # Empty string case
-        num_null = Config._get_valid_number('Audiobooks', 'folder')
+        num_null = Config._get_valid_number(self.parser, 'Audiobooks', 'folder')
         self.assertIs(num_null, None)
         # Valid case
-        num_reg = Config._get_valid_number('Deluge', 'port')
+        num_reg = Config._get_valid_number(self.parser, 'Deluge', 'port')
         self.assertEqual(num_reg, 58846)
 
 
@@ -118,7 +132,7 @@ class FileValidationConfigTests(unittest.TestCase):
         self.old_conf = _common.get_conf_file()
         # Setup temp conf path
         conf_dir = os.path.dirname(self.old_conf)
-        self.new_conf = os.path.join(conf_dir, 'temp.conf')
+        self.new_conf = os.path.join(conf_dir, 'temp_FVCT.conf')
         # Copy into temp file
         shutil.copy(self.old_conf, self.new_conf)
 
@@ -135,32 +149,34 @@ class FileValidationConfigTests(unittest.TestCase):
         self.tmp_file = get_file.name
         get_file.close()
         self.modify_conf_file_options(self.tmp_file)
-        Config.PARSER.read(self.new_conf)
+        parser = CP.ConfigParser()
+        parser.read(self.new_conf)
         # Empty string case
-        file_null = Config._get_valid_file('Deluge', 'user')
+        file_null = Config._get_valid_file(parser, 'Deluge', 'user')
         self.assertIs(file_null, None)
         # Valid case
-        file_good = Config._get_valid_file('Music', 'log_file')
+        file_good = Config._get_valid_file(parser, 'Music', 'log_file')
         self.assertEqual(file_good, self.tmp_file)
         # Invalid case
         regex = "Path to file provided for 'Logging: log_file' does not exist:"
         self.assertRaisesRegexp(CP.Error, regex,
-                                Config._get_valid_file, 'Logging', 'log_file')
+                                Config._get_valid_file, parser, 'Logging', 'log_file')
 
     def test_valid_folder(self):
         tmp_folder = tempfile.gettempdir()
         self.modify_conf_folder_options(tmp_folder)
-        Config.PARSER.read(self.new_conf)
+        parser = CP.ConfigParser()
+        parser.read(self.new_conf)
         # Empty string case
-        folder_null = Config._get_valid_file('Deluge', 'pass')
+        folder_null = Config._get_valid_file(parser, 'Deluge', 'pass')
         self.assertIs(folder_null, None)
         # Valid case
-        folder_good = Config._get_valid_file('TV', 'folder')
+        folder_good = Config._get_valid_file(parser, 'TV', 'folder')
         self.assertEqual(folder_good, tmp_folder)
         # Invalid case
         regex = r"Path provided for 'Movies: folder' does not exist: .*"
         self.assertRaisesRegexp(CP.Error, regex,
-                                Config._get_valid_folder, 'Movies', 'folder')
+                                Config._get_valid_folder, parser, 'Movies', 'folder')
 
     def modify_conf_file_options(self, tmp_file):
         # Get conf file content
@@ -199,74 +215,71 @@ class FileValidationConfigTests(unittest.TestCase):
         return
 
 
-# class MissingSectionConfigTest(unittest.TestCase):
+class MissingSectionConfigTest(unittest.TestCase):
 
-#     def setUp(self):
-#         # Get original conf file
-#         self.old_conf = _common.get_conf_file()
-#         # Setup temp conf path
-#         conf_dir = os.path.dirname(self.old_conf)
-#         self.new_conf = os.path.join(conf_dir, 'temp.conf')
-#         # Copy into temp file
-#         shutil.copy(self.old_conf, self.new_conf)
+    def setUp(self):
+        # Get original conf file
+        self.old_conf = _common.get_conf_file()
+        # Setup temp conf path
+        conf_dir = os.path.dirname(self.old_conf)
+        self.new_conf = os.path.join(conf_dir, 'temp_MSCT.conf')
+        # Copy into temp file
+        shutil.copy(self.old_conf, self.new_conf)
 
-#     # def tearDown(self):
-#     #     os.unlink(self.new_conf)
+    def tearDown(self):
+        os.unlink(self.new_conf)
 
-#     def test_missing_section(self):
-#         print "MISSING SECTION"
-#         self.remove_conf_section()
-#         regex = r"No section: 'Pushover'"
-#         self.assertRaisesRegexp(CP.NoSectionError, regex,
-#             _common.get_settings, self.new_conf)
+    def test_missing_section(self):
+        self.remove_conf_section()
+        regex = r"No section: 'Pushover'"
+        self.assertRaisesRegexp(CP.NoSectionError, regex,
+            _common.get_settings, self.new_conf)
 
-#     def remove_conf_section(self):
-#         # Get conf file content
-#         with open(self.new_conf) as conf_file:
-#                 conf_content = conf_file.read()
-#         # Set up new file content
-#         regex = r"\[Pushover\](.|\n)*notify_name = \n"
-#         # Make updates
-#         conf_content = re.sub(regex, '', conf_content)
-#         # Write new file
-#         new_conf = open(self.new_conf, 'w')
-#         new_conf.write(conf_content)
-#         new_conf.close()
-#         return
+    def remove_conf_section(self):
+        # Get conf file content
+        with open(self.new_conf) as conf_file:
+                conf_content = conf_file.read()
+        # Set up new file content
+        regex = r"\[Pushover\](.|\n)*notify_name = \n"
+        # Make updates
+        conf_content = re.sub(regex, '', conf_content)
+        # Write new file
+        new_conf = open(self.new_conf, 'w')
+        new_conf.write(conf_content)
+        new_conf.close()
+        return
 
 
-# class MissingOptionConfigTest(unittest.TestCase):
+class MissingOptionConfigTest(unittest.TestCase):
 
-#     def setUp(self):
-#         old_conf = _common.get_conf_file()
-#         conf_dir = os.path.dirname(old_conf)
-#         self.conf = os.path.join(conf_dir, 'temp_opt.conf')
-#         shutil.copy(old_conf, self.conf)
-#         self.remove_conf_option()
-#         _common.get_settings(self.conf)
+    def setUp(self):
+        old_conf = _common.get_conf_file()
+        conf_dir = os.path.dirname(old_conf)
+        self.conf = os.path.join(conf_dir, 'temp_MOCT.conf')
+        shutil.copy(old_conf, self.conf)
+        self.remove_conf_option()
 
-#     # def tearDown(self):
-#     #     os.unlink(self.conf)
+    def tearDown(self):
+        os.unlink(self.conf)
 
-#     def test_missing_option(self):
-#         print "MISSING OPTION"
-#         regex = r"No option 'user' in section: 'Deluge'"
-#         self.assertRaisesRegexp(CP.NoOptionError, regex,
-#             Config.parse_config, self.conf)
+    def test_missing_option(self):
+        regex = r"No option 'user' in section: 'Deluge'"
+        self.assertRaisesRegexp(CP.NoOptionError, regex,
+            Config.parse_config, self.conf)
 
-#     def remove_conf_option(self):
-#         # Get conf file content
-#         with open(self.conf) as conf_file:
-#                 conf_content = conf_file.read()
-#         # Set up new file content
-#         regex = r"(\[Deluge\]\n(.|\n)*)user =\s"
-#         # Make updates
-#         conf_content = re.sub(regex, r"\1", conf_content)
-#         # Write new file
-#         new_conf = open(self.conf, 'w')
-#         new_conf.write(conf_content)
-#         new_conf.close()
-#         return
+    def remove_conf_option(self):
+        # Get conf file content
+        with open(self.conf) as conf_file:
+                conf_content = conf_file.read()
+        # Set up new file content
+        regex = r"(\[Deluge\]\n(.|\n)*)user =\s"
+        # Make updates
+        conf_content = re.sub(regex, r"\1", conf_content)
+        # Write new file
+        new_conf = open(self.conf, 'w')
+        new_conf.write(conf_content)
+        new_conf.close()
+        return
 
 
 def suite():
@@ -274,4 +287,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(verbosity=2, buffer=True)

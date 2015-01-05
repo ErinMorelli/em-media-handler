@@ -19,6 +19,7 @@
 # ======== IMPORT MODULES ======== #
 
 import logging
+from os import path
 from re import search
 from subprocess import Popen, PIPE
 
@@ -29,7 +30,9 @@ def get_files(file_name):
     '''Extract files'''
     logging.info("Getting files from compressed folder")
     # Filebot path
-    filebot = "/usr/bin/filebot"
+    filebot = '/usr/bin/filebot'
+    if not path.isfile(filebot):
+        filebot = '/usr/local/bin/filebot'
     # Set up query
     m_cmd = [filebot,
              "-extract",

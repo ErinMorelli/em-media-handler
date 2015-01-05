@@ -118,7 +118,7 @@ class Handler(object):
 
     # ======== SINGLE FILE HANDLER ======== #
 
-    def __single_file(self, files):
+    def _single_file(self, files):
         '''Process single files'''
         # Single file, treat differently
         logging.debug("Processing as a single file")
@@ -130,13 +130,13 @@ class Handler(object):
             if self.settings['has_filebot']:
                 get_files = self.extract_files(files)
                 # Rescan files
-                self.__file_handler(get_files)
+                self._file_handler(get_files)
         # otherwise treat like other files
         return self.add_media_files(files)
 
     # ======== FOLDER HANDLER ======== #
 
-    def __process_folder(self, files):
+    def _process_folder(self, files):
         '''Process as folder'''
         # Otherwise process as folder
         logging.debug("Processing as a folder")
@@ -150,7 +150,7 @@ class Handler(object):
             if self.settings['has_filebot']:
                 get_files = self.extract_files(files)
                 # Rescan files
-                self.__file_handler(get_files)
+                self._file_handler(get_files)
         # Check for music
         if self.args['type'] is 3:
             return self.add_media_files(files)
@@ -167,7 +167,7 @@ class Handler(object):
 
     # ======== REMOVE FILES ======== #
 
-    def __remove_files(self, files, skip):
+    def _remove_files(self, files, skip):
         '''Remove original files'''
         keep = self.settings['General']['keep_files']
         keep_dups = self.settings['General']['keep_if_duplicates']
@@ -182,7 +182,7 @@ class Handler(object):
             if 'extracted' in self.settings.keys():
                 logging.debug("Removing extracted files folder")
                 rmtree(self.settings['extracted'])
-            elif self.settings['single_file']:
+            if self.settings['single_file']:
                 logging.debug("Removing extra single file")
                 remove(files)
             else:
@@ -192,7 +192,7 @@ class Handler(object):
 
     # ======== MAIN FILE HANDLER ======== #
 
-    def __file_handler(self, files):
+    def _file_handler(self, files):
         '''Handle files by type'''
         logging.info("Starting files handler")
         added_files = []
@@ -204,9 +204,9 @@ class Handler(object):
             (added_file, skip) = self.add_media_files(files)
         # Then check for folders/files
         elif path.isfile(files):
-            (added_file, skip) = self.__single_file(files)
+            (added_file, skip) = self._single_file(files)
         else:
-            (added_file, skip) = self.__process_folder(files)
+            (added_file, skip) = self._process_folder(files)
         # Update file arrays
         if skip:
             skipped_files.append(added_file)
@@ -217,7 +217,7 @@ class Handler(object):
             self.push.failure("No %s files found for: %s" %
                               (self.args['stype'], self.args['name']))
         # Remove old files
-        self.__remove_files(files, skip)
+        self._remove_files(files, skip)
         # Send success notification
         self.push.success(added_files, skipped_files)
         # Finish
@@ -225,7 +225,7 @@ class Handler(object):
 
     # ======== CONVERT TYPE ======== #
 
-    def __convert_type(self):
+    def _convert_type(self):
         '''Convert string type to int'''
         logging.info("Converting type")
         stype = ''
@@ -252,7 +252,7 @@ class Handler(object):
 
     # ======== PARSE DIRECTORY ======== #
 
-    def __parse_dir(self, rawpath):
+    def _parse_dir(self, rawpath):
         '''Parse input directory structure'''
         logging.info("Extracing info from path: %s", rawpath)
         # Extract info from path
@@ -283,12 +283,12 @@ class Handler(object):
                 "No type or name specified for media: %s" %
                 self.args['name'], True)
         # Convert type to number
-        self.__convert_type()
+        self._convert_type()
         return
 
     # ======== HANDLE MEDIA ======== #
 
-    def __handle_media(self):
+    def _handle_media(self):
         '''Sort args based on input'''
         logging.debug("Inputs: %s", self.args)
         # Determing if using deluge or not
@@ -301,7 +301,7 @@ class Handler(object):
             logging.info("Processing from command line")
             file_path = self.args['media']
         # Parse directory structure
-        self.__parse_dir(file_path)
+        self._parse_dir(file_path)
         # Check that file was downloaded
         if path.exists(file_path):
             if self.settings['Deluge']['enabled'] and use_deluge:
@@ -311,7 +311,7 @@ class Handler(object):
                     self.settings['Deluge'],
                     self.args['hash'])
             # Send to handler
-            new_files = self.__file_handler(file_path)
+            new_files = self._file_handler(file_path)
             # Check that files were returned
             if new_files is None:
                 self.push.failure("No media files found: %s" %
@@ -327,6 +327,6 @@ class Handler(object):
     def add_media(self):
         '''Main function'''
         # Start main function
-        new_files = self.__handle_media()
+        new_files = self._handle_media()
         # Exit
         return new_files

@@ -31,7 +31,6 @@ except ImportError:
 
 # ======== SET GLOBALS ======== #
 
-PARSER = CP.ConfigParser()
 STRUCT = [
     {
         'section': 'General',
@@ -192,25 +191,26 @@ def _check_modules(settings):
 
 def parse_config(file_path):
     '''Read config file'''
-    PARSER.read(file_path)
+    parser = CP.ConfigParser()
+    parser.read(file_path)
     settings = {}
     # Loop through config & validate
     for item in STRUCT:
         section = item['section']
         # Check that section exists
-        if not PARSER.has_section(section):
+        if not parser.has_section(section):
             raise CP.NoSectionError(section)
         # Loop through options
         new_options = {}
         for item_option in item['options']:
             option = item_option[0]
             # Check that option exists
-            if not PARSER.has_option(section, option):
+            if not parser.has_option(section, option):
                 raise CP.NoOptionError(option, section)
             # Get valid option
             valid_func = "_get_valid_%s" % item_option[1]
             validator = getattr(util.config, valid_func)
-            new_options[option] = validator(section, option)
+            new_options[option] = validator(parser, section, option)
         # Populate hash
         settings[section] = new_options
     # Check that appropriate modules are installed
@@ -222,36 +222,36 @@ def parse_config(file_path):
 # ======== VALIDATION ======== #
 
 # BOOLEAN
-def _get_valid_bool(section, option):
+def _get_valid_bool(parser, section, option):
     '''Validate config option as a boolean'''
-    provided = PARSER.get(section, option)
+    provided = parser.get(section, option)
     if provided == '':
         return False
-    return PARSER.getboolean(section, option)
+    return parser.getboolean(section, option)
 
 
 # STRING
-def _get_valid_string(section, option):
+def _get_valid_string(parser, section, option):
     '''Validate config option as a string'''
-    provided = PARSER.get(section, option)
+    provided = parser.get(section, option)
     if provided == '':
         return None
     return provided
 
 
 # NUMBER (INT)
-def _get_valid_number(section, option):
+def _get_valid_number(parser, section, option):
     '''Validate config option as an int'''
-    provided = PARSER.get(section, option)
+    provided = parser.get(section, option)
     if provided == '':
         return None
-    return PARSER.getint(section, option)
+    return parser.getint(section, option)
 
 
 # PATH TO FILE
-def _get_valid_file(section, option):
+def _get_valid_file(parser, section, option):
     '''Validate config option as a filepath'''
-    provided = PARSER.get(section, option)
+    provided = parser.get(section, option)
     if provided == '':
         return None
     folder = os.path.dirname(provided)
@@ -263,9 +263,9 @@ def _get_valid_file(section, option):
 
 
 # FOLDER
-def _get_valid_folder(section, option):
+def _get_valid_folder(parser, section, option):
     '''Validate config option as a folder'''
-    provided = PARSER.get(section, option)
+    provided = parser.get(section, option)
     if provided == '':
         return None
     if not os.path.exists(provided):
@@ -279,6 +279,7 @@ def _get_valid_folder(section, option):
 
 def make_config(new_file=None):
     '''Generate default config file'''
+    parser = CP.ConfigParser()
     # Set default path
     config_file = ('%s/.config/mediahandler/settings.conf' %
                    os.path.expanduser("~"))
@@ -293,9 +294,9 @@ def make_config(new_file=None):
     else:
         # Setup sections and defaults
         for item in STRUCT:
-            PARSER.add_section(item['section'])
+            parser.add_section(item['section'])
             for option in item['options']:
-                PARSER.set(item['section'], option[0], option[2])
+                parser.set(item['section'], option[0], option[2])
         # Make directories for config file
         config_path = os.path.dirname(config_file)
         if not os.path.exists(config_path):
@@ -303,6 +304,6 @@ def make_config(new_file=None):
             os.chmod(config_path, 0o775)
         # Write new configuration file to path
         with open(config_file, 'w') as config_file_open:
-            PARSER.write(config_file_open)
+            parser.write(config_file_open)
     # Return with path to file
     return config_file

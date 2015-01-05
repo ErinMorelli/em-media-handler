@@ -47,6 +47,9 @@ class Media(object):
             'format': '',
             'flags': ['-non-strict', '-no-analytics']
         }
+        # Check binary
+        if not path.isfile(self.filebot['bin']):
+            self.filebot['bin'] = '/usr/local/bin/filebot'
         # Type specific
         self.dst_path = '%s/Media/%s' % (path.expanduser("~"), self.ptype)
         # Check for custom path in settings

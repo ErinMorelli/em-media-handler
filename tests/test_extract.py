@@ -16,16 +16,19 @@
 '''Initialize module'''
 
 import os
-#import zipfile
-import tempfile
+import sys
+import zipfile
+from shutil import rmtree
 
 import _common
 from _common import unittest
+from _common import tempfile
 
 import mediahandler.util.extract as Extract
+import mediahandler.handler as MH
 
 
-class ExtractTests(unittest.TestCase):
+class ExtractBadZipTests(unittest.TestCase):
 
     def setUp(self):
         # Conf
@@ -46,43 +49,128 @@ class ExtractTests(unittest.TestCase):
         )
         self.bad_zip = get_bad_zip.name
         get_bad_zip.close()
-        # Make a good zip file contents
-        # get_good_zip1 = tempfile.NamedTemporaryFile(
-        #     dir=os.path.dirname(self.conf),
-        #     delete=False
-        # )
-        # get_good_zip2 = tempfile.NamedTemporaryFile(
-        #     dir=os.path.dirname(self.conf),
-        #     delete=False
-        # )
-        # self.good_zip1 = get_good_zip1.name
-        # self.good_zip2 = get_good_zip2.name
-        # get_good_zip1.close()
-        # get_good_zip2.close()
-        # # Make zip file
-        # self.zip_name = os.path.dirname(self.conf) + "/test.zip"
-        # good_zip = zipfile.ZipFile(self.zip_name, "w")
-        # good_zip.write(self.good_zip1)
-        # good_zip.write(self.good_zip2)
-        # good_zip.close()
 
     def tearDown(self):
         os.unlink(self.bad_zip)
         os.unlink(self.bad_non_zip)
-        # os.unlink(self.good_zip1)
-        # os.unlink(self.good_zip2)
-        # os.unlink(self.zip_name)
 
-    # def test_good_extract(self):
-    #     return
+    def test_bad_zip(self):
+        self.assertIsNone(Extract.get_files(self.bad_zip))
+    
+    def test_bad_non_zip(self):
+        self.assertIsNone(Extract.get_files(self.bad_non_zip))
 
-    def test_bad_extract(self):
-        # Test 1
-        self.assertRaises(OSError,
-                          Extract.get_files, self.bad_zip)
-        # Test 2
-        self.assertRaises(OSError,
-                          Extract.get_files, self.bad_non_zip)
+
+class ExtractGoodZipTests(unittest.TestCase):
+
+    def setUp(self):
+        # Conf
+        self.conf = _common.get_conf_file()
+        # Make a good zip file contents
+        get_good_zip1 = tempfile.NamedTemporaryFile(
+            suffix='.tmp',
+            delete=False
+        )
+        get_good_zip2 = tempfile.NamedTemporaryFile(
+            suffix='.tmp',
+            delete=False
+        )
+        self.good_zip1 = get_good_zip1.name
+        self.good_zip2 = get_good_zip2.name
+        get_good_zip1.close()
+        get_good_zip2.close()
+        # Make zip file
+        self.zip_name = os.path.dirname(self.conf) + "/test_ET.zip"
+        with zipfile.ZipFile(self.zip_name, "w") as good_zip:
+            good_zip.write(self.good_zip1, 'one.tmp')
+            good_zip.write(self.good_zip2, 'two.tmp')
+
+    def tearDown(self):
+        os.unlink(self.good_zip1)
+        os.unlink(self.good_zip2)
+        os.unlink(self.zip_name)
+        #rmtree(os.path.dirname(self.conf)+"/test_ET")
+
+    def test_good_extract(self):
+        files = Extract.get_files(self.zip_name)
+        self.assertEqual(files, os.path.dirname(self.conf)+"/test_ET")
+        self.assertTrue(os.path.exists(files))
+
+
+class HandlerExtractTests(unittest.TestCase):
+
+    def setUp(self):
+        # Conf
+        self.conf = _common.get_conf_file()
+        # Tmp name
+        name = "test-%s" % _common.get_test_id()
+        # Tmp args
+        args = {
+            'use_deluge': False,
+            'name': name,
+        }
+        # Make handler
+        self.handler = MH.Handler(args)
+        # Bad zip non with extension
+        get_bad_zip = tempfile.NamedTemporaryFile(
+            dir=os.path.dirname(self.conf),
+            suffix='.zip',
+            delete=False
+        )
+        self.bad_zip = get_bad_zip.name
+        get_bad_zip.close()
+         # Bad zip non without extension
+        get_bad_non_zip = tempfile.NamedTemporaryFile(
+            dir=os.path.dirname(self.conf),
+            suffix='.tmp',
+            delete=False
+        )
+        self.bad_non_zip = get_bad_non_zip.name
+        get_bad_non_zip.close()
+        # Make a good zip file contents
+        get_good_zip1 = tempfile.NamedTemporaryFile(
+            suffix='.tmp',
+            delete=False
+        )
+        get_good_zip2 = tempfile.NamedTemporaryFile(
+            suffix='.tmp',
+            delete=False
+        )
+        self.good_zip1 = get_good_zip1.name
+        self.good_zip2 = get_good_zip2.name
+        get_good_zip1.close()
+        get_good_zip2.close()
+        # Make zip file
+        self.zip_name = os.path.dirname(self.conf) + "/test_HET.zip"
+        with zipfile.ZipFile(self.zip_name, "w") as good_zip:
+            good_zip.write(self.good_zip1, 'one.tmp')
+            good_zip.write(self.good_zip2, 'two.tmp')
+
+    def tearDown(self):
+        os.unlink(self.bad_zip)
+        os.unlink(self.bad_non_zip)
+        os.unlink(self.good_zip1)
+        os.unlink(self.good_zip2)
+        os.unlink(self.zip_name)
+        #rmtree(os.path.dirname(self.conf)+"/test_HET")
+
+    def test_bad_handler_zip(self):
+        # Run handler
+        with self.assertRaises(SystemExit) as cm:
+            self.handler.extract_files(self.bad_zip)
+        self.assertEqual(cm.exception.code, 2)
+
+    def test_bad_handler_non_zip(self):
+        # Run handler
+        with self.assertRaises(SystemExit) as cm:
+            self.handler.extract_files(self.bad_non_zip)
+        self.assertEqual(cm.exception.code, 2)
+
+    def test_good_handler_zip(self):
+        # Run handler
+        files = self.handler.extract_files(self.zip_name)
+        self.assertEqual(files, os.path.dirname(self.conf)+"/test_HET")
+        self.assertTrue(os.path.exists(files))
 
 
 def suite():
@@ -90,4 +178,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(verbosity=2, buffer=True)
