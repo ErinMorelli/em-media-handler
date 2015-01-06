@@ -42,6 +42,7 @@ class Book(mediahandler.types.Media):
     def __init__(self, settings, push):
         '''Init book class'''
         logging.info("Starting audiobook handler class")
+        self.ptype = None
         super(Book, self).__init__(settings, push)
         # Set global bookinfo
         self.book_info = {}

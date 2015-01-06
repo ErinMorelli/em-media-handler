@@ -31,6 +31,14 @@ os.chdir(pkgpath)
 #     pass
 
 
+# TODO:
+#  - Create new, default settings.conf
+#    + save old one
+#    + restore old conf on test finish
+#  - Fix output buffering
+#    + http://nullege.com/codes/search/unittest.TestResult
+
+
 def suite():
     s = unittest.TestSuite()
     for fname in os.listdir(pkgpath):
@@ -42,4 +50,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite', verbosity=2, buffer=True)
+    unittest.main(defaultTest='suite', verbosity=2, buffer=False)

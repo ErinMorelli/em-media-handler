@@ -53,12 +53,12 @@ class Media(object):
         # Type specific
         self.dst_path = '%s/Media/%s' % (path.expanduser("~"), self.ptype)
         # Check for custom path in settings
-        if 'folder' in self.settings.keys() and self.ptype is not 'Music':
+        if 'folder' in self.settings.keys() and self.ptype is not None:
             if self.settings['folder'] is not None:
                 self.dst_path = self.settings['folder']
                 logging.debug("Using custom path: %s", self.dst_path)
         # Check destination exists
-        if not path.exists(self.dst_path) and self.ptype is not 'Music':
+        if not path.exists(self.dst_path) and self.ptype is not None:
             self.push.failure("Folder for %s not found: %s"
                               % (self.ptype, self.dst_path))
 

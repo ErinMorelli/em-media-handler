@@ -103,11 +103,11 @@ class HandlerExtractTests(unittest.TestCase):
         # Conf
         self.conf = _common.get_conf_file()
         # Tmp name
-        name = "test-%s" % _common.get_test_id()
+        self.name = "test-%s" % _common.get_test_id()
         # Tmp args
         args = {
             'use_deluge': False,
-            'name': name,
+            'name': self.name,
         }
         # Make handler
         self.handler = MH.Handler(args)
@@ -156,21 +156,26 @@ class HandlerExtractTests(unittest.TestCase):
 
     def test_bad_handler_zip(self):
         # Run handler
-        with self.assertRaises(SystemExit) as cm:
-            self.handler.extract_files(self.bad_zip)
-        self.assertEqual(cm.exception.code, 2)
+        regex = r'Unable to extract files: %s' % self.name
+        self.assertRaisesRegexp(
+            SystemExit, regex,
+            self.handler.extract_files, self.bad_zip
+        )
 
     def test_bad_handler_non_zip(self):
         # Run handler
-        with self.assertRaises(SystemExit) as cm:
-            self.handler.extract_files(self.bad_non_zip)
-        self.assertEqual(cm.exception.code, 2)
+        regex = r'Unable to extract files: %s' % self.name
+        self.assertRaisesRegexp(
+            SystemExit, regex,
+            self.handler.extract_files, self.bad_non_zip
+        )
 
     def test_good_handler_zip(self):
         # Run handler
         files = self.handler.extract_files(self.zip_name)
         self.assertEqual(files, os.path.dirname(self.conf)+"/test_HET")
         self.assertTrue(os.path.exists(files))
+        self.assertEqual(self.handler.settings['extracted'], self.zip_name)
 
 
 def suite():

@@ -112,7 +112,7 @@ class Push(object):
             print "\n" + conn_text
         # Exit
         logging.warning(conn_text)
-        sys.exit(1)
+        sys.exit(0)
 
     # ======== SET ERROR INFO & EXIT ======== #
 
@@ -132,5 +132,4 @@ class Push(object):
         if usage:
             Args.show_usage(2, error_details)
         else:
-            print "\nERROR: %s\n" % error_details
-            sys.exit(2)
+            sys.exit(error_details)

@@ -32,7 +32,7 @@ class Tracks(mediahandler.types.Media):
 
     def __init__(self, settings, push):
         '''Tracks class constuctor'''
-        self.ptype = 'Music'
+        self.ptype = None
         super(Tracks, self).__init__(settings, push)
         # Beet
         self.beet = "/usr/local/bin/beet"
@@ -55,7 +55,7 @@ class Tracks(mediahandler.types.Media):
             beetslog = self.settings['log_file']
             logging.debug("Using custom beets log: %s", beetslog)
         # Check that log file path exists
-        beetslog_dir = path.dirname(beetslog)
+        beetslog_dir = path.dirname(self.beetslog)
         if not path.exists(beetslog_dir):
             makedirs(beetslog_dir)
         # Set up query

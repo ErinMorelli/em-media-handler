@@ -131,6 +131,9 @@ class Handler(object):
                 get_files = self.extract_files(files)
                 # Rescan files
                 self._file_handler(get_files)
+            else:
+                self.push.failure("Filebot required to extract: %s"
+                                  % self.args['name'])
         # otherwise treat like other files
         return self.add_media_files(files)
 
@@ -143,14 +146,22 @@ class Handler(object):
         self.settings['single_file'] = False
         # Get a list of files
         file_list = listdir(files)
+        # Check that folder is not empty
+        if len(file_list) == 0:
+            self.push.failure("No %s files found for: %s" %
+                              (self.args['stype'], self.args['name']))
         # Look for zipped file first
-        if search(r".(zip|rar|7z)\n", '\n'.join(file_list), I):
+        list_string = '\n'.join(file_list)
+        if search(r".(zip|rar|7z)\n?", list_string, I):
             logging.debug("Zipped file type detected")
             # Send to extractor
             if self.settings['has_filebot']:
                 get_files = self.extract_files(files)
                 # Rescan files
                 self._file_handler(get_files)
+            else:
+                self.push.failure("Filebot required to extract: %s"
+                                  % self.args['name'])
         # Check for music
         if self.args['type'] is 3:
             return self.add_media_files(files)
