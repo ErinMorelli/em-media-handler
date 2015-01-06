@@ -51,14 +51,21 @@ class FindModulesTests(unittest.TestCase):
 class InitLoggingTests(unittest.TestCase):
 
     def setUp(self):
+	# Conf
+	self.conf = _common.get_conf_file()
         # Unique test ID
         self.id = _common.get_test_id()
         # Temp file
-        self.log_file = _common.temp_file()
+	get_log_file = tempfile.NamedTemporaryFile(
+            dir=os.path.dirname(self.conf),
+            suffix='.tmp',
+            delete=False)
+        self.log_file = get_log_file.name
+	get_log_file.close()
 
     def tearDown(self):
         # Remove tmp file
-        if self.log_file != '':
+        if os.path.exists(self.log_file):
             os.unlink(self.log_file)
 
     def test_init_logging(self):

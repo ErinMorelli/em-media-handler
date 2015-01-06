@@ -53,11 +53,12 @@ class Media(object):
         # Type specific
         self.dst_path = '%s/Media/%s' % (path.expanduser("~"), self.ptype)
         # Check for custom path in settings
-        if self.settings['folder'] is not None:
-            self.dst_path = self.settings['folder']
-            logging.debug("Using custom path: %s", self.dst_path)
+        if 'folder' in self.settings.keys() and self.ptype is not 'Music':
+            if self.settings['folder'] is not None:
+                self.dst_path = self.settings['folder']
+                logging.debug("Using custom path: %s", self.dst_path)
         # Check destination exists
-        if not path.exists(self.dst_path):
+        if not path.exists(self.dst_path) and self.ptype is not 'Music':
             self.push.failure("Folder for %s not found: %s"
                               % (self.ptype, self.dst_path))
 
@@ -74,11 +75,11 @@ class Media(object):
                  '--action', self.filebot['action']]
         m_cmd.extend(self.filebot['flags'])
         # Get info
-        return self.__media_info(m_cmd, file_path)
+        return self.media_info(m_cmd, file_path)
 
     # ======== GET VIDEO INFO FROM FILEBOT ======== #
 
-    def __media_info(self, cmd, file_path):
+    def media_info(self, cmd, file_path):
         '''Get video info from filebot'''
         logging.info("Getting %s information", self.type)
         logging.debug("Query: %s", cmd)

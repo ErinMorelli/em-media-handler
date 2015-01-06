@@ -32,8 +32,8 @@ class Tracks(mediahandler.types.Media):
 
     def __init__(self, settings, push):
         '''Tracks class constuctor'''
+        self.ptype = 'Music'
         super(Tracks, self).__init__(settings, push)
-        self.type = 'music'
         # Beet
         self.beet = "/usr/local/bin/beet"
         self.beetslog = '%s/logs/beets.log' % path.expanduser("~")
@@ -63,7 +63,7 @@ class Tracks(mediahandler.types.Media):
                  "import", file_path,
                  self.tags, self.beetslog]
         # Get info
-        return self.__media_info(m_cmd, file_path)
+        return self.media_info(m_cmd, file_path)
 
     # ======== MUSIC OUTOUT PROCESSING ======== #
 
@@ -84,12 +84,12 @@ class Tracks(mediahandler.types.Media):
         if len(music_data) > 0:
             for music_item in music_data:
                 results = results + ("%s\n\t" % music_item[1])
-        if len(skips) > 0:
+        if len(skipped) > 0:
             skips = True
             results = results + ("\n%s items were skipped (see beets log)"
                                  % len(skipped))
         # Return error if nothing found
-        if len(skips) == 0 and len(music_data) == 0:
+        if not skips and len(music_data) == 0:
             return self.match_error(file_path)
         # Return results
         return results, skips
