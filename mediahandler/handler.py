@@ -279,7 +279,7 @@ class Handler(object):
                 self.args['type'] = parse_path.group(3)
                 if self.args['type'].lower() not in mh.__mediatypes__:
                     self.push.failure('Media type %s not recognized'
-                                      % self.args['type'], True)
+                                      % self.args['type'])
             logging.debug("Type detected: %s", self.args['type'])
         else:
             logging.debug("No type detected")
@@ -292,7 +292,7 @@ class Handler(object):
             # Notify about failure
             self.push.failure(
                 "No type or name specified for media: %s" %
-                self.args['name'], True)
+                self.args['name'])
         # Convert type to number
         self._convert_type()
         return
@@ -326,11 +326,11 @@ class Handler(object):
             # Check that files were returned
             if new_files is None:
                 self.push.failure("No media files found: %s" %
-                                  self.args['name'], True)
+                                  self.args['name'])
         else:
             # There was a problem, no files found
             self.push.failure("No media files found: %s" %
-                              self.args['name'], True)
+                              self.args['name'])
         return new_files
 
     # ======== MAIN ADD MEDIA FUNCTION ======== #

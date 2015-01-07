@@ -55,3 +55,19 @@ def get_settings(conf=None):
     if conf is None:
         conf = get_conf_file()
     return Config.parse_config(conf)
+
+def get_types_by_string():
+    return {
+        'TV': 1,
+        'Movies': 2,
+        'Music': 3,
+        'Audiobooks': 4
+    }
+
+def get_types_by_id():
+    return {
+        1: 'TV',
+        2: 'Movies',
+        3: 'Music',
+        4: 'Audiobooks'
+    }
