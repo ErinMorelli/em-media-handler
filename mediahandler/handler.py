@@ -56,7 +56,6 @@ class Handler(object):
         if 'no_push' not in self.args.keys():
             self.args['no_push'] = False
         self.push = Notify.Push(self.settings['Pushover'],
-                                self.args['use_deluge'],
                                 self.args['no_push'])
         # Media classes hash
         self.media_classes = {
@@ -229,10 +228,8 @@ class Handler(object):
                               (self.args['stype'], self.args['name']))
         # Remove old files
         self._remove_files(files, skip)
-        # Send success notification
-        self.push.success(added_files, skipped_files)
-        # Finish
-        return added_files
+        # Finish & send success notification
+        return self.push.success(added_files, skipped_files)
 
     # ======== CONVERT TYPE ======== #
 
@@ -339,5 +336,8 @@ class Handler(object):
         '''Main function'''
         # Start main function
         new_files = self._handle_media()
+        # Print result
+        if self.args['use_deluge']:
+            print '\n' + new_files
         # Exit
-        return new_files
+        return

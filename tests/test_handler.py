@@ -859,9 +859,6 @@ class AddMediaFilesTests(unittest.TestCase):
             ImportError, handler.add_media_files, file_name)
         get_file.close()
 
-    def test_good_type_add(self):
-        return
-
 
 def suite():
     return unittest.TestLoader().loadTestsFromName(__name__)

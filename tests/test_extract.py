@@ -17,8 +17,8 @@
 
 import os
 import sys
+import shutil
 import zipfile
-from shutil import rmtree
 
 import _common
 from _common import unittest
@@ -89,11 +89,14 @@ class ExtractGoodZipTests(unittest.TestCase):
         os.unlink(self.good_zip1)
         os.unlink(self.good_zip2)
         os.unlink(self.zip_name)
-        #rmtree(os.path.dirname(self.conf)+"/test_ET")
+        # Remove extracted files
+        folder = '%s/test_ET' % os.path.dirname(self.conf)
+        shutil.rmtree(folder)
 
     def test_good_extract(self):
         files = Extract.get_files(self.zip_name)
-        self.assertEqual(files, os.path.dirname(self.conf)+"/test_ET")
+        folder = '%s/test_ET' % os.path.dirname(self.conf)
+        self.assertEqual(files, folder)
         self.assertTrue(os.path.exists(files))
 
 
@@ -152,7 +155,10 @@ class HandlerExtractTests(unittest.TestCase):
         os.unlink(self.good_zip1)
         os.unlink(self.good_zip2)
         os.unlink(self.zip_name)
-        #rmtree(os.path.dirname(self.conf)+"/test_HET")
+        # Remove extracted files
+        folder = '%s/test_HET' % os.path.dirname(self.conf)
+        if os.path.exists(folder):
+            shutil.rmtree(folder)
 
     def test_bad_handler_zip(self):
         # Run handler
@@ -173,7 +179,8 @@ class HandlerExtractTests(unittest.TestCase):
     def test_good_handler_zip(self):
         # Run handler
         files = self.handler.extract_files(self.zip_name)
-        self.assertEqual(files, os.path.dirname(self.conf)+"/test_HET")
+        folder = '%s/test_HET' % os.path.dirname(self.conf)
+        self.assertEqual(files, folder)
         self.assertTrue(os.path.exists(files))
         self.assertEqual(self.handler.settings['extracted'], self.zip_name)
 

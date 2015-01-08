@@ -33,13 +33,12 @@ class ArgsTests(unittest.TestCase):
             'name': 'filename.tmp',
             'use_deluge': True
         }
-        self.assertEqual(args, expected)
+        self.assertDictEqual(args, expected)
 
     def test_bad_deluge_args(self):
         sys.argv = ['', 'hash', 'test.tmp', '/path/to/file', 'extra']
-        with self.assertRaises(SystemExit) as cm:
-            Args.get_arguments()
-        self.assertEqual(cm.exception.code, 2)
+        self.assertRaisesRegexp(
+            SystemExit, '2', Args.get_arguments)
 
     def test_cli_default_args(self):
         sys.argv = ['', '-f', '/path/to/files']
@@ -49,17 +48,15 @@ class ArgsTests(unittest.TestCase):
             'no_push': False,
             'use_deluge': False
         }
-        self.assertEqual(args, expected)
+        self.assertDictEqual(args, expected)
 
     def test_cli_bad_type_args(self):
         sys.argv = ['', '-f', '/path/to/files', '-t', 'TV']
-        with self.assertRaises(SystemExit) as cm:
-            Args.get_arguments()
-        self.assertEqual(cm.exception.code, 2)
+        self.assertRaisesRegexp(
+            SystemExit, '2', Args.get_arguments)
         sys.argv = ['', '-f', '/path/to/files', '-t', 5]
-        with self.assertRaises(SystemExit) as cm:
-            Args.get_arguments()
-        self.assertEqual(cm.exception.code, 2)
+        self.assertRaisesRegexp(
+            SystemExit, '2', Args.get_arguments)
 
     def test_cli_all_args(self):
         sys.argv = ['', '-f', '/path/to/files',
@@ -75,7 +72,7 @@ class ArgsTests(unittest.TestCase):
             'type': 'TV',
             'config': '/path/to/test.conf'
         }
-        self.assertEqual(args, expected)
+        self.assertDictEqual(args, expected)
 
 
 def suite():

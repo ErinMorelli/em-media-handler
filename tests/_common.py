@@ -56,6 +56,7 @@ def get_settings(conf=None):
         conf = get_conf_file()
     return Config.parse_config(conf)
 
+
 def get_types_by_string():
     return {
         'TV': 1,
@@ -64,10 +65,18 @@ def get_types_by_string():
         'Audiobooks': 4
     }
 
+
 def get_types_by_id():
     return {
         1: 'TV',
         2: 'Movies',
         3: 'Music',
         4: 'Audiobooks'
+    }
+
+
+def get_test_api():
+    return {
+        'api_key': 'aHyetWak8sdc4nq1bWdyBKrCqwfon7',
+        'user_key': 'uvdttD8roFNXYMpJuhfyKDmiwwsaUb',
     }

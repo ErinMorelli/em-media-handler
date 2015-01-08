@@ -31,11 +31,10 @@ class Push(object):
     '''Push notification class'''
     # ======== INIT NOTIFY CLASS ======== #
 
-    def __init__(self, settings, is_deluge=False, disable=False):
+    def __init__(self, settings, disable=False):
         '''Initialize push notifications'''
         logging.info("Initializing notification class")
         self.settings = settings
-        self.is_deluge = is_deluge
         self.disable = disable
 
     # ======== SEND MESSAGE VIA PUSHOVER ======== #
@@ -67,14 +66,16 @@ class Push(object):
         )
         # Get API response
         conn_resp = conn.getresponse()
+        logging.debug("After push notification send")
         # Check for response success
-        if conn_resp != 200:
+        if conn_resp.status != 200:
             logging.error("API Response: %s %s",
                           conn_resp.status, conn_resp.reason)
         else:
             logging.info("API Response: %s %s",
                          conn_resp.status, conn_resp.reason)
-        logging.debug("After push notification send")
+        return conn_resp
+        
 
     # ======== SET SUCCESS INFO ======== #
 
@@ -102,17 +103,14 @@ class Push(object):
         # Check there's a message to send
         if conn_text == '':
             logging.warning("No files or skips found to notify about")
-            sys.exit(1)
+            sys.exit("No files or skips found to notify about")
         # If push notifications enabled
         if self.settings['enabled'] and not self.disable:
             # Send message
-            self.send_message(conn_text)
-        # If via CLI, print a message as well
-        if not self.is_deluge:
-            print "\n" + conn_text
+            conn_resp = self.send_message(conn_text)
         # Exit
         logging.warning(conn_text)
-        sys.exit(0)
+        return conn_text
 
     # ======== SET ERROR INFO & EXIT ======== #
 
@@ -126,7 +124,7 @@ class Push(object):
         # If push notifications enabled
         if self.settings['enabled'] and not self.disable:
             # Send message
-            self.send_message(conn_text)
+            conn_resp = self.send_message(conn_text)
         # Raise python warning
         logging.warning(error_details)
         if usage:
