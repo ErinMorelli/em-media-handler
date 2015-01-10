@@ -80,6 +80,7 @@ def remove_torrent(settings, torrent_hash):
     def on_connect_fail(result):
         '''Connect fail callback'''
         logging.error("Connection failed: %s", result)
+        reactor.stop()
     # We add the callback (in this case it's an errback, for error)
     deluge.addErrback(on_connect_fail)
     # Run the twisted main loop to make everything go

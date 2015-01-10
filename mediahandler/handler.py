@@ -17,11 +17,12 @@
 
 # ======== IMPORT MODULES ======== #
 
+import re
 import sys
 import logging
-from re import search, match, I
 from shutil import rmtree
 from os import path, listdir, remove
+
 import mediahandler as mh
 import mediahandler.util.notify as Notify
 import mediahandler.util.config as Config
@@ -115,15 +116,21 @@ class Handler(object):
         # Send files back to handler
         return extracted
 
-    # ======== SINGLE FILE HANDLER ======== #
+    # ======== FIND ZIPPED FILES ======== #
 
-    def _single_file(self, files):
-        '''Process single files'''
-        # Single file, treat differently
-        logging.debug("Processing as a single file")
-        self.settings['single_file'] = True
-        # Look for zipped file first
-        if search(r".(zip|rar|7z)$", files, I):
+    def _find_zipped(self, files):
+        '''Look for .zip, .rar, & .7z files'''
+        logging.info("Looking for zipped files")
+        file_string = files
+        # Override if folder
+        if not path.isfile(files):
+            file_string = '\n'.join(listdir(files))
+        # Set up regex
+        regex = r"^(.*.(zip|rar|7z))$"
+        # Set up flags
+        flags = re.I | re.MULTILINE
+        # Look for zipped files in file string
+        if re.search(regex, file_string, flags):
             logging.debug("Zipped file type detected")
             # Send to extractor
             if self.settings['has_filebot']:
@@ -133,47 +140,7 @@ class Handler(object):
             else:
                 self.push.failure("Filebot required to extract: %s"
                                   % self.args['name'])
-        # otherwise treat like other files
-        return self.add_media_files(files)
-
-    # ======== FOLDER HANDLER ======== #
-
-    def _process_folder(self, files):
-        '''Process as folder'''
-        # Otherwise process as folder
-        logging.debug("Processing as a folder")
-        self.settings['single_file'] = False
-        # Get a list of files
-        file_list = listdir(files)
-        # Check that folder is not empty
-        if len(file_list) == 0:
-            self.push.failure("No %s files found for: %s" %
-                              (self.args['stype'], self.args['name']))
-        # Look for zipped file first
-        list_string = '\n'.join(file_list)
-        if search(r".(zip|rar|7z)\n?", list_string, I):
-            logging.debug("Zipped file type detected")
-            # Send to extractor
-            if self.settings['has_filebot']:
-                get_files = self.extract_files(files)
-                # Rescan files
-                self._file_handler(get_files)
-            else:
-                self.push.failure("Filebot required to extract: %s"
-                                  % self.args['name'])
-        # Check for music
-        if self.args['type'] is 3:
-            return self.add_media_files(files)
-        else:
-            # Locate video file in folder
-            for item in file_list:
-                # Look for file types we want
-                if search(r"\.(mkv|avi|m4v|mp4)$", item, I):
-                    # Set info
-                    file_name = item
-                    src = files+'/'+file_name
-                    # Move file
-                    return self.add_media_files(src)
+        return
 
     # ======== REMOVE FILES ======== #
 
@@ -200,32 +167,76 @@ class Handler(object):
                 rmtree(files)
         return
 
+    # ======== FOLDER HANDLER ======== #
+
+    def _process_folder(self, files):
+        '''Process as folder'''
+        logging.debug("Processing as a folder")
+        # Set file arrays
+        added_files = []
+        skipped_files = []
+        # Get a list of files
+        file_list = listdir(files)
+        list_string = '\n'.join(file_list)
+        # Check that folder is not empty
+        if len(file_list) == 0:
+            self.push.failure("No %s files found for: %s" %
+                              (self.args['stype'], self.args['name']))
+        # Locate video file in folder
+        video_regex = r"^(.*.(mkv|avi|m4v|mp4))$"
+        for item in re.finditer(video_regex, list_string, re.I):
+            # Set info
+            file_path = '%s/%s' % (files, item.group(1))
+            # Add file
+            (added_file, skip) = self.add_media_files(file_path)
+            # Add to correct arrays
+            if skip:
+                skipped_files.append(added_file)
+            else:
+                added_files.append(added_file)
+        # Return arrays
+        return added_files, skipped_files
+
+    # ======== PROCESS FILES BASED ON TYPE ======== #
+
+    def _process_files(self, files):
+        '''Process the results of added files'''
+        self.settings['single_file'] = False
+        # Set file containers
+        added_files = []
+        skipped_files = []
+        # Check for single files
+        if path.isfile(files):
+            self.settings['single_file'] = True
+        # If this is not music or a book, process separately
+        elif self.args['type'] not in [3, 4]:
+            return self._process_folder(files)
+        # Get results
+        (added_file, skip) = self.add_media_files(files)
+        # Update containers
+        if skip:
+            skipped_files.append(added_file)
+        else:
+            added_files.append(added_file)
+        # Return containers
+        return added_files, skipped_files
+
     # ======== MAIN FILE HANDLER ======== #
 
     def _file_handler(self, files):
         '''Handle files by type'''
         logging.info("Starting files handler")
-        added_files = []
-        added_file = ''
-        skipped_files = []
         skip = False
-        # Process books first
-        if self.args['type'] is 4:
-            (added_file, skip) = self.add_media_files(files)
-        # Then check for folders/files
-        elif path.isfile(files):
-            (added_file, skip) = self._single_file(files)
-        else:
-            (added_file, skip) = self._process_folder(files)
-        # Update file arrays
-        if skip:
-            skipped_files.append(added_file)
-        else:
-            added_files.append(added_file)
+        # Look for zipped file first
+        self._find_zipped(files)
+        # Process file location type
+        (added_files, skipped_files) = self._process_files(files)
         # Make sure files were added
         if len(added_files) == 0 and len(skipped_files) == 0:
             self.push.failure("No %s files found for: %s" %
                               (self.args['stype'], self.args['name']))
+        if len(skipped_files) > 0:
+            skip = True
         # Remove old files
         self._remove_files(files, skip)
         # Finish & send success notification
@@ -247,7 +258,7 @@ class Handler(object):
         # Look for int
         for key, value in mh.__mediakeys__.items():
             regex = r"%s" % value
-            if match(regex, xtype, I):
+            if re.match(regex, xtype, re.I):
                 stype = value
                 xtype = int(key)
                 break
@@ -264,8 +275,8 @@ class Handler(object):
         '''Parse input directory structure'''
         logging.info("Extracing info from path: %s", rawpath)
         # Extract info from path
-        parse_path = search(r"^((.*)?\/(.*))?\/(.*)$",
-                            rawpath, I)
+        parse_path = re.search(r"^((.*)?\/(.*))?\/(.*)$",
+                               rawpath, re.I)
         if parse_path:
             self.args['path'] = parse_path.group(1)
             # Don't override deluge-defined name
@@ -338,6 +349,6 @@ class Handler(object):
         new_files = self._handle_media()
         # Print result
         if self.args['use_deluge']:
-            print '\n' + new_files
+            print '\n%s' % new_files
         # Exit
         return

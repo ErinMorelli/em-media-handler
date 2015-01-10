@@ -28,7 +28,7 @@ from urllib2 import build_opener
 from subprocess import Popen, PIPE
 from os import path, listdir, makedirs
 
-from apiclient.discovery import build
+from googleapiclient.discovery import build
 from mutagen.mp3 import MP3
 from mutagen.ogg import OggFileType
 
@@ -47,7 +47,7 @@ class Book(mediahandler.types.Media):
         # Set global bookinfo
         self.book_info = {}
         # Get blacklist path
-        list_path = path.dirname(__file__) + '/blacklist.txt'
+        list_path = '%s/blacklist.txt' % path.dirname(__file__)
         # Set up handler info
         self.handler = {
             'blacklist': list_path,
@@ -132,7 +132,7 @@ class Book(mediahandler.types.Media):
         '''Save cover image'''
         logging.info("Saving audiobook cover image")
         # Set new image file path
-        img_path = img_dir + "/cover.jpg"
+        img_path = '%s/cover.jpg' % img_dir
         logging.debug("Image URL: %s", img_url)
         logging.debug("Image Path: %s", img_path)
         # Check to see if file exists
@@ -169,7 +169,7 @@ class Book(mediahandler.types.Media):
         book_parts = 0
         # Sum all the file durations
         for get_file in file_array:
-            full_path = file_path + '/' + get_file
+            full_path = '%s/%s' % (file_path, get_file)
             audio_track = self.handler['audio'][file_type](full_path)
             total_length += audio_track.info.length
             logging.debug("%s:  %s", get_file, audio_track.info.length)
@@ -208,16 +208,18 @@ class Book(mediahandler.types.Media):
         logging.info("Creating book part subfolders")
         for i, chunk in enumerate(chunks):
             # Create new folder for part
-            part_path = file_path + '/Part ' + str(i+1)
+            part_path = '%s/Part %s' % (file_path, str(i+1))
             if not path.exists(part_path):
                 makedirs(part_path)
             # Move files for part into new path
             for get_chunk in chunk:
-                start_path = file_path + '/' + get_chunk
-                end_path = part_path + '/' + get_chunk
+                start_path = '%s/%s' % (file_path, get_chunk)
+                end_path = '%s/%s' % (part_path, get_chunk)
                 copy(start_path, end_path)
             # Copy over cover image
-            copy(file_path+'/cover.jpg', part_path+'/cover.jpg')
+            cover_start = '%s/cover.jpg' % file_path
+            cover_end = '%s/cover.jpg' % part_path
+            copy(cover_start, cover_end)
             # Add new part folder to array
             book_chunks.append(part_path)
         # Return array of new part paths
@@ -234,7 +236,7 @@ class Book(mediahandler.types.Media):
                                          self.handler['file_type'])
         # Create m4b for each file part
         for i, file_part in enumerate(file_parts):
-            part_path = file_path + '/Part ' + str(i+1)
+            part_path = '%s/Part %s' % (file_path, str(i+1))
             # Define chapter query
             b_cmd = ['/usr/bin/php', '-f', '/usr/bin/abc.php',
                      file_part,  # Path to book files
@@ -257,9 +259,9 @@ class Book(mediahandler.types.Media):
             if bfiles is None:
                 return False, output
             # Set full file path
-            created_file = part_path + '/' + bfiles.group(1) + '.m4b'
-            new_file_path = (file_path + '/' + bfiles.group(1)
-                             + ' - ' + str(i+1) + '.m4b')
+            created_file = '%s/%s.m4b' % (part_path, bfiles.group(1))
+            new_file_path = '%s/%s - %s.m4b' % (file_path,
+                                                bfiles.group(1), str(i+1))
             # Remave file with part #
             move(created_file, new_file_path)
             logging.debug("New file path: %s", new_file_path)
@@ -285,7 +287,7 @@ class Book(mediahandler.types.Media):
             # Look for file types we want
             good_file = re.search(self.handler['regex']['c'], item, re.I)
             if good_file:
-                full_path = file_dir + '/' + item
+                full_path = '%s/%s' % (file_dir, item)
                 book_files.append(full_path)
             # Look for file types we can chapterize
             bad_file = re.search(self.handler['regex']['nc'], item, re.I)
@@ -322,11 +324,11 @@ class Book(mediahandler.types.Media):
         if self.book_info['subtitle'] is None:
             folder_title = self.book_info['short_title']
         else:
-            folder_title = (self.book_info['short_title'] +
-                            '_ ' + self.book_info['subtitle'])
+            folder_title = '%s_ %s' % (self.book_info['short_title'],
+                                       self.book_info['subtitle'])
         # Set new book directory path
-        book_dir = (self.handler['path'] + '/' +
-                    self.book_info['author'] + '/' + folder_title)
+        book_dir = '%s/%s/%s' % (self.handler['path'],
+                                 self.book_info['author'], folder_title)
         logging.debug("New directory: %s", book_dir)
         # Create the folder
         if not path.exists(book_dir):
@@ -349,13 +351,12 @@ class Book(mediahandler.types.Media):
                     book_part = ', Part %s' % str(i+1)
                     new_name = self.book_info['short_title'] + book_part
                 # Set new file path
-                new_path = book_dir + '/' + new_name + '.m4b'
+                new_path = '%s/%s.m4b' % (book_dir, new_name)
             else:
                 # Set non-chaptered file paths & formatting
-                start_path = self.handler['orig_path'] + '/' + book_file
-                new_path = ("%s/%02d - %s.%s" %
-                            (book_dir, i+1, new_name,
-                             self.handler['file_type']))
+                start_path = '%s/%s' % (self.handler['orig_path'], book_file)
+                new_path = "%s/%02d - %s.%s" % (book_dir, i+1, new_name,
+                                                self.handler['file_type'])
             logging.debug("Start path: %s", start_path)
             logging.debug("New path: %s", new_path)
             # Check for duplicate
@@ -394,7 +395,7 @@ class Book(mediahandler.types.Media):
         name_search = re.search(name_query, file_path)
         file_name = name_search.group(1)
         # Set new path
-        new_path = new_folder + '/' + file_name
+        new_path = '%s/%s' % (new_folder, file_name)
         logging.debug("New path: %s", new_path)
         # Move file
         move(file_path, new_path)
@@ -436,8 +437,8 @@ class Book(mediahandler.types.Media):
             else:
                 category = "Audiobook"
             if 'subtitle' in book['volumeInfo']:
-                long_title = (book['volumeInfo']['title'] +
-                              ': ' + book['volumeInfo']['subtitle'])
+                long_title = '%s: %s' % (book['volumeInfo']['title'],
+                                         book['volumeInfo']['subtitle'])
                 subtitle = book['volumeInfo']['subtitle']
             else:
                 long_title = book['volumeInfo']['title']
@@ -494,8 +495,8 @@ class Book(mediahandler.types.Media):
         if move_files is None:
             return self.push.failure("Unable to move book files: %s" % raw)
         # format book title
-        book_title = ('"' + self.book_info['long_title'] +
-                      '" by ' + self.book_info['author'])
+        book_title = '"%s" by %s' % (self.book_info['long_title'],
+                                     self.book_info['author'])
         logging.info("Book title: %s", book_title)
         # return new book title
         return book_title, skips

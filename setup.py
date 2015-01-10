@@ -31,17 +31,27 @@ setup(
     author_email='erin@erinmorelli.com',
     url='http://code.erinmorelli.com/em-media-handler/',
     license='GNU',
-    platforms='Linux',
+    platforms='Linux, OSX',
     description='A comprehensive media library manager.',
     long_description=open('README.rst').read(),
     test_suite='tests.testall.suite',
-    package_dir={'mediahandler': 'mediahandler'},
-    package_data={'mediahandler': ['types/blacklist.txt']},
+    package_dir={
+        'mediahandler': 'mediahandler'
+    },
+    package_data={
+        'mediahandler': [
+            'types/blacklist.txt',
+            'util/settings.cfg',
+        ]
+    },
     packages=[
         'mediahandler',
         'mediahandler.types',
-        'mediahandler.util'],
-    scripts=['addmedia'],
+        'mediahandler.util',
+    ],
+    scripts=[
+        'addmedia'
+    ],
 )
 
 # Generate default config file

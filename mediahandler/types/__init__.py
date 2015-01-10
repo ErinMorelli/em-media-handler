@@ -45,7 +45,7 @@ class Media(object):
             'action': 'copy',
             'db': '',
             'format': '',
-            'flags': ['-non-strict', '-no-analytics']
+            'flags': '-non-strict',
         }
         # Check binary
         if not path.isfile(self.filebot['bin']):

@@ -54,7 +54,7 @@ class BaseMediaObjectTests(unittest.TestCase):
             'bin': '/usr/local/bin/filebot',
             'action': 'copy',
             'db': '',
-            'flags': ['-non-strict', '-no-analytics'],
+            'flags': '-non-strict',
             'format': ''
         }
         # Check results

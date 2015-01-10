@@ -57,6 +57,29 @@ class NewHandlerTests(unittest.TestCase):
         self.assertIsInstance(new_handler.push, Notify.Push)
         self.assertIsInstance(new_handler, MH.Handler)
 
+    def test_good_args_config(self):
+        # Get original conf file
+        old_conf = _common.get_conf_file()
+        # Setup temp conf path
+        conf_dir = os.path.dirname(old_conf)
+        new_conf = os.path.join(conf_dir, 'temp_NHT.conf')
+        # Copy into temp file
+        shutil.copy(old_conf, new_conf)
+        # Build arguments
+        args = {
+            'media': '/path/to/files',
+            'type': 'TV',
+            'use_deluge': False,
+            'config': new_conf,
+        }
+        # Run handler
+        handler = MH.Handler(args)
+        expected = _common.get_settings()
+        # Check that they match
+        self.assertDictEqual(handler.settings, expected)
+        # Check object structure
+        os.unlink(new_conf)
+
 
 class ConvertTypeTests(unittest.TestCase):
 
@@ -342,7 +365,7 @@ class SingleFileTests(unittest.TestCase):
             suffix='.mkv')
         file_name = get_file.name
         # Run test
-        regex = r'Folder for TV not found: .*'
+        regex = r'Folder for TV not found: .*/Media/TV'
         self.assertRaisesRegexp(
             SystemExit, regex, handler._single_file, file_name)
         # Check settings
@@ -421,7 +444,7 @@ class ProcessFolderTests(unittest.TestCase):
             dir=os.path.dirname(self.conf))
         # Make a dummy file in dummy folder
         get_file = tempfile.NamedTemporaryFile(
-            dir=self.dirs[ext],
+            dir=self.dirs[ext],#self.dirs[ext],
             suffix=ext,
             delete=False)
         # Run test
@@ -475,7 +498,7 @@ class ProcessFolderTests(unittest.TestCase):
             suffix='.avi',
             delete=False)
         # Run test
-        regex = r'Folder for TV not found: .*'
+        regex = r'Folder for TV not found: .*/Media/TV'
         self.assertRaisesRegexp(
             SystemExit, regex, handler._process_folder, self.dirs['v'])
 
@@ -513,7 +536,7 @@ class FileHandlerTests(unittest.TestCase):
             suffix='.m4b')
         file_name = get_file.name
         # Run test
-        regex = r'Folder for Audiobooks not found: .*'
+        regex = r'Folder for Audiobooks not found: .*/Media/Audiobooks'
         self.assertRaisesRegexp(
             SystemExit, regex, handler._file_handler, file_name)
         get_file.close()
@@ -531,7 +554,7 @@ class FileHandlerTests(unittest.TestCase):
             suffix='.avi')
         file_name = get_file.name
         # Run test
-        regex = r'Folder for Movies not found: .*'
+        regex = r'Folder for Movies not found: .*/Media/Movies'
         self.assertRaisesRegexp(
             SystemExit, regex, handler._file_handler, file_name)
         get_file.close()
@@ -571,7 +594,7 @@ class FileHandlerTests(unittest.TestCase):
             suffix='.mkv',
             delete=False)
         # Run test
-        regex = r'Folder for Movies not found: .*'
+        regex = r'Folder for Movies not found: .*/Media/Movies'
         self.assertRaisesRegexp(
             SystemExit, regex, handler._file_handler, self.dirs['f'])
 
@@ -630,11 +653,12 @@ class HandleMediaTests(unittest.TestCase):
         # Modify args & settings for deluge
         handler.args['path'] = os.path.dirname(self.conf)
         handler.args['name'] = file_name
+        handler.args['hash'] = _common.random_string(12)
         handler.args['use_deluge'] = True
         handler.settings['Deluge']['enabled'] = True
         # Run test
-        regex = r'No module named deluge.ui.client'
-        self.assertRaisesRegexp(ImportError, regex, handler._handle_media)
+        regex = r'Folder for TV not found: .*/Media/TV'
+        self.assertRaisesRegexp(SystemExit, regex, handler._handle_media)
         get_file.close()
 
     def test_use_deluge_disabled(self):
@@ -653,7 +677,7 @@ class HandleMediaTests(unittest.TestCase):
         handler.args['use_deluge'] = True
         handler.settings['Deluge']['enabled'] = False
         # Run test
-        regex = r'Folder for TV not found: .*'
+        regex = r'Folder for TV not found: .*/Media/TV'
         self.assertRaisesRegexp(SystemExit, regex, handler._handle_media)
         get_file.close()
 
@@ -781,7 +805,7 @@ class AddMediaFilesTests(unittest.TestCase):
         # Run test
         self.assertNotIn(
             'custom_search', handler.settings['Audiobooks'].keys())
-        regex = r'Folder for Audiobooks not found: .*'
+        regex = r'Folder for Audiobooks not found: .*/Media/Audiobooks'
         self.assertRaisesRegexp(
             SystemExit, regex, handler.add_media_files, file_name)
         # Check settings
@@ -805,7 +829,7 @@ class AddMediaFilesTests(unittest.TestCase):
         # Run test
         regex = r'%s type is not enabled' % stype
         if enabled:
-            regex = r'Folder for %s not found: .*' % stype
+            regex = r'Folder for %s not found: .*/Media/%s' % (stype, stype)
             if stype is 'Music':
                 regex = r'Unable to match tracks: .*'
         self.assertRaisesRegexp(

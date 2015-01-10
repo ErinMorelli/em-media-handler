@@ -5,6 +5,7 @@
 *._*
 
 .coverage
+htmlcov/
 
 mediaHandler.sublime-project
 mediaHandler.sublime-workspace

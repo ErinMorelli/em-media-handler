@@ -75,7 +75,6 @@ class Push(object):
             logging.info("API Response: %s %s",
                          conn_resp.status, conn_resp.reason)
         return conn_resp
-        
 
     # ======== SET SUCCESS INFO ======== #
 
@@ -99,7 +98,7 @@ class Push(object):
             if conn_text == '':
                 conn_text = skipped_msg
             else:
-                conn_text = conn_text + '\n' + skipped_msg
+                conn_text = '%s\n%s' % (conn_text, skipped_msg)
         # Check there's a message to send
         if conn_text == '':
             logging.warning("No files or skips found to notify about")
@@ -107,7 +106,7 @@ class Push(object):
         # If push notifications enabled
         if self.settings['enabled'] and not self.disable:
             # Send message
-            conn_resp = self.send_message(conn_text)
+            self.send_message(conn_text)
         # Exit
         logging.warning(conn_text)
         return conn_text
@@ -124,7 +123,7 @@ class Push(object):
         # If push notifications enabled
         if self.settings['enabled'] and not self.disable:
             # Send message
-            conn_resp = self.send_message(conn_text)
+            self.send_message(conn_text)
         # Raise python warning
         logging.warning(error_details)
         if usage:

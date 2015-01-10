@@ -21,83 +21,14 @@
 import os
 import imp
 import logging
+from ast import literal_eval
+
 import mediahandler.util as util
 
 try:
     import ConfigParser as CP
 except ImportError:
     import configparser as CP
-
-
-# ======== SET GLOBALS ======== #
-
-STRUCT = [
-    {
-        'section': 'General',
-        'options': [
-            ['keep_files', 'bool', 'true'],
-            ['keep_if_duplicates', 'bool', 'true'],
-        ]
-    },
-    {
-        'section': 'Deluge',
-        'options': [
-            ['enabled', 'bool', 'false'],
-            ['host', 'string', '127.0.0.1'],
-            ['port', 'number', '58846'],
-            ['user', 'string', ''],
-            ['pass', 'string', ''],
-        ]
-    },
-    {
-        'section': 'Logging',
-        'options': [
-            ['enabled', 'bool', 'false'],
-            ['level', 'number', ''],
-            ['log_file', 'file', ''],
-        ]
-    },
-    {
-        'section': 'Pushover',
-        'options': [
-            ['enabled', 'bool', 'false'],
-            ['api_key', 'string', ''],
-            ['user_key', 'string', ''],
-            ['notify_name', 'string', ''],
-        ]
-    },
-    {
-        'section': 'TV',
-        'options': [
-            ['enabled', 'bool', 'true'],
-            ['folder', 'folder', ''],
-        ]
-    },
-    {
-        'section': 'Movies',
-        'options': [
-            ['enabled', 'bool', 'true'],
-            ['folder', 'folder', ''],
-        ]
-    },
-    {
-        'section': 'Music',
-        'options': [
-            ['enabled', 'bool', 'false'],
-            ['log_file', 'file', ''],
-        ]
-    },
-    {
-        'section': 'Audiobooks',
-        'options': [
-            ['enabled', 'bool', 'false'],
-            ['folder', 'folder', ''],
-            ['api_key', 'string', ''],
-            ['make_chapters', 'bool', 'false'],
-            ['chapter_length', 'number', '8'],
-        ]
-    },
-]
 
 
 # ======== LOOK FOR MODULE ======== #
@@ -160,7 +91,7 @@ def _check_modules(settings):
         _find_module('deluge', 'log')
     # Check video requirements
     if (settings['TV']['enabled']
-       or settings['Movies']['enabled']):
+            or settings['Movies']['enabled']):
         settings['has_filebot'] = False
         # Check for Filebot
         if (not os.path.isfile('/usr/bin/filebot') and
@@ -186,6 +117,15 @@ def _check_modules(settings):
                 raise ImportError('ABC application not found')
     return
 
+# ======== GET FILE STRUCTURE ======== #
+
+def _get_struct():
+    '''Retrieve config structure from cfg file'''
+    struct_file = '%s/settings.cfg' % os.path.dirname(__file__)
+    # Read file to string
+    struct = open(struct_file).read()
+    # Convert file to list
+    return literal_eval(struct)
 
 # ======== PARSE CONFIG FILE ======== #
 
@@ -195,7 +135,7 @@ def parse_config(file_path):
     parser.read(file_path)
     settings = {}
     # Loop through config & validate
-    for item in STRUCT:
+    for item in _get_struct():
         section = item['section']
         # Check that section exists
         if not parser.has_section(section):
@@ -293,7 +233,7 @@ def make_config(new_file=None):
             raise Warning('Configuration file cannot be opened')
     else:
         # Setup sections and defaults
-        for item in STRUCT:
+        for item in _get_struct():
             parser.add_section(item['section'])
             for option in item['options']:
                 parser.set(item['section'], option[0], option[2])
