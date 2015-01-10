@@ -54,8 +54,6 @@ class Handler(object):
         __config_file = Config.make_config(__new_path)
         self.settings = Config.parse_config(__config_file)
         # Set up notify instance
-        if 'no_push' not in self.args.keys():
-            self.args['no_push'] = False
         self.push = Notify.Push(self.settings['Pushover'],
                                 self.args['no_push'])
         # Media classes hash
@@ -266,12 +264,12 @@ class Handler(object):
         self.args['stype'] = stype
         self.args['type'] = xtype
         # Return
-        logging.debug("Converted type - %s, %s", xtype, stype)
+        logging.debug("Converted type: %s (%s)", stype, xtype)
         return
 
     # ======== PARSE DIRECTORY ======== #
 
-    def _parse_dir(self, rawpath):
+    def _parse_dir(self, rawpath, use_deluge=False):
         '''Parse input directory structure'''
         logging.info("Extracing info from path: %s", rawpath)
         # Extract info from path
@@ -291,7 +289,7 @@ class Handler(object):
             logging.debug("Type detected: %s", self.args['type'])
         else:
             logging.debug("No type detected")
-            if self.settings['Deluge']['enabled']:
+            if self.settings['Deluge']['enabled'] and use_deluge:
                 # Remove torrent
                 import mediahandler.util.torrent as Torrent
                 Torrent.remove_torrent(
@@ -320,7 +318,7 @@ class Handler(object):
             logging.info("Processing from command line")
             file_path = self.args['media']
         # Parse directory structure
-        self._parse_dir(file_path)
+        self._parse_dir(file_path, use_deluge)
         # Check that file was downloaded
         if path.exists(file_path):
             if self.settings['Deluge']['enabled'] and use_deluge:
@@ -345,10 +343,5 @@ class Handler(object):
 
     def add_media(self):
         '''Main function'''
-        # Start main function
-        new_files = self._handle_media()
-        # Print result
-        if self.args['use_deluge']:
-            print '\n%s' % new_files
-        # Exit
-        return
+        # Run main function
+        return self._handle_media()

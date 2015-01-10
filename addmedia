@@ -29,8 +29,9 @@ def main():
     # Get arguments
     args = get_arguments()
     # Run handler
-    new_handler = mh.Handler(args)
-    new_handler.add_media()
+    handler = mh.Handler(args)
+    # Add files
+    return handler.add_media()
 
 
 # ======== COMMAND LINE ======== #

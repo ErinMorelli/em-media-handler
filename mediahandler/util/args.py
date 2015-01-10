@@ -97,45 +97,51 @@ def get_arguments():
              "type=",
              "query=",
              "single",
+             "deluge",
              "nopush"]
         )
     except GetoptError as err:
         show_usage(2, str(err))
     # Check for failure conditions
-    if len(optlist) > 0 and len(get_args) > 0:
-        show_usage(2)
     if len(optlist) == 0 and len(get_args) == 0:
         show_usage(2)
-    # Check for deluge
-    if len(get_args) == 3:
-        # Treat like deluge
-        use_deluge = True
-        new_args = {
-            'hash': get_args[0],
-            'name': get_args[1],
-            'path': get_args[2]
-        }
-    elif len(get_args) > 0:
-        show_usage(2)
-    # Check for CLI
-    if len(optlist) > 0:
-        new_args = parse_arguments(optlist)
-    new_args['use_deluge'] = use_deluge
-    return new_args
+    # Send to parser
+    return parse_arguments(optlist, get_args)
 
 
 # ======== PARSE ARGUMENTS ======== #
 
-def parse_arguments(optlist):
+def parse_arguments(optlist, get_args):
     '''Parse arguments'''
+    # Set up base args
     new_args = {}
     new_args['no_push'] = False
-    f_flag = False
+    new_args['single_track'] = False
+    new_args['use_deluge'] = False
+    # Parse args
+    success = False
     for opt, arg in optlist:
         if opt in ("-h", "--help"):
             show_usage(1)
+        # Parse deluge args first
+        elif opt in ("-d", "--deluge"):
+            success = True
+            # Check for bad args
+            if len(get_args) != 3:
+                show_usage(2, "Deluge flag requires 3 args")
+            # Override args
+            new_args = {
+                'use_deluge': True,
+                'no_push': False,
+                'hash': get_args[0],
+                'name': get_args[1],
+                'path': get_args[2]
+            }
+            # Don't look for other args
+            return new_args
+        # Then look for normal args
         elif opt in ("-f", "--files"):
-            f_flag = True
+            success = True
             new_args['media'] = path.abspath(arg)
         elif opt in ("-c", "--config"):
             new_args['config'] = arg
@@ -149,6 +155,7 @@ def parse_arguments(optlist):
             if arg not in mh.__mediakeys__:
                 show_usage(2, ("Media type not valid: %s" % arg))
             new_args['type'] = mh.__mediakeys__[arg]
-    if not f_flag:
+    # Check for failure
+    if not success:
         show_usage(2, "Files not specified")
     return new_args
