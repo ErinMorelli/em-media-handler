@@ -72,8 +72,8 @@ class Media(object):
                  '-rename', file_path,
                  '--db', self.filebot['db'],
                  '--format', self.filebot['format'],
-                 '--action', self.filebot['action']]
-        m_cmd.extend(self.filebot['flags'])
+                 '--action', self.filebot['action'],
+                 self.filebot['flags']]
         # Get info
         return self.media_info(m_cmd, file_path)
 
