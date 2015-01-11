@@ -94,5 +94,6 @@ def get_test_api():
         'user_key': 'uvdttD8roFNXYMpJuhfyKDmiwwsaUb',
     }
 
+
 def get_google_api():
     return 'AIzaSyDqmgZeetYvIq6kTXZu7ZRIYDautQ7HRq4'

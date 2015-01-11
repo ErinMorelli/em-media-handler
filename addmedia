@@ -33,8 +33,7 @@ def main():
     # Add files
     added = handler.add_media()
     # Print for CLI
-    if not handler.args['use_deluge']:
-        print '\n%s' % added
+    print '\n%s' % added
     # Finish
     return added
 

@@ -126,9 +126,8 @@ class Handler(object):
         if not path.isfile(files):
             file_string = '\n'.join(listdir(files))
         # Set up regex
-        regex = r"^(.*.(zip|rar|7z))$"
-        # Set up flags
         flags = re.I | re.MULTILINE
+        regex = r"^(.*.(zip|rar|7z))$"
         # Look for zipped files in file string
         if re.search(regex, file_string, flags):
             logging.debug("Zipped file type detected")
@@ -182,9 +181,11 @@ class Handler(object):
         if len(file_list) == 0:
             self.push.failure("No %s files found for: %s" %
                               (self.args['stype'], self.args['name']))
-        # Locate video file in folder
+        # Set Up Regex
+        flags = re.I | re.MULTILINE
         video_regex = r"^(.*.(mkv|avi|m4v|mp4))$"
-        for item in re.finditer(video_regex, list_string, re.I):
+        # Locate video file in folder
+        for item in re.finditer(video_regex, list_string, flags):
             # Set info
             file_path = '%s/%s' % (files, item.group(1))
             # Add file
