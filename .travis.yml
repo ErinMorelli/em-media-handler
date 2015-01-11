@@ -1,0 +1,40 @@
+language: python
+python:
+  - 2.6
+  - 2.7
+#  - 3.2
+#  - 3.3
+# Pre-install commands
+before_install:
+  - sudo add-apt-repository ppa:gambas-team/gambas3 -y
+  - sudo add-apt-repository ppa:webupd8team/java -y
+  - sudo add-apt-repository ppa:deluge-team/ppa -y
+  - sudo apt-get update -qq
+  - sudo apt-get install -y oracle-java8-installer -qq
+  - sudo apt-get install -y build-essential -qq
+  - sudo apt-get install -y deluge -qq
+# Commands to install dependencies
+install:
+  - pip install mutagen
+  - pip install beets
+  - pip install google-api-python-client
+  - pip install coveralls
+# Commands to run before script
+before_script:
+  - wget http://cznic.dl.sourceforge.net/project/filebot/filebot/FileBot_4.5.3/filebot_4.5.3_amd64.deb
+  - sudo dpkg -i filebot_4.5.3_amd64.deb
+  - mkdir aac; cd aac; wget http://ftp6.nero.com/tools/NeroAACCodec-1.5.1.zip
+  - unzip -j NeroAACCodec-1.5.1.zip; sudo install -m 0755 neroAacEnc /usr/local/bin/
+  - mkdir mp4v2; cd mp4v2/; wget http://mp4v2.googlecode.com/files/mp4v2-1.9.1.tar.bz2
+  - tar -xf ./mp4v2-1.9.1.tar.bz2; cd mp4v2-1.9.1
+  - ./configure; make; sudo make install
+  - sudo ln -s /usr/local/lib/libmp4v2.so.1.9.1 /usr/lib/libmp4v2.so.1
+  - wget http://www.ausge.de/component/jdownloads/finish/1-linux-software/29-abc-audio-book-creator/0?Itemid=699 -O abc_0.0.5-0ubuntu1_all.de
+  - sudo dpkg -i abc_0.0.5-0ubuntu1_all.deb
+# Command to install & run tests
+script:
+  - python ./setup.py install
+  - coverage run --source=mediahandler setup.py test
+# Send coverage results to coveralls
+after_success:
+  coveralls

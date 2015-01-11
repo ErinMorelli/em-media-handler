@@ -13,41 +13,35 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''Common testing functions module'''
+'''Initialize module'''
 
-import os
-import re
-import sys
-
+import _common
 from _common import unittest
 
-pkgpath = os.path.dirname(__file__) or '.'
-sys.path.append(pkgpath)
-#os.chdir(pkgpath)
+from test_media import MediaObjectTests
 
-# try:
-#     del sys.modules["mediahandler"]
-# except KeyError:
-#     pass
+import mediahandler.types.audiobooks as Books
 
 
-# TODO:
-#  - Create new, default settings.conf
-#    + save old one
-#    + restore old conf on test finish
-#  - Fix output buffering
-#    + http://nullege.com/codes/search/unittest.TestResult
+class BookMediaObjectTests(MediaObjectTests):
+
+    def setUp(self):
+        # Call Super
+        super(BookMediaObjectTests, self).setUp()
+        # Book-specific settings
+        self.settings['api_key'] = _common.get_google_api()
+        self.settings['chapter_length'] = None
+        self.settings['make_chapters'] = False
+        # Make an object
+        self.book = Books.Book(self.settings, self.push)
+
+    def test_new_book_object(self):
+        return
 
 
 def suite():
-    s = unittest.TestSuite()
-    for fname in os.listdir(pkgpath):
-        match = re.match(r'(test_\S+)\.py$', fname)
-        if match:
-            modname = match.group(1)
-            s.addTest(__import__(modname).suite())
-    return s
+    return unittest.TestLoader().loadTestsFromName(__name__)
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite', verbosity=2, buffer=False)
+    unittest.main(verbosity=2, buffer=True)

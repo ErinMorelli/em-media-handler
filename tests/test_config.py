@@ -17,6 +17,7 @@
 
 import os
 import re
+import sys
 import shutil
 import logging
 
@@ -34,12 +35,10 @@ except ImportError:
 
 class FindModulesTests(unittest.TestCase):
 
-    # _find_module success case
     def test_find_module_success(self):
         mod_yes = Config._find_module('mediahandler', 'util')
         self.assertTrue(mod_yes)
 
-    # _find_module failure case
     def test_find_module_failure(self):
         module = _common.random_string(8)
         submod = _common.random_string(5)
@@ -48,31 +47,72 @@ class FindModulesTests(unittest.TestCase):
                                 Config._find_module, module, submod)
 
 
+class CheckModulesTests(unittest.TestCase):
+
+    def setUp(self):
+        # Get settings
+        self.settings = _common.get_settings()
+        # Bypass unneeded sections
+        self.settings['has_filebot'] = False 
+        self.settings['Logging']['enabled'] = False
+        self.settings['Deluge']['enabled'] = False
+
+    def test_check_filebot(self):
+        # Modify settings
+        self.settings['TV']['enabled'] = True    
+        # Run
+        Config._check_modules(self.settings)
+        self.assertTrue(self.settings['has_filebot'])
+
+    def test_audiobook_module(self):
+        # Modify settings
+        self.settings['Audiobooks']['enabled'] = True
+        self.settings['Audiobooks']['make_chapters'] = False
+        # Run
+        result = Config._check_modules(self.settings)
+        self.assertIsNone(result)
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Ubuntu")
+    def test_audiobook_good_abc_(self):
+        # Modify settings
+        self.settings['Audiobooks']['enabled'] = True
+        self.settings['Audiobooks']['make_chapters'] = True
+        # Run
+        result = Config._check_modules(self.settings)
+        self.assertIsNone(result)
+
+    @unittest.skipUnless(not sys.platform.startswith("linux"), "requires not Ubuntu")
+    def test_audiobook_bad_abc_(self):
+        # Modify settings
+        self.settings['Audiobooks']['enabled'] = True
+        self.settings['Audiobooks']['make_chapters'] = True
+        # Run
+        regex = r'ABC application not found'
+        self.assertRaisesRegexp(
+            ImportError, regex, Config._check_modules, self.settings)
+
+    def test_music_modules(self):
+        # Modify settings
+        self.settings['Music']['enabled'] = True
+        # Run
+        result = Config._check_modules(self.settings)
+        self.assertIsNone(result)
+
+
 class InitLoggingTests(unittest.TestCase):
 
     def setUp(self):
-	# Conf
-	self.conf = _common.get_conf_file()
+        # Conf
+        self.conf = _common.get_conf_file()
         # Unique test ID
         self.id = _common.get_test_id()
-        # Temp file
-	get_log_file = tempfile.NamedTemporaryFile(
-            dir=os.path.dirname(self.conf),
-            suffix='.tmp',
-            delete=False)
-        self.log_file = get_log_file.name
-	get_log_file.close()
-
-    def tearDown(self):
-        # Remove tmp file
-        if os.path.exists(self.log_file):
-            os.unlink(self.log_file)
 
     def test_init_logging(self):
+        log_file = '%s/logs/mediahandler.log' % os.path.expanduser("~")
         # Use custom settings
         settings = {
             'Logging': {
-                'log_file': self.log_file,
+                'log_file': None,
                 'level': 20,
             },
             'Deluge': {
@@ -86,14 +126,14 @@ class InitLoggingTests(unittest.TestCase):
         logging.info("Info message %s", self.id)
         logging.debug("Debug message %s", self.id)
         # Read logfile
-        with open(self.log_file) as log:
+        with open(log_file) as log:
             log_content = log.read()
         # Regexes
         error = r"ERROR - Error message %s\n" % self.id
         info = r"INFO - Info message %s\n" % self.id
         debug = r"DEBUG- Debug message %s\n" % self.id
         # Look for them
-        self.assertTrue(os.path.isfile(self.log_file))
+        self.assertTrue(os.path.isfile(log_file))
         self.assertRegexpMatches(log_content, error)
         self.assertRegexpMatches(log_content, info)
         self.assertNotRegexpMatches(log_content, debug)
@@ -117,7 +157,7 @@ class SimpleValidationConfigTests(unittest.TestCase):
     def test_valid_string(self):
         # Empty string case
         string_null = Config._get_valid_string(self.parser, 'Deluge', 'pass')
-        self.assertIs(string_null, None)
+        self.assertIsNone(string_null)
         # Valid case
         string_reg = Config._get_valid_string(self.parser, 'Deluge', 'host')
         self.assertTrue(string_reg)
@@ -125,7 +165,7 @@ class SimpleValidationConfigTests(unittest.TestCase):
     def test_valid_number(self):
         # Empty string case
         num_null = Config._get_valid_number(self.parser, 'Audiobooks', 'folder')
-        self.assertIs(num_null, None)
+        self.assertIsNone(num_null)
         # Valid case
         num_reg = Config._get_valid_number(self.parser, 'Deluge', 'port')
         self.assertEqual(num_reg, 58846)
@@ -134,33 +174,32 @@ class SimpleValidationConfigTests(unittest.TestCase):
 class FileValidationConfigTests(unittest.TestCase):
 
     def setUp(self):
-        self.tmp_file = ''
         # Get original conf file
-        self.old_conf = _common.get_conf_file()
+        self.conf = _common.get_conf_file()
         # Setup temp conf path
-        conf_dir = os.path.dirname(self.old_conf)
+        conf_dir = os.path.dirname(self.conf)
         self.new_conf = os.path.join(conf_dir, 'temp_FVCT.conf')
         # Copy into temp file
-        shutil.copy(self.old_conf, self.new_conf)
+        shutil.copy(self.conf, self.new_conf)
+        # Placholders
+        self.tmp_file = ''
+        self.dir = ''
 
     def tearDown(self):
         os.unlink(self.new_conf)
-        if self.tmp_file != '':
+        if os.path.exists(self.tmp_file):
             os.unlink(self.tmp_file)
+        if os.path.exists(self.dir):
+            shutil.rmtree(self.dir)
 
     def test_valid_file(self):
-        get_file = tempfile.NamedTemporaryFile(
-            dir=os.path.dirname(self.new_conf),
-            suffix='.log',
-            delete=False)
-        self.tmp_file = get_file.name
-        get_file.close()
+        self.tmp_file = _common.make_tmp_file('.log')
         self.modify_conf_file_options(self.tmp_file)
         parser = CP.ConfigParser()
         parser.read(self.new_conf)
         # Empty string case
         file_null = Config._get_valid_file(parser, 'Deluge', 'user')
-        self.assertIs(file_null, None)
+        self.assertIsNone(file_null)
         # Valid case
         file_good = Config._get_valid_file(parser, 'Music', 'log_file')
         self.assertEqual(file_good, self.tmp_file)
@@ -170,16 +209,17 @@ class FileValidationConfigTests(unittest.TestCase):
                                 Config._get_valid_file, parser, 'Logging', 'log_file')
 
     def test_valid_folder(self):
-        tmp_folder = tempfile.gettempdir()
-        self.modify_conf_folder_options(tmp_folder)
+        self.dir = self.dir = tempfile.mkdtemp(
+            dir=os.path.dirname(self.conf))
+        self.modify_conf_folder_options(self.dir)
         parser = CP.ConfigParser()
         parser.read(self.new_conf)
         # Empty string case
-        folder_null = Config._get_valid_file(parser, 'Deluge', 'pass')
-        self.assertIs(folder_null, None)
+        folder_null = Config._get_valid_folder(parser, 'Deluge', 'pass')
+        self.assertIsNone(folder_null)
         # Valid case
-        folder_good = Config._get_valid_file(parser, 'TV', 'folder')
-        self.assertEqual(folder_good, tmp_folder)
+        folder_good = Config._get_valid_folder(parser, 'TV', 'folder')
+        self.assertEqual(folder_good, self.dir)
         # Invalid case
         regex = r"Path provided for 'Movies: folder' does not exist: .*"
         self.assertRaisesRegexp(CP.Error, regex,
@@ -201,7 +241,6 @@ class FileValidationConfigTests(unittest.TestCase):
         new_conf = open(self.new_conf, 'w')
         new_conf.write(conf_content)
         new_conf.close()
-        return
 
     def modify_conf_folder_options(self, tmp_file):
         # Get conf file content
@@ -219,7 +258,6 @@ class FileValidationConfigTests(unittest.TestCase):
         new_conf = open(self.new_conf, 'w')
         new_conf.write(conf_content)
         new_conf.close()
-        return
 
 
 class MissingSectionConfigTest(unittest.TestCase):
@@ -286,7 +324,46 @@ class MissingOptionConfigTest(unittest.TestCase):
         new_conf = open(self.conf, 'w')
         new_conf.write(conf_content)
         new_conf.close()
-        return
+
+
+class MakeConfigTests(unittest.TestCase):
+
+    def setUp(self):
+        # Conf
+        self.conf = ('%s/.config/mediahandler/settings.conf' % 
+                   os.path.expanduser("~")) 
+        # New conf
+        self.tmp_file = ''
+        self.maxDiff = None
+
+    def tearDown(self):
+        folder = '%s/tmp' % os.path.dirname(self.conf)
+        if os.path.exists(folder):
+            shutil.rmtree(folder)
+        if os.path.exists(self.tmp_file):
+            os.unlink(self.tmp_file)
+
+    def test_default_conf(self):
+        new_conf = Config.make_config()
+        self.assertEqual(new_conf, self.conf)
+
+    @unittest.skipIf('SUDO_UID' in os.environ.keys(), 'for non-sudoers only')
+    def test_bad_conf(self):
+        self.tmp_file = _common.make_tmp_file('.conf')
+        os.chmod(self.tmp_file, 0o000)
+        regex = r'Configuration file cannot be opened'
+        self.assertRaisesRegexp(
+            Warning, regex, Config.make_config, self.tmp_file)
+
+    def test_custom_conf(self):
+        name = 'test-%s.conf' % _common.get_test_id()
+        self.tmp_file = '%s/tmp/%s' % (os.path.dirname(self.conf), name)
+        results = Config.make_config(self.tmp_file)
+        self.assertEqual(self.tmp_file, results)
+        # Check formatting
+        expected = Config.parse_config(self.conf)
+        settings = Config.parse_config(results)
+        self.assertListEqual(settings.keys(), expected.keys())
 
 
 def suite():

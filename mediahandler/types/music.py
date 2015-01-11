@@ -52,8 +52,8 @@ class Tracks(mediahandler.types.Media):
         logging.info("Starting %s information handler", self.type)
         # Check for custom path in settings
         if self.settings['log_file'] is not None:
-            beetslog = self.settings['log_file']
-            logging.debug("Using custom beets log: %s", beetslog)
+            self.beetslog = self.settings['log_file']
+            logging.debug("Using custom beets log: %s", self.beetslog)
         # Check that log file path exists
         beetslog_dir = path.dirname(self.beetslog)
         if not path.exists(beetslog_dir):

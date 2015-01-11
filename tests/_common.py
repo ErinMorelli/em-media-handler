@@ -15,6 +15,7 @@
 # included in all copies or substantial portions of the Software.
 '''Common testing functions module'''
 
+import os
 import string
 import tempfile
 from random import choice
@@ -45,6 +46,18 @@ def temp_file(name=None):
     if name is None:
         name = "%s.tmp" % random_string(6)
     return tempfile.gettempdir() + '/' + name
+
+
+def make_tmp_file(text=None, tdir=None):
+    if tdir is None:
+        tdir = os.path.dirname(get_conf_file())
+    if text is None:
+        text = '.tmp'
+    get_file = tempfile.NamedTemporaryFile(
+            dir=tdir,
+            suffix=text,
+            delete=False)
+    return get_file.name
 
 
 def get_conf_file():
@@ -80,3 +93,6 @@ def get_test_api():
         'api_key': 'aHyetWak8sdc4nq1bWdyBKrCqwfon7',
         'user_key': 'uvdttD8roFNXYMpJuhfyKDmiwwsaUb',
     }
+
+def get_google_api():
+    return 'AIzaSyDqmgZeetYvIq6kTXZu7ZRIYDautQ7HRq4'

@@ -54,6 +54,8 @@ class Handler(object):
         __config_file = Config.make_config(__new_path)
         self.settings = Config.parse_config(__config_file)
         # Set up notify instance
+        if 'no_push' not in self.args.keys():
+            self.args['no_push'] = False
         self.push = Notify.Push(self.settings['Pushover'],
                                 self.args['no_push'])
         # Media classes hash
@@ -269,9 +271,10 @@ class Handler(object):
 
     # ======== PARSE DIRECTORY ======== #
 
-    def _parse_dir(self, rawpath, use_deluge=False):
+    def _parse_dir(self, rawpath):
         '''Parse input directory structure'''
         logging.info("Extracing info from path: %s", rawpath)
+        use_deluge = self.args['use_deluge']
         # Extract info from path
         parse_path = re.search(r"^((.*)?\/(.*))?\/(.*)$",
                                rawpath, re.I)
@@ -318,7 +321,7 @@ class Handler(object):
             logging.info("Processing from command line")
             file_path = self.args['media']
         # Parse directory structure
-        self._parse_dir(file_path, use_deluge)
+        self._parse_dir(file_path)
         # Check that file was downloaded
         if path.exists(file_path):
             if self.settings['Deluge']['enabled'] and use_deluge:

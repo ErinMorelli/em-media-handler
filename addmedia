@@ -31,7 +31,12 @@ def main():
     # Run handler
     handler = mh.Handler(args)
     # Add files
-    return handler.add_media()
+    added = handler.add_media()
+    # Print for CLI
+    if not handler.args['use_deluge']:
+        print '\n%s' % added
+    # Finish
+    return added
 
 
 # ======== COMMAND LINE ======== #

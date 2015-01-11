@@ -109,6 +109,9 @@ class PushObjectTests(unittest.TestCase):
         self.assertRegexpMatches(result, regex)
 
     def test_success_all(self):
+        # Enable push
+        self.push.disable = False
+        self.push.settings['notify_name'] = 'test'
         # Generate a 2nd name
         skips = "skip-%s" % _common.get_test_id()
         # Set up test
@@ -124,6 +127,8 @@ class PushObjectTests(unittest.TestCase):
         self.assertRegexpMatches(result, regex)
 
     def test_failure_normal(self):
+        # Enable push
+        self.push.disable = False
         # Set up test
         msg = _common.random_string(10)
         # Run test

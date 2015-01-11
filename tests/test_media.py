@@ -26,7 +26,7 @@ import mediahandler.types as Types
 import mediahandler.util.notify as Notify
 
 
-class BaseMediaObjectTests(unittest.TestCase):
+class MediaObjectTests(unittest.TestCase):
 
     def setUp(self):
         # Conf
@@ -38,20 +38,35 @@ class BaseMediaObjectTests(unittest.TestCase):
             'api_key': _common.random_string(),
             'user_key': _common.random_string(),
         }, True)
-        # Make temp dir
+        # Make temp stuff
         self.folder = tempfile.mkdtemp(
             dir=os.path.dirname(self.conf))
+        self.tmp_file = _common.make_tmp_file('.avi')
+        # Set filebot
+        self.filebot = '/usr/bin/filebot'
+        if not os.path.isfile('/usr/bin/filebot'):
+            self.filebot = '/usr/local/bin/filebot'
         # Build base settings
         self.settings = { 'folder': self.folder }
+       
+    def tearDown(self):
+        if os.path.exists(self.folder):
+            shutil.rmtree(self.folder)
+        if os.path.exists(self.tmp_file):
+            os.unlink(self.tmp_file)
+
+
+class BaseMediaObjectTests(MediaObjectTests):
+
+    def setUp(self):
+        # Call super
+        super(BaseMediaObjectTests, self).setUp()
         # Make an object
         self.media = Types.Media(self.settings, self.push)
 
-    def tearDown(self):
-        shutil.rmtree(self.folder)
-
     def test_new_media_object(self):
         expected = {
-            'bin': '/usr/local/bin/filebot',
+            'bin': self.filebot,
             'action': 'copy',
             'db': '',
             'flags': '-non-strict',
@@ -76,12 +91,37 @@ class BaseMediaObjectTests(unittest.TestCase):
         self.assertRaisesRegexp(
             SystemExit, regex2, Types.Media, {}, self.push)
 
+    def test_media_add(self):
+        regex = r'Unable to match media: %s' % self.tmp_file
+        self.assertRaisesRegexp(
+            SystemExit, regex, self.media.add, self.tmp_file)
 
-# TO DO:
-#  - add
-#  - media_info
-#  - process_output
-#  - match_error
+    def test_process_output_good(self):
+        output = '''Rename episodes using [TheTVDB]
+Auto-detected query: [@midnight, At Midnight]
+Fetching episode data for [@midnight]
+Fetching episode data for [Midnight Caller]
+[COPY] Rename [/Downloaded/TV/At.Midnight.2015.01.08.720p.HDTV.x264.mkv] to [/media/TV/@midnight/Season 2015/@midnight.S2015E01.mkv]
+Processed 1 files
+Done ?(?????)?
+'''
+        (new_file, skipped) = self.media.process_output(output, self.tmp_file)
+        expected = '/media/TV/@midnight/Season 2015/@midnight.S2015E01.mkv'
+        self.assertFalse(skipped)
+        self.assertEqual(new_file, expected)
+
+    def test_process_output_skipped(self):
+        output = '''Rename episodes using [TheTVDB]
+Auto-detected query: [Downton Abbey]
+Fetching episode data for [Downton Abbey]
+Skipped [/Downloaded/TV/Downton.Abbey.5x03.720p.HDTV.x264.mkv] because [/Media/TV/Downton Abbey/Season 5/Downton.Abbey.S05E03.mkv] already exists
+Processed 1 files
+Done ?(?????)?
+'''
+        (new_file, skipped) = self.media.process_output(output, self.tmp_file)
+        expected = '/Media/TV/Downton Abbey/Season 5/Downton.Abbey.S05E03.mkv'
+        self.assertTrue(skipped)
+        self.assertEqual(new_file, expected)
 
 
 def suite():

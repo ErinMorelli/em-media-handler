@@ -24,19 +24,45 @@ import mediahandler.util.args as Args
 
 class ArgsTests(unittest.TestCase):
 
-    def test_get_deluge_args(self):
-        sys.argv = ['', 'hash', 'filename.tmp', '/path/to/file']
-        args = Args.get_arguments()
+    def test_empty_args(self):
+        sys.argv = ['']
+        self.assertRaisesRegexp(
+            SystemExit, '2', Args.get_arguments)
+
+    def test_show_help(self):
+        # Test 1
+        sys.argv = ['', '-h']
+        self.assertRaisesRegexp(
+            SystemExit, '1', Args.get_arguments)
+        # Test 2
+        sys.argv = ['', '--help']
+        self.assertRaisesRegexp(
+            SystemExit, '1', Args.get_arguments)
+
+    def test_get_good_deluge_args(self):
         expected = {
             'path': '/path/to/file',
             'hash': 'hash',
-            'name': 'filename.tmp',
-            'use_deluge': True
+            'name': 'name',
+            'use_deluge': True,
+            'no_push': False,
         }
-        self.assertDictEqual(args, expected)
+        # Test 1
+        sys.argv = ['', '--deluge', 'hash', 'name', '/path/to/file']
+        args1 = Args.get_arguments()
+        self.assertDictEqual(args1, expected)
+        # Test 2
+        sys.argv = ['', '-d', 'hash', 'name', '/path/to/file']
+        args2 = Args.get_arguments()
+        self.assertDictEqual(args2, expected)
 
-    def test_bad_deluge_args(self):
-        sys.argv = ['', 'hash', 'test.tmp', '/path/to/file', 'extra']
+    def test_get_bad_deluge_args(self):
+        # Test 1
+        sys.argv = ['', 'hash', 'name', '/path/to/file']
+        self.assertRaisesRegexp(
+            SystemExit, '2', Args.get_arguments)
+        # Test 2
+        sys.argv = ['', '-d', 'hash', 'name', '/path/to/file', 'extra']
         self.assertRaisesRegexp(
             SystemExit, '2', Args.get_arguments)
 
@@ -46,7 +72,8 @@ class ArgsTests(unittest.TestCase):
         expected = {
             'media': '/path/to/files',
             'no_push': False,
-            'use_deluge': False
+            'use_deluge': False,
+            'single_track': False,
         }
         self.assertDictEqual(args, expected)
 
@@ -55,6 +82,14 @@ class ArgsTests(unittest.TestCase):
         self.assertRaisesRegexp(
             SystemExit, '2', Args.get_arguments)
         sys.argv = ['', '-f', '/path/to/files', '-t', 5]
+        self.assertRaisesRegexp(
+            SystemExit, '2', Args.get_arguments)
+
+    def test_cli_bad_args(self):
+        sys.argv = ['', '--test']
+        self.assertRaisesRegexp(
+            SystemExit, '2', Args.get_arguments)
+        sys.argv = ['', '-k']
         self.assertRaisesRegexp(
             SystemExit, '2', Args.get_arguments)
 

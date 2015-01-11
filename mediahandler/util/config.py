@@ -106,7 +106,7 @@ def _check_modules(settings):
     # Check audiobook requirements
     if settings['Audiobooks']['enabled']:
         # Check for Google API
-        _find_module('apiclient', 'discovery')
+        _find_module('googleapiclient', 'discovery')
         # Is chaptering enabled
         if settings['Audiobooks']['make_chapters']:
             # Check for Mutagen
