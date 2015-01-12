@@ -210,12 +210,17 @@ class ParseDirTests(unittest.TestCase):
             SystemExit, regex, self.handler._parse_dir, path)
 
     def test_no_files_deluge(self):
+        # Override settings
+        self.handler.settings['Deluge']['enabled'] = True
         # Set up args
         self.handler.args['use_deluge'] = True
         self.handler.args['name'] = self.name
         self.handler.args['hash'] = _common.random_string(12)
         # Test bad path structure
         path = 'no-files-deluge'
+        # regex = 'No type or name specified for media: %s' % self.name
+        # self.assertRaisesRegexp(
+        #     SystemExit, regex, self.handler._parse_dir, path)
         self.assertRaises(
             error.ReactorNotRestartable, self.handler._parse_dir, path)
 

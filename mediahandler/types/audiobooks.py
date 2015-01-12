@@ -94,7 +94,7 @@ class Book(mediahandler.types.Media):
 
     # ======== CLEAN UP SEARCH STRING ======== #
 
-    def __clean_string(self, str_path):
+    def _clean_string(self, str_path):
         '''Clean up path string'''
         logging.info("Cleaning up path string")
         # Get query from folder path
@@ -122,13 +122,17 @@ class Book(mediahandler.types.Media):
         for regex in regexes:
             count = 1
             while count > 0:
-                (string, count) = re.subn(regex, " ", string)
+                (string, count) = re.subn(regex, ' ', string)
+        # Remove trailing or start whitespace
+        count = 1
+        while count > 0:
+            (string, count) = re.subn(r'(^\s|\s$)', '', string)
         # return cleaned up string
         return string
 
     # ======== SAVE COVER IMAGE ======== #
 
-    def __save_cover(self, img_dir, img_url):
+    def _save_cover(self, img_dir, img_url):
         '''Save cover image'''
         logging.info("Saving audiobook cover image")
         # Set new image file path
@@ -161,7 +165,7 @@ class Book(mediahandler.types.Media):
 
     # ======== CALCULATE CHUNKS  ======== #
 
-    def __calculate_chunks(self, file_path, file_array, file_type):
+    def _calculate_chunks(self, file_path, file_array, file_type):
         '''Calculate chapter chunks'''
         # Defaults
         file_type = file_type.upper()
@@ -198,12 +202,12 @@ class Book(mediahandler.types.Media):
 
     # ======== CHAPTERIZE FILES  ======== #
 
-    def __get_chapters(self, file_path, file_array, file_type):
+    def _get_chapters(self, file_path, file_array, file_type):
         '''Get audiobook chapter information'''
         logging.info("Determining book parts")
         # Calculate chunks
         book_chunks = []
-        chunks = self.__calculate_chunks(file_path, file_array, file_type)
+        chunks = self._calculate_chunks(file_path, file_array, file_type)
         # Create new subfolders for parts
         logging.info("Creating book part subfolders")
         for i, chunk in enumerate(chunks):
@@ -227,12 +231,12 @@ class Book(mediahandler.types.Media):
 
     # ======== CHAPTERIZE FILES  ======== #
 
-    def __chapterize_files(self, file_path, file_array):
+    def _chapterize_files(self, file_path, file_array):
         '''Chapterize audiobook files'''
         logging.info("Chapterizing audiobook files")
         new_files = []
         # Get chapter parts
-        file_parts = self.__get_chapters(file_path, file_array,
+        file_parts = self._get_chapters(file_path, file_array,
                                          self.handler['file_type'])
         # Create m4b for each file part
         for i, file_part in enumerate(file_parts):
@@ -272,7 +276,7 @@ class Book(mediahandler.types.Media):
 
     # ======== GET AUDIOBOOK FILES ======== #
 
-    def __get_files(self, file_dir, make_chapters):
+    def _get_files(self, file_dir, make_chapters):
         '''Retrieve audiobook files'''
         logging.info("Retrieving audiobook files")
         # default values
@@ -299,7 +303,7 @@ class Book(mediahandler.types.Media):
             logging.debug("Already chaptered file count: %s", len(book_files))
             logging.debug("To chapter file count: %s", len(to_chapterize))
             if len(to_chapterize) > 0 and len(book_files) == 0:
-                (chapter_success, new_files) = self.__chapterize_files(
+                (chapter_success, new_files) = self._chapterize_files(
                     file_dir, to_chapterize)
                 if chapter_success:
                     book_files = new_files
@@ -317,7 +321,7 @@ class Book(mediahandler.types.Media):
 
     # ======== MOVE FILES ======== #
 
-    def __move_files(self, file_array, has_chapters):
+    def _move_files(self, file_array, has_chapters):
         '''Move audiobook files'''
         logging.info("Moving audiobook files")
         # Create folder-friendly title
@@ -379,7 +383,7 @@ class Book(mediahandler.types.Media):
 
     # ======== DEAL WITH SINGLE FILES ======== #
 
-    def __single_file(self, file_path, path_name):
+    def _single_file(self, file_path, path_name):
         '''Move single file into its own folder'''
         logging.info("Handling as single file")
         # Set root path
@@ -465,11 +469,11 @@ class Book(mediahandler.types.Media):
         '''Main get book function'''
         logging.info("Getting audiobook")
         # Parse string & get query
-        refined = self.__clean_string(raw)
+        refined = self._clean_string(raw)
         logging.debug("Cleaned search string: %s", refined)
         # Deal with single files
         if path.isfile(raw):
-            raw = self.__single_file(raw, refined)
+            raw = self._single_file(raw, refined)
         # Use custom search string, if defined
         if 'custom_search' in self.handler.keys():
             refined = self.handler['custom_search']
@@ -478,17 +482,17 @@ class Book(mediahandler.types.Media):
         self.book_info = self.ask_google(refined)
         logging.debug(self.book_info)
         # Save cover image to file
-        cover_file = self.__save_cover(raw, self.book_info['cover'])
+        cover_file = self._save_cover(raw, self.book_info['cover'])
         logging.debug("Cover image: %s", cover_file)
         # Get files and chapterize files, if enabled
-        get_result = self.__get_files(raw, self.handler['make_chapters'])
+        get_result = self._get_files(raw, self.handler['make_chapters'])
         (is_chapterized, book_files) = get_result
         logging.debug(book_files)
         # Verify success
         if not is_chapterized:
             self.push.failure("Unable to chapterize book: %s" % raw)
         # Move & rename files
-        (move_files, skips) = self.__move_files(book_files,
+        (move_files, skips) = self._move_files(book_files,
                                                 self.handler['make_chapters'])
         logging.debug("Move was successful: %s", move_files)
         # Verify success

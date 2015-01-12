@@ -54,14 +54,27 @@ class CheckModulesTests(unittest.TestCase):
         self.settings = _common.get_settings()
         # Bypass unneeded sections
         self.settings['has_filebot'] = False 
-        self.settings['Logging']['enabled'] = False
-        self.settings['Deluge']['enabled'] = False
+    
+    def test_check_logging(self):
+        # Modify settings
+        self.settings['Logging']['enabled'] = True 
+        # Run
+        result = Config._check_modules(self.settings)
+        self.assertIsNone(result)
+
+    def test_check_deluge(self):
+        # Modify settings
+        self.settings['Deluge']['enabled'] = True 
+        # Run
+        result = Config._check_modules(self.settings)
+        self.assertIsNone(result)
 
     def test_check_filebot(self):
         # Modify settings
         self.settings['TV']['enabled'] = True    
         # Run
-        Config._check_modules(self.settings)
+        result = Config._check_modules(self.settings)
+        self.assertIsNone(result)
         self.assertTrue(self.settings['has_filebot'])
 
     def test_audiobook_module(self):
@@ -105,38 +118,32 @@ class InitLoggingTests(unittest.TestCase):
         # Conf
         self.conf = _common.get_conf_file()
         # Unique test ID
-        self.id = _common.get_test_id()
+        self.name = 'test-%s' % _common.get_test_id()
+        self.folder = _common.random_string(9)
+        # Set logfile
+        self.dir = '%s/%s' % (os.path.dirname(self.conf), self.folder)
+        self.log_file = '%s/%s.log' % (self.dir, self.name)
+
+    def tearDown(self):
+        if os.path.exists(self.dir):
+            shutil.rmtree(self.dir)
+        if os.path.exists(self.log_file):
+            os.unlink(self.log_file)
 
     def test_init_logging(self):
-        log_file = '%s/logs/mediahandler.log' % os.path.expanduser("~")
         # Use custom settings
         settings = {
             'Logging': {
-                'log_file': None,
+                'log_file': self.log_file,
                 'level': 20,
             },
             'Deluge': {
-                'enabled': False,
+                'enabled': True,
             },
         }
-        # Send to logging config
-        Config.init_logging(settings)
-        # Make messages
-        logging.error("Error message %s", self.id)
-        logging.info("Info message %s", self.id)
-        logging.debug("Debug message %s", self.id)
-        # Read logfile
-        with open(log_file) as log:
-            log_content = log.read()
-        # Regexes
-        error = r"ERROR - Error message %s\n" % self.id
-        info = r"INFO - Info message %s\n" % self.id
-        debug = r"DEBUG- Debug message %s\n" % self.id
-        # Look for them
-        self.assertTrue(os.path.isfile(log_file))
-        self.assertRegexpMatches(log_content, error)
-        self.assertRegexpMatches(log_content, info)
-        self.assertNotRegexpMatches(log_content, debug)
+        # # Send to logging config
+        self.assertIsNone(Config.init_logging(settings))
+        self.assertTrue(os.path.exists(self.dir))
 
 
 class SimpleValidationConfigTests(unittest.TestCase):
