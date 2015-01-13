@@ -90,14 +90,13 @@ def get_arguments():
     try:
         (optlist, get_args) = getopt(
             sys.argv[1:],
-            'hf:c:t:q:sdn',
+            'hf:c:t:q:sn',
             ["help",
              "files=",
              "config=",
              "type=",
              "query=",
              "single",
-             "deluge",
              "nopush"]
         )
     except GetoptError as err:
@@ -123,22 +122,6 @@ def parse_arguments(optlist, get_args):
     for opt, arg in optlist:
         if opt in ("-h", "--help"):
             show_usage(1)
-        # Parse deluge args first
-        elif opt in ("-d", "--deluge"):
-            success = True
-            # Check for bad args
-            if len(get_args) != 3:
-                show_usage(2, "Deluge flag requires 3 args")
-            # Override args
-            new_args = {
-                'use_deluge': True,
-                'no_push': False,
-                'hash': get_args[0],
-                'name': get_args[1],
-                'path': get_args[2]
-            }
-            # Don't look for other args
-            return new_args
         # Then look for normal args
         elif opt in ("-f", "--files"):
             success = True
@@ -158,4 +141,25 @@ def parse_arguments(optlist, get_args):
     # Check for failure
     if not success:
         show_usage(2, "Files not specified")
+    return new_args
+
+# ======== GET DELUGE ARGUMENTS ======== #
+
+def get_deluge_arguments():
+    '''Get arguments from deluge'''
+    use_deluge = True
+    # Parse args
+    get_args = sys.argv[1:]
+    # Check for failure conditions
+    if len(get_args) != 3:
+        show_usage(2, "Deluge script requires 3 args")
+    # Set args
+    new_args = {
+        'use_deluge': True,
+        'no_push': False,
+        'hash': get_args[0],
+        'name': get_args[1],
+        'path': get_args[2]
+    }
+    # Return new args
     return new_args
