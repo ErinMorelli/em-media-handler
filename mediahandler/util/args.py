@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014 Erin Morelli
+# Copyright (c) 2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -85,7 +85,6 @@ Types:
 
 def get_arguments():
     '''Get arguments'''
-    use_deluge = False
     # Parse args
     try:
         (optlist, get_args) = getopt(
@@ -116,7 +115,6 @@ def parse_arguments(optlist, get_args):
     new_args = {}
     new_args['no_push'] = False
     new_args['single_track'] = False
-    new_args['use_deluge'] = False
     # Parse args
     success = False
     for opt, arg in optlist:
@@ -141,48 +139,4 @@ def parse_arguments(optlist, get_args):
     # Check for failure
     if not success:
         show_usage(2, "Files not specified")
-    return new_args
-
-# ======== COMMAND LINE USAGE ======== #
-
-def show_deluge_usage(code, msg=None):
-    '''Show command line usage'''
-    # Generate usage text
-    usage_text = '''
-EM Media Handler v%s / by %s
-
-Usage:
-        addmedia-deluge [Torrent ID] [Torrent Name] [Torrent Path]
-
-''' % (mh.__version__, mh.__author__)
-    # Print error, if it exists
-    if msg is not None:
-        print "\nERROR: %s\n" % msg
-    # Output text
-    print usage_text
-    # Exit program
-    sys.exit(int(code))
-
-
-# ======== GET DELUGE ARGUMENTS ======== #
-
-def get_deluge_arguments():
-    '''Get arguments from deluge'''
-    use_deluge = True
-    # Parse args
-    get_args = sys.argv[1:]
-    # Check for failure conditions
-    if len(get_args) == 0:
-        show_deluge_usage(1)
-    elif len(get_args) != 3:
-        show_deluge_usage(2, "Deluge script requires 3 args")
-    # Set args
-    new_args = {
-        'use_deluge': True,
-        'no_push': False,
-        'hash': get_args[0],
-        'name': get_args[1],
-        'path': get_args[2]
-    }
-    # Return new args
     return new_args

@@ -19,7 +19,7 @@
 # ======== IMPORT MODULES ======== #
 
 import mediahandler.handler as mh
-from mediahandler.util.args import get_deluge_arguments
+from mediahandler.util.deluge import get_deluge_arguments
 
 
 # ======== MAIN FUNCTION ======== #

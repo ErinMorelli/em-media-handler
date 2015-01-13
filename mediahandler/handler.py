@@ -275,13 +275,12 @@ class Handler(object):
     def _parse_dir(self, rawpath):
         '''Parse input directory structure'''
         logging.info("Extracing info from path: %s", rawpath)
-        use_deluge = self.args['use_deluge']
         # Extract info from path
         parse_path = re.search(r"^((.*)?\/(.*))?\/(.*)$",
                                rawpath, re.I)
         if parse_path:
             self.args['path'] = parse_path.group(1)
-            # Don't override deluge-defined name
+            # Don't override a defined name
             if 'name' not in self.args.keys():
                 self.args['name'] = parse_path.group(4)
             # Look for custom type
@@ -293,12 +292,6 @@ class Handler(object):
             logging.debug("Type detected: %s", self.args['type'])
         else:
             logging.debug("No type detected")
-            if self.settings['Deluge']['enabled'] and use_deluge:
-                # Remove torrent
-                import mediahandler.util.torrent as Torrent
-                Torrent.remove_torrent(
-                    self.settings['Deluge'],
-                    self.args['hash'])
             # Notify about failure
             self.push.failure(
                 "No type or name specified for media: %s" %
@@ -312,25 +305,11 @@ class Handler(object):
     def _handle_media(self):
         '''Sort args based on input'''
         logging.debug("Inputs: %s", self.args)
-        # Determing if using deluge or not
-        file_path = ''
-        use_deluge = self.args['use_deluge']
-        if use_deluge:
-            logging.info("Processing from deluge")
-            file_path = path.join(self.args['path'], self.args['name'])
-        else:
-            logging.info("Processing from command line")
-            file_path = self.args['media']
+        file_path = self.args['media']
         # Parse directory structure
         self._parse_dir(file_path)
         # Check that file was downloaded
         if path.exists(file_path):
-            if self.settings['Deluge']['enabled'] and use_deluge:
-                # Remove torrent
-                import mediahandler.util.torrent as Torrent
-                Torrent.remove_torrent(
-                    self.settings['Deluge'],
-                    self.args['hash'])
             # Send to handler
             new_files = self._file_handler(file_path)
             # Check that files were returned
