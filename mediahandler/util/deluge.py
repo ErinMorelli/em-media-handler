@@ -20,7 +20,7 @@ import logging
 from os import path
 
 import mediahandler as mh
-import mediahandler.util.conig as Config
+import mediahandler.util.config as Config
 
 
 # ======== COMMAND LINE USAGE ======== #
@@ -139,7 +139,7 @@ def _process_deluge(args):
     settings = Config.parse_config(config_file)
     # Set file path based on args
     logging.info("Processing from deluge")
-    file_path = path.join(self.args['path'], self.args['name'])
+    file_path = path.join(args['path'], args['name'])
     # Remove torrent
     if settings['Deluge']['enabled']:
         _remove_torrent(settings['Deluge'], args['hash'])
