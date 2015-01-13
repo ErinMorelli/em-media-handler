@@ -67,6 +67,10 @@ def init_logging(settings):
         format='%(asctime)s - %(filename)s - %(levelname)s - %(message)s',
         level=log_level,
     )
+    # Enable deluge logging
+    if settings['Deluge']['enabled']:
+        from deluge.log import setupLogger
+        setupLogger()
     return
 
 
