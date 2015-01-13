@@ -143,6 +143,27 @@ def parse_arguments(optlist, get_args):
         show_usage(2, "Files not specified")
     return new_args
 
+# ======== COMMAND LINE USAGE ======== #
+
+def show_deluge_usage(code, msg=None):
+    '''Show command line usage'''
+    # Generate usage text
+    usage_text = '''
+EM Media Handler v%s / by %s
+
+Usage:
+        addmedia-deluge [Torrent ID] [Torrent Name] [Torrent Path]
+
+''' % (mh.__version__, mh.__author__)
+    # Print error, if it exists
+    if msg is not None:
+        print "\nERROR: %s\n" % msg
+    # Output text
+    print usage_text
+    # Exit program
+    sys.exit(int(code))
+
+
 # ======== GET DELUGE ARGUMENTS ======== #
 
 def get_deluge_arguments():
@@ -151,8 +172,10 @@ def get_deluge_arguments():
     # Parse args
     get_args = sys.argv[1:]
     # Check for failure conditions
-    if len(get_args) != 3:
-        show_usage(2, "Deluge script requires 3 args")
+    if len(get_args) == 0:
+        show_deluge_usage(1)
+    elif len(get_args) != 3:
+        show_deluge_usage(2, "Deluge script requires 3 args")
     # Set args
     new_args = {
         'use_deluge': True,
