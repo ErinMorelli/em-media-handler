@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # This file is a part of EM Media Handler Testing Module
-# Copyright (c) 2014 Erin Morelli
+# Copyright (c) 2014-2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -36,10 +36,7 @@ class ExtractBadZipTests(unittest.TestCase):
         # Tmp name
         self.name = "test-%s" % _common.get_test_id()
          # Tmp args
-        args = {
-            'use_deluge': False,
-            'name': self.name,
-        }
+        args = { 'name': self.name }
         # Make handler
         self.handler = MH.Handler(args)
         # Bad zip non without extension
@@ -95,7 +92,6 @@ class ExtractGoodZipTests(unittest.TestCase):
         self.name = "test-%s" % _common.get_test_id()
         # Tmp args
         args = {
-            'use_deluge': False,
             'name': self.name,
             'type': 1,
             'stype': 'TV'
@@ -145,7 +141,7 @@ class ExtractGoodZipTests(unittest.TestCase):
 
     def test_good_handler_zip_found(self):
         # Run handler
-        regex = r'No TV files found for: %s' % self.name
+        regex = r'Folder for TV not found: .*/Media/TV'
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler._find_zipped, self.zip_name)
 

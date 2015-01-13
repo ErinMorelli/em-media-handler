@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # This file is a part of EM Media Handler Testing Module
-# Copyright (c) 2014 Erin Morelli
+# Copyright (c) 2014-2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -46,21 +46,68 @@ Processed 1 files
 Done ?(?????)?
 ''' % self.folder
         (new_file, skipped) = self.episode.process_output(output, self.tmp_file)
-        expected = "Grey's Anatomy (Season 10, Episode 24)"
+        expected = ["Grey's Anatomy (Season 10, Episode 24)"]
         self.assertEqual(new_file, expected)
-        self.assertFalse(skipped)
+        self.assertEqual(skipped, [])
 
-    def test_tv_output_skipped(self):
+    def test_tv_output_good_multi(self):
+        output = '''Rename episodes using [TheTVDB]
+Auto-detected query: [greys anatomy]
+Fetching episode data for [Grey's Anatomy]
+Skipped [/Downloaded/Grey's Anatomy Season 1/greys.anatomy.s01e01.avi] because [{0}/Grey's Anatomy/Season 1/Grey's.Anatomy.S01E01.avi] already exists
+Skipped [/Downloaded/Grey's Anatomy Season 1/greys.anatomy.s01e02.avi] because [{0}/Grey's Anatomy/Season 1/Grey's.Anatomy.S01E02.avi] already exists
+Skipped [/Downloaded/Grey's Anatomy Season 1/greys.anatomy.s01e03.avi] because [{0}/Grey's Anatomy/Season 1/Grey's.Anatomy.S01E03.avi] already exists
+[COPY] Rename [/Downloaded/Grey's Anatomy Season 1/greys.anatomy.s01e04.avi] to [{0}/Grey's Anatomy/Season 1/Grey's.Anatomy.S01E04.avi]
+[COPY] Rename [/Downloaded/Grey's Anatomy Season 1/greys.anatomy.s01e05.avi] to [{0}/Grey's Anatomy/Season 1/Grey's.Anatomy.S01E05.avi]
+[COPY] Rename [/Downloaded/Grey's Anatomy Season 1/greys.anatomy.s01e06.avi] to [{0}/Grey's Anatomy/Season 1/Grey's.Anatomy.S01E06.avi]
+Processed 6 files
+Done ?(?????)?
+'''.format(self.folder)
+        (new_files, skipped) = self.episode.process_output(output, self.tmp_file)
+        new_expected = [
+            "Grey's Anatomy (Season 1, Episode 4)",
+            "Grey's Anatomy (Season 1, Episode 5)",
+            "Grey's Anatomy (Season 1, Episode 6)",
+        ]
+        skip_expected = [
+            "/Downloaded/Grey's Anatomy Season 1/greys.anatomy.s01e01.avi",
+            "/Downloaded/Grey's Anatomy Season 1/greys.anatomy.s01e02.avi",
+            "/Downloaded/Grey's Anatomy Season 1/greys.anatomy.s01e03.avi",
+        ]
+        self.assertEqual(new_files, new_expected)
+        self.assertEqual(skipped, skip_expected)
+
+    def test_tv_output_no_match(self):
         output = '''Rename episodes using [TheTVDB]
 Auto-detected query: [Fake Show]
 Fetching episode data for [Fake Show]
 [COPY] Rename [/Downloaded/TV/Fake.Show.S01E01.mkv] to [/TV/Fake Show/Fake.Show.S01E01.mkv]
+[COPY] Rename [/Downloaded/TV/Fake.Show.S01E02.mkv] to [/TV/Fake Show/Fake.Show.S01E02.mkv]
 Processed 1 files
 Done ?(?????)?
 '''
-        regex = r'Unable to match episode: /TV/Fake Show/Fake.Show.S01E01.mkv'
+        regex = r'Unable to match episode: /TV/Fake Show/Fake.Show.S01E01.mkv, /TV/Fake Show/Fake.Show.S01E02.mkv'
         self.assertRaisesRegexp(
             SystemExit, regex, self.episode.process_output, output, self.tmp_file)
+
+    def test_tv_output_skipped(self):
+        output = '''Rename episodes using [TheTVDB]
+Auto-detected query: [greys anatomy]
+Fetching episode data for [Grey's Anatomy]
+Skipped [/Downloaded/Archer Season 3/Archer.s03e01.avi] because [{0}/Archer/Season 3/Archer.S03E01.avi] already exists
+Skipped [/Downloaded/Archer Season 3/Archer.s03e02.avi] because [{0}/Archer/Season 3/Archer.S03E02.avi] already exists
+Skipped [/Downloaded/Archer Season 3/Archer.s03e03.avi] because [{0}/Archer/Season 3/Archer.S03E03.avi] already exists
+Processed 3 files
+Done ?(?????)?
+'''.format(self.folder)
+        (new_files, skipped) = self.episode.process_output(output, self.tmp_file)
+        expected = [
+            "/Downloaded/Archer Season 3/Archer.s03e01.avi",
+            "/Downloaded/Archer Season 3/Archer.s03e02.avi",
+            "/Downloaded/Archer Season 3/Archer.s03e03.avi",
+        ]
+        self.assertEqual(new_files, [])
+        self.assertEqual(skipped, expected)
 
 
 def suite():

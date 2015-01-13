@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014 Erin Morelli
+# Copyright (c) 2014-2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -23,6 +23,7 @@ import imp
 import logging
 from ast import literal_eval
 
+import mediahandler as mh
 import mediahandler.util as util
 
 try:
@@ -51,7 +52,7 @@ def init_logging(settings):
     '''Turn on logging'''
     # Set defaults
     log_file = '%s/logs/mediahandler.log' % os.path.expanduser("~")
-    log_level = 40
+    log_level = 30
     # Look for exceptions
     if settings['Logging']['log_file'] is not None:
         log_file = settings['Logging']['log_file']
@@ -117,15 +118,17 @@ def _check_modules(settings):
                 raise ImportError('ABC application not found')
     return
 
+
 # ======== GET FILE STRUCTURE ======== #
 
 def _get_struct():
     '''Retrieve config structure from cfg file'''
-    struct_file = '%s/settings.cfg' % os.path.dirname(__file__)
+    struct_file = '%s/settings.cfg' % mh.__mediaextras__
     # Read file to string
     struct = open(struct_file).read()
     # Convert file to list
     return literal_eval(struct)
+
 
 # ======== PARSE CONFIG FILE ======== #
 

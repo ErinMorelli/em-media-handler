@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # EM MEDIA HANDLER
-# Copyright (c) 2014 Erin Morelli
+# Copyright (c) 2014-2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -26,7 +26,7 @@ from mediahandler.util.config import make_config
 
 setup(
     name='EM Media Handler',
-    version='0.4.6',
+    version='0.5.0',
     author='Erin Morelli',
     author_email='erin@erinmorelli.com',
     url='http://code.erinmorelli.com/em-media-handler/',
@@ -40,8 +40,8 @@ setup(
     },
     package_data={
         'mediahandler': [
-            'types/blacklist.txt',
-            'util/settings.cfg',
+            'extras/blacklist.txt',
+            'extras/settings.cfg',
         ]
     },
     packages=[

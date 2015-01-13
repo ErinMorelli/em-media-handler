@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # This file is a part of EM Media Handler Testing Module
-# Copyright (c) 2014 Erin Morelli
+# Copyright (c) 2014-2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -39,7 +39,7 @@ class MusicMediaObjectTests(MediaObjectTests):
         expected = r"(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n"
         self.assertEqual(self.tracks.beet, '/usr/local/bin/beet')
         self.assertEqual(self.tracks.tags, '-ql')
-        self.assertEqual(self.tracks.query, expected)
+        self.assertEqual(self.tracks.added_query, expected)
 
     def test_new_music_single(self):
         self.settings['single_track'] = True
@@ -47,7 +47,7 @@ class MusicMediaObjectTests(MediaObjectTests):
         # Check results
         expected = r"(Tagging track)\:\s(.*)\nURL\:\n\s{1,4}(.*)\n" 
         self.assertEqual(self.tracks.tags, '-sql')
-        self.assertEqual(self.tracks.query, expected)
+        self.assertEqual(self.tracks.added_query, expected)
 
     def test_music_add_log(self):
         # Make dummy logfile
@@ -73,10 +73,18 @@ To:
 URL:
     http://musicbrainz.org/release/e6f60da3-1d37-4aba-a309-6e65b84ffe66
 (Similarity: 96.9%) (tracks) (CD, 2014, Infectious Records)
+
+/Downloaded/Music/Eisley - Discographie (2002-2012)/Eisley - (2005) Room Noises ALBUM (13 items)
+Tagging:
+    Eisley - Room Noises
+URL:
+    http://musicbrainz.org/release/4186b65f-c36d-4dac-82d3-221d3f8c7925
+(Similarity: 100.0%) (2005, US)
 '''
         (new_file, skipped) = self.tracks.process_output(output, self.tmp_file)
-        self.assertEqual(new_file, 'alt-J - This Is All Yours\n\t')
-        self.assertFalse(skipped)
+        expected = ['alt-J - This Is All Yours', 'Eisley - Room Noises']
+        self.assertEqual(new_file, expected)
+        self.assertEqual(skipped, [])
 
     def test_music_output_single_good(self):
         # Single file
@@ -90,8 +98,8 @@ URL:
 (Similarity: 100.0%)
 '''
         (new_file, skipped) = self.tracks.process_output(output, self.tmp_file)
-        self.assertEqual(new_file, 'Taylor Swift - Blank Space\n\t')
-        self.assertFalse(skipped)
+        self.assertEqual(new_file, ['Taylor Swift - Blank Space'])
+        self.assertEqual(skipped, [])
 
     def test_music_output_skipped(self):
         output = '''
@@ -109,9 +117,13 @@ URL:
 Skipping.
 '''
         (new_file, skipped) = self.tracks.process_output(output, self.tmp_file)
-        expected = 'Eisley - Room Noises\n\t\n2 items were skipped (see beets log)'
-        self.assertEqual(new_file, expected)
-        self.assertTrue(skipped)
+        new_expected = ['Eisley - Room Noises']
+        skip_expected = [
+            'Eisley - (2003) Marvelous Things EP',
+            'Eisley - (2009) Fire Kite EP',
+        ]
+        self.assertEqual(new_file, new_expected)
+        self.assertEqual(skipped, skip_expected)
 
     def test_music_output_single_skipped(self):
         # Single file
@@ -122,8 +134,9 @@ Skipping.
 Skipping.
 '''
         (new_file, skipped) = self.tracks.process_output(output, self.tmp_file)
-        self.assertEqual(new_file, '\n1 items were skipped (see beets log)')
-        self.assertTrue(skipped)
+        expected = ['Taylor Swift - Blank Space {2014-Single}']
+        self.assertEqual(new_file, [])
+        self.assertEqual(skipped, expected)
 
 
 def suite():

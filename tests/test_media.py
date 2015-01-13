@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # This file is a part of EM Media Handler Testing Module
-# Copyright (c) 2014 Erin Morelli
+# Copyright (c) 2014-2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -106,8 +106,8 @@ Processed 1 files
 Done ?(?????)?
 '''
         (new_file, skipped) = self.media.process_output(output, self.tmp_file)
-        expected = '/media/TV/@midnight/Season 2015/@midnight.S2015E01.mkv'
-        self.assertFalse(skipped)
+        expected = ['/media/TV/@midnight/Season 2015/@midnight.S2015E01.mkv']
+        self.assertEqual(skipped, [])
         self.assertEqual(new_file, expected)
 
     def test_process_output_skipped(self):
@@ -119,9 +119,9 @@ Processed 1 files
 Done ?(?????)?
 '''
         (new_file, skipped) = self.media.process_output(output, self.tmp_file)
-        expected = '/Media/TV/Downton Abbey/Season 5/Downton.Abbey.S05E03.mkv'
-        self.assertTrue(skipped)
-        self.assertEqual(new_file, expected)
+        expected = ['/Downloaded/TV/Downton.Abbey.5x03.720p.HDTV.x264.mkv']
+        self.assertEqual(skipped, expected)
+        self.assertEqual(new_file, [])
 
 
 def suite():

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # This file is a part of EM Media Handler Testing Module
-# Copyright (c) 2014 Erin Morelli
+# Copyright (c) 2014-2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -94,7 +94,7 @@ class PushObjectTests(unittest.TestCase):
         skipped = []
         # Run test
         result = self.push.success(file_array, skipped)
-        regex = (r'Media was successfully added to your server:\n\s+%s'
+        regex = (r'Media was successfully added to your server:\n \+ %s'
                 % self.name)
         self.assertRegexpMatches(result, regex)
 
@@ -104,7 +104,7 @@ class PushObjectTests(unittest.TestCase):
         skipped = [self.name]
         # Run test
         result = self.push.success(file_array, skipped)
-        regex = (r'Some files were skipped:\n\s+%s'
+        regex = (r'Some files were skipped:\n \- %s'
                 % self.name)
         self.assertRegexpMatches(result, regex)
 
@@ -119,9 +119,9 @@ class PushObjectTests(unittest.TestCase):
         skipped = [skips]
         # Run test
         result = self.push.success(file_array, skipped)
-        regex1 = (r'Media was successfully added to your server:\n\s+%s'
+        regex1 = (r'Media was successfully added to your server:\n \+ %s'
                 % self.name)
-        regex2 = (r'Some files were skipped:\n\s+%s'
+        regex2 = (r'Some files were skipped:\n \- %s'
                 % skips)
         regex = r'%s\n\n%s' % (regex1, regex2)
         self.assertRegexpMatches(result, regex)

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014 Erin Morelli
+# Copyright (c) 2014-2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -85,15 +85,15 @@ class Push(object):
         conn_text = ''
         # Check for added files
         if len(file_array) > 0:
-            media_list = '\n    '.join(file_array)
+            media_list = '\n + '.join(file_array)
             conn_text = '''Media was successfully added to your server:
-    %s
+ + %s
 ''' % media_list
         # Set skipped message if set
         if skipped is not None and len(skipped) > 0:
-            skipped_list = '\n    '.join(skipped)
+            skipped_list = '\n - '.join(skipped)
             skipped_msg = '''Some files were skipped:
-    %s
+ - %s
 ''' % skipped_list
             if conn_text == '':
                 conn_text = skipped_msg

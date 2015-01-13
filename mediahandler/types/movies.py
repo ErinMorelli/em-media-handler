@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014 Erin Morelli
+# Copyright (c) 2014-2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -42,16 +42,27 @@ class Movie(mediahandler.types.Media):
     def process_output(self, output, file_path):
         '''Movie class output processor'''
         info = super(Movie, self).process_output(output, file_path)
-        (new_file, skip) = info
+        (added_files, skipped_files) = info
+        # Check for no new files
+        if len(added_files) == 0:
+            return info
         # Set search query
         epath = escape(self.dst_path)
         mov_find = (r"%s\/(.*\(\d{4}\))\.\w{3}" % epath)
         logging.debug("Search query: %s", mov_find)
-        # Extract info
-        movie = search(mov_find, new_file)
-        if movie is None:
-            return self.match_error(new_file)
-        # Set title
-        mov_title = movie.group(1)
-        # Return Movie Title
-        return mov_title, skip
+        # See what movies were added
+        new_added_files = []
+        for added_file in added_files:
+            # Extract info
+            movie = search(mov_find, added_file)
+            if movie is None:
+                continue
+            # Set title
+            mov_title = movie.group(1)
+            # Append to new array
+            new_added_files.append(mov_title)
+        # Make sure we found movies
+        if len(new_added_files) == 0:
+            return self.match_error(', '.join(added_files))
+        # Return movies & skips
+        return new_added_files, skipped_files

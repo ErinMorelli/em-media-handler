@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2015 Erin Morelli
+# Copyright (c) 2014-2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -50,10 +50,8 @@ def get_deluge_arguments():
     '''Get arguments from deluge'''
     # Parse args
     get_args = sys.argv[1:]
-    # Check for failure conditions
-    if len(get_args) == 0:
-        show_deluge_usage(1)
-    elif len(get_args) != 3:
+    # Check for failure condition
+    if len(get_args) != 3:
         show_deluge_usage(2, "Deluge script requires 3 args")
     # Set args
     new_args = {
@@ -134,6 +132,7 @@ def _remove_torrent(settings, torrent_hash):
 # ======== PROCESS DELUGE ARGS ======== #
 
 def _process_deluge(args):
+    '''Process deluge inputs for main handler'''
     # Get settings
     config_file = Config.make_config()
     settings = Config.parse_config(config_file)

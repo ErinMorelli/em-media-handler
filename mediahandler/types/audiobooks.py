@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014 Erin Morelli
+# Copyright (c) 2014-2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -20,13 +20,15 @@
 
 import re
 import logging
-import mediahandler.types
 from re import search
 from math import ceil
 from shutil import copy, move
 from urllib2 import build_opener
 from subprocess import Popen, PIPE
 from os import path, listdir, makedirs
+
+import mediahandler.types
+import mediahandler as mh
 
 from googleapiclient.discovery import build
 from mutagen.mp3 import MP3
@@ -46,11 +48,8 @@ class Book(mediahandler.types.Media):
         super(Book, self).__init__(settings, push)
         # Set global bookinfo
         self.book_info = {}
-        # Get blacklist path
-        list_path = '%s/blacklist.txt' % path.dirname(__file__)
         # Set up handler info
         self.handler = {
-            'blacklist': list_path,
             'regex': {
                 "nc": r".(mp3|ogg|wav)$",
                 "c": r".(m4b)$",
@@ -104,7 +103,8 @@ class Book(mediahandler.types.Media):
         # Save original path for later
         self.handler['orig_path'] = find_book.group(2)
         # Get blacklist items from file
-        blacklist = [line.strip() for line in open(self.handler['blacklist'])]
+        blacklist_file = '%s/blacklist.txt' % mh.__mediaextras__
+        blacklist = [line.strip() for line in open(blacklist_file)]
         # Convert blacklist array to regex string
         blacklist = "|".join(blacklist)
         # Remove blacklist words
@@ -237,7 +237,7 @@ class Book(mediahandler.types.Media):
         new_files = []
         # Get chapter parts
         file_parts = self._get_chapters(file_path, file_array,
-                                         self.handler['file_type'])
+                                        self.handler['file_type'])
         # Create m4b for each file part
         for i, file_part in enumerate(file_parts):
             part_path = '%s/Part %s' % (file_path, str(i+1))
@@ -493,7 +493,7 @@ class Book(mediahandler.types.Media):
             self.push.failure("Unable to chapterize book: %s" % raw)
         # Move & rename files
         (move_files, skips) = self._move_files(book_files,
-                                                self.handler['make_chapters'])
+                                               self.handler['make_chapters'])
         logging.debug("Move was successful: %s", move_files)
         # Verify success
         if move_files is None:

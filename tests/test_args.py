@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # This file is a part of EM Media Handler Testing Module
-# Copyright (c) 2014 Erin Morelli
+# Copyright (c) 2014-2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -20,6 +20,7 @@ import sys
 from _common import unittest
 
 import mediahandler.util.args as Args
+import mediahandler.util.torrent as Torrent
 
 
 class ArgsTests(unittest.TestCase):
@@ -39,40 +40,12 @@ class ArgsTests(unittest.TestCase):
         self.assertRaisesRegexp(
             SystemExit, '1', Args.get_arguments)
 
-    def test_get_good_deluge_args(self):
-        expected = {
-            'path': '/path/to/file',
-            'hash': 'hash',
-            'name': 'name',
-            'use_deluge': True,
-            'no_push': False,
-        }
-        # Test 1
-        sys.argv = ['', '--deluge', 'hash', 'name', '/path/to/file']
-        args1 = Args.get_arguments()
-        self.assertDictEqual(args1, expected)
-        # Test 2
-        sys.argv = ['', '-d', 'hash', 'name', '/path/to/file']
-        args2 = Args.get_arguments()
-        self.assertDictEqual(args2, expected)
-
-    def test_get_bad_deluge_args(self):
-        # Test 1
-        sys.argv = ['', 'hash', 'name', '/path/to/file']
-        self.assertRaisesRegexp(
-            SystemExit, '2', Args.get_arguments)
-        # Test 2
-        sys.argv = ['', '-d', 'hash', 'name', '/path/to/file', 'extra']
-        self.assertRaisesRegexp(
-            SystemExit, '2', Args.get_arguments)
-
     def test_cli_default_args(self):
         sys.argv = ['', '-f', '/path/to/files']
         args = Args.get_arguments()
         expected = {
             'media': '/path/to/files',
             'no_push': False,
-            'use_deluge': False,
             'single_track': False,
         }
         self.assertDictEqual(args, expected)
@@ -101,7 +74,6 @@ class ArgsTests(unittest.TestCase):
         expected = {
             'single_track': True,
             'search': 'test query',
-            'use_deluge': False,
             'media': '/path/to/files',
             'no_push': True,
             'type': 'TV',

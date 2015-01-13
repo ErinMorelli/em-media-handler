@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # This file is a part of EM Media Handler Testing Module
-# Copyright (c) 2014 Erin Morelli
+# Copyright (c) 2014-2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -32,23 +32,27 @@ import mediahandler.util.notify as Notify
 class NewHandlerTests(unittest.TestCase):
 
     def test_empty_args(self):
-        self.assertRaises(TypeError, MH.Handler)
+        regex = r'Handler class arguments should be type dict'
+        self.assertRaises(
+            TypeError, regex, MH.Handler)
 
     def test_none_args(self):
-        self.assertRaises(ValueError, MH.Handler, None)
+        regex = r'Missing input arguments for Handler class'
+        self.assertRaisesRegexp(
+            ValueError, regex, MH.Handler, None)
 
     def test_non_dict_args(self):
-        self.assertRaises(TypeError, MH.Handler, 'string')
-        self.assertRaises(TypeError, MH.Handler, ['an', 'array'])
-        self.assertRaises(TypeError, MH.Handler, True)
-        self.assertRaises(TypeError, MH.Handler, 8)
+        regex = r'Handler class arguments should be type dict'
+        self.assertRaisesRegexp(TypeError, regex, MH.Handler, 'string')
+        self.assertRaisesRegexp(TypeError, regex, MH.Handler, ['an', 'array'])
+        self.assertRaisesRegexp(TypeError, regex, MH.Handler, True)
+        self.assertRaisesRegexp(TypeError, regex, MH.Handler, 8)
 
     def test_good_args(self):
         # Build arguments
         args = {
             'media': '/path/to/files',
             'type': 'TV',
-            'use_deluge': False
         }
         # Run handler
         new_handler = MH.Handler(args)
@@ -70,7 +74,6 @@ class NewHandlerTests(unittest.TestCase):
         args = {
             'media': '/path/to/files',
             'type': 'TV',
-            'use_deluge': False,
             'config': new_conf,
         }
         # Run handler
@@ -86,7 +89,7 @@ class ConvertTypeTests(unittest.TestCase):
 
     def setUp(self):
         # Temp args
-        args = {'use_deluge': False}
+        args = { 'no_push': False }
         # Make handler
         self.handler = MH.Handler(args)
         self.types_hash = _common.get_types_by_string()
@@ -198,7 +201,7 @@ class ParseDirTests(unittest.TestCase):
         # Test name
         self.name = 'test-%s' % _common.get_test_id()
         # Temp args
-        args = {'use_deluge': False}
+        args = { 'no_push': False }
         # Make handler
         self.handler = MH.Handler(args)
         self.types_hash = _common.get_types_by_string()
@@ -209,24 +212,8 @@ class ParseDirTests(unittest.TestCase):
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler._parse_dir, path)
 
-    def test_no_files_deluge(self):
-        # Override settings
-        self.handler.settings['Deluge']['enabled'] = True
-        # Set up args
-        self.handler.args['use_deluge'] = True
-        self.handler.args['name'] = self.name
-        self.handler.args['hash'] = _common.random_string(12)
-        # Test bad path structure
-        path = 'no-files-deluge'
-        # regex = 'No type or name specified for media: %s' % self.name
-        # self.assertRaisesRegexp(
-        #     SystemExit, regex, self.handler._parse_dir, path)
-        self.assertRaises(
-            error.ReactorNotRestartable, self.handler._parse_dir, path)
-
     def test_bad_parse_path_stucture(self):
         # Set up args
-        self.handler.args['use_deluge'] = False
         self.handler.args['name'] = self.name
         # Test bad path structure
         path = 'filename-only'
@@ -246,7 +233,6 @@ class ParseDirTests(unittest.TestCase):
             'type': itype,
             'stype': stype,
             'name': filename,
-            'use_deluge': False,
             'no_push': False,
         }
         self.handler._parse_dir(full_path)
@@ -273,7 +259,6 @@ class HandlerTestClass(unittest.TestCase):
         # Dummy args
         self.name = "test-%s" % _common.get_test_id()
         self.args = {
-            'use_deluge': False,
             'name': self.name,
             'type': 1,
             'stype': 'TV'
@@ -313,21 +298,21 @@ class RemoveFileTests(HandlerTestClass):
     def test_remove_keep_files(self):
         args = {
             'keep_files': True,
-            'keep_if_duplicates': False
+            'keep_if_skips': False
         }
         self.run_remove_tests(args)
 
     def test_remove_keep_dup_has_skips(self):
         args = {
             'keep_files': False,
-            'keep_if_duplicates': True
+            'keep_if_skips': True
         }
         self.run_remove_tests(args, True)
 
     def test_remove_keep_dups_no_skips(self):
         args = {
             'keep_files': False,
-            'keep_if_duplicates': True
+            'keep_if_skips': True
         }
         self.run_remove_tests(args, False, True)
 
@@ -353,25 +338,7 @@ class RemoveFileTests(HandlerTestClass):
         self.assertFalse(os.path.exists(self.dir))
 
 
-class ProcessFilesTests(HandlerTestClass):
-
-    def test_single_file_bool(self):
-        # Make a dummy file
-        self.tmp_file = _common.make_tmp_file('.mkv')
-        # Run test
-        regex = r'Folder for TV not found: .*/Media/TV'
-        self.assertRaisesRegexp(
-            SystemExit, regex, self.handler._process_files, self.tmp_file)
-        # Check settings
-        self.assertTrue(self.handler.settings['single_file'])
-
-    def test_process_folder_bool(self):
-        # Run test
-        regex = r'No TV files found for: %s' % self.name
-        self.assertRaisesRegexp(
-            SystemExit, regex, self.handler._process_files, self.dir)
-        # Check settings
-        self.assertFalse(self.handler.settings['single_file'])
+class FileHandlerTests(HandlerTestClass):
 
     def test_process_files_books(self):
         # Modify args & settings for books
@@ -437,33 +404,6 @@ class ProcessFilesTests(HandlerTestClass):
             SystemExit, regex, self.handler._file_handler, self.dir)
 
 
-class ProcessFolderTests(HandlerTestClass):
-
-    def test_process_folder_good(self):
-        self.handler.settings['single_file'] = False
-        # Make a dummy file in dummy folder
-        self.tmp_file = _common.make_tmp_file('.avi', self.dir)
-        # Run test
-        regex = r'Folder for TV not found: .*/Media/TV'
-        self.assertRaisesRegexp(
-            SystemExit, regex, self.handler._process_folder, self.dir)
-
-    def test_process_folder_no_files(self):
-        # Run test
-        regex = r'No TV files found for: %s' % self.name
-        self.assertRaisesRegexp(
-            SystemExit, regex, self.handler._process_folder, self.dir)
-
-    def test_process_folder_no_video(self):
-        # Make a dummy file in dummy folder
-        self.tmp_file = _common.make_tmp_file(None, self.dir)
-        # Run test
-        expected = ([], [])
-        result = self.handler._process_folder(self.dir)
-        # Check results
-        self.assertTupleEqual(expected, result)
-
-
 class FindZippedTests(HandlerTestClass):
 
     def run_process_folder_test(self, ext, filebot=False):
@@ -515,60 +455,19 @@ class FindZippedTests(HandlerTestClass):
         self.run_single_file_test('.zip', True)
 
 
-class HandleMediaTests(HandlerTestClass):
+class AddMediaTests(HandlerTestClass):
 
     def setUp(self):
         # Call super
-        super(HandleMediaTests, self).setUp()
+        super(AddMediaTests, self).setUp()
         # Overrides
         self.args = {
-            'use_deluge': False,
             'name': self.name,
             'type': 'TV'
         }
         self.handler = MH.Handler(self.args)
 
-    def test_use_deluge_enabled(self):
-        # Make a dummy file
-        self.tmp_file = _common.make_tmp_file('.mkv')
-        # Find name
-        name_regex = r'%s/(.*)$' % os.path.dirname(self.conf)
-        find_name = match(name_regex, self.tmp_file)
-        file_name = find_name.group(1)
-        # Modify args & settings for deluge
-        self.handler.args['path'] = os.path.dirname(self.conf)
-        self.handler.args['name'] = file_name
-        self.handler.args['hash'] = _common.random_string(12)
-        self.handler.args['use_deluge'] = True
-        self.handler.settings['Deluge']['enabled'] = True
-        # Run test
-        regex = r'Folder for TV not found: .*/Media/TV'
-        self.assertRaisesRegexp(SystemExit, regex, self.handler._handle_media)
-
-    def test_use_deluge_disabled(self):
-        # Make a dummy file
-        self.tmp_file = _common.make_tmp_file('.mkv')
-        # Find name
-        name_regex = r'%s/(.*)$' % os.path.dirname(self.conf)
-        find_name = match(name_regex, self.tmp_file)
-        file_name = find_name.group(1)
-        # Modify args & settings for deluge
-        self.handler.args['path'] = os.path.dirname(self.conf)
-        self.handler.args['name'] = file_name
-        self.handler.args['use_deluge'] = True
-        self.handler.settings['Deluge']['enabled'] = False
-        # Run test
-        regex = r'Folder for TV not found: .*/Media/TV'
-        self.assertRaisesRegexp(SystemExit, regex, self.handler._handle_media)
-
     def test_handle_good_path(self):
-        # Modify args
-        self.handler.args['media'] = self.dir
-        # Run test
-        regex = r'No TV files found for: %s' % self.name
-        self.assertRaisesRegexp(SystemExit, regex, self.handler._handle_media)
-
-    def test_handle_add_media(self):
         # Modify args
         self.handler.args['media'] = self.dir
         # Run test
@@ -579,19 +478,18 @@ class HandleMediaTests(HandlerTestClass):
         # Modify args
         self.handler.args = {
             'media': self.dir,
-            'use_deluge': False,
             'name': self.name,
         }
         # Run test
         regex = r'Media type .* not recognized'
-        self.assertRaisesRegexp(SystemExit, regex, self.handler._handle_media)
+        self.assertRaisesRegexp(SystemExit, regex, self.handler.add_media)
 
     def test_handle_fake_path(self):
         # Modify args
         self.handler.args['media'] = '/path/to/fake'
         # Run test
         regex = r'No media files found: %s' % self.name
-        self.assertRaisesRegexp(SystemExit, regex, self.handler._handle_media)
+        self.assertRaisesRegexp(SystemExit, regex, self.handler.add_media)
 
 
 class AddMediaFilesTests(HandlerTestClass):

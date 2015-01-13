@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # EM MEDIA HANDLER
-# Copyright (c) 2014 Erin Morelli
+# Copyright (c) 2014-2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -71,6 +71,7 @@ class Handler(object):
     def add_media_files(self, files):
         '''Process media files'''
         logging.info("Getting media information")
+        # Set types
         itype = self.args['type']
         stype = self.args['stype']
         # Check for forced single import (Music)
@@ -146,12 +147,12 @@ class Handler(object):
     def _remove_files(self, files, skip):
         '''Remove original files'''
         keep = self.settings['General']['keep_files']
-        keep_dups = self.settings['General']['keep_if_duplicates']
+        keep_skips = self.settings['General']['keep_if_skips']
         # Exit if we're not deleting anything
         if keep:
             return
-        # Exit if we're keeping duplicates
-        if skip and keep_dups:
+        # Exit if we're keeping skipped files
+        if skip and keep_skips:
             return
         # Otherwise, remove
         if path.exists(files):
@@ -166,62 +167,6 @@ class Handler(object):
                 rmtree(files)
         return
 
-    # ======== FOLDER HANDLER ======== #
-
-    def _process_folder(self, files):
-        '''Process as folder'''
-        logging.debug("Processing as a folder")
-        # Set file arrays
-        added_files = []
-        skipped_files = []
-        # Get a list of files
-        file_list = listdir(files)
-        list_string = '\n'.join(file_list)
-        # Check that folder is not empty
-        if len(file_list) == 0:
-            self.push.failure("No %s files found for: %s" %
-                              (self.args['stype'], self.args['name']))
-        # Set Up Regex
-        flags = re.I | re.MULTILINE
-        video_regex = r"^(.*.(mkv|avi|m4v|mp4))$"
-        # Locate video file in folder
-        for item in re.finditer(video_regex, list_string, flags):
-            # Set info
-            file_path = '%s/%s' % (files, item.group(1))
-            # Add file
-            (added_file, skip) = self.add_media_files(file_path)
-            # Add to correct arrays
-            if skip:
-                skipped_files.append(added_file)
-            else:
-                added_files.append(added_file)
-        # Return arrays
-        return added_files, skipped_files
-
-    # ======== PROCESS FILES BASED ON TYPE ======== #
-
-    def _process_files(self, files):
-        '''Process the results of added files'''
-        self.settings['single_file'] = False
-        # Set file containers
-        added_files = []
-        skipped_files = []
-        # Check for single files
-        if path.isfile(files):
-            self.settings['single_file'] = True
-        # If this is not music or a book, process separately
-        elif self.args['type'] not in [3, 4]:
-            return self._process_folder(files)
-        # Get results
-        (added_file, skip) = self.add_media_files(files)
-        # Update containers
-        if skip:
-            skipped_files.append(added_file)
-        else:
-            added_files.append(added_file)
-        # Return containers
-        return added_files, skipped_files
-
     # ======== MAIN FILE HANDLER ======== #
 
     def _file_handler(self, files):
@@ -230,8 +175,16 @@ class Handler(object):
         skip = False
         # Look for zipped file first
         self._find_zipped(files)
+        # Only set this flag for single files
+        self.settings['single_file'] = False
+        if path.isfile(files):
+            self.settings['single_file'] = True
+        # Make sure folders have files
+        elif len(listdir(files)) == 0:
+            self.push.failure("No %s files found for: %s" %
+                              (self.args['stype'], self.args['name']))
         # Process file location type
-        (added_files, skipped_files) = self._process_files(files)
+        (added_files, skipped_files) = self.add_media_files(files)
         # Make sure files were added
         if len(added_files) == 0 and len(skipped_files) == 0:
             self.push.failure("No %s files found for: %s" %
@@ -300,9 +253,9 @@ class Handler(object):
         self._convert_type()
         return
 
-    # ======== HANDLE MEDIA ======== #
+    # ======== MAIN ADD MEDIA FUNCTION ======== #
 
-    def _handle_media(self):
+    def add_media(self):
         '''Sort args based on input'''
         logging.debug("Inputs: %s", self.args)
         file_path = self.args['media']
@@ -321,10 +274,3 @@ class Handler(object):
             self.push.failure("No media files found: %s" %
                               self.args['name'])
         return new_files
-
-    # ======== MAIN ADD MEDIA FUNCTION ======== #
-
-    def add_media(self):
-        '''Main function'''
-        # Run main function
-        return self._handle_media()

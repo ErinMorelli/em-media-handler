@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014 Erin Morelli
+# Copyright (c) 2014-2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -15,7 +15,9 @@
 # included in all copies or substantial portions of the Software.
 '''Initialize module'''
 
-__version__ = '0.4.6'
+from os.path import join, dirname
+
+__version__ = '0.5.0'
 __author__ = 'Erin Morelli <erin@erinmorelli.com>'
 
 
@@ -37,3 +39,5 @@ __mediatypes__ = [
     'books',
     'audiobooks'
 ]
+
+__mediaextras__ = join(dirname(__file__), 'extras')

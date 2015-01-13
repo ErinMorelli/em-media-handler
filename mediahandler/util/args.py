@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2015 Erin Morelli
+# Copyright (c) 2014-2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -104,12 +104,12 @@ def get_arguments():
     if len(optlist) == 0 and len(get_args) == 0:
         show_usage(2)
     # Send to parser
-    return parse_arguments(optlist, get_args)
+    return parse_arguments(optlist)
 
 
 # ======== PARSE ARGUMENTS ======== #
 
-def parse_arguments(optlist, get_args):
+def parse_arguments(optlist):
     '''Parse arguments'''
     # Set up base args
     new_args = {}

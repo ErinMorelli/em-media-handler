@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014 Erin Morelli
+# Copyright (c) 2014-2015 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -20,7 +20,7 @@
 
 import logging
 from os import path
-from re import search
+from re import findall
 from subprocess import Popen, PIPE
 
 
@@ -61,6 +61,13 @@ class Media(object):
         if not path.exists(self.dst_path) and self.ptype is not None:
             self.push.failure("Folder for %s not found: %s"
                               % (self.ptype, self.dst_path))
+        # Set up Query info
+        action = self.filebot['action'].upper()
+        self.added_query = r"\[%s\] Rename \[(.*)\] to \[(.*)\]" % action
+        self.skip_query = r"Skipped \[(.*)\] because \[(.*)\] already exists"
+        self.added_i = 1
+        self.skip_i = 0
+        self.reason = "%s already exists in %s" % (self.type, self.dst_path)
 
     # ======== GET VIDEO ======== #
 
@@ -97,28 +104,27 @@ class Media(object):
     def process_output(self, output, file_path):
         '''Check for good response or skipped content'''
         logging.info("Processing query output")
-        new_file = None
-        skipped = False
-        # Set up regexes
-        action = self.filebot['action'].upper()
-        good_query = r"\[%s\] Rename \[.*\] to \[(.*)\]" % action
-        skip_query = r"Skipped \[(.*)\] because \[(.*)\] already exists"
         # Look for content
-        get_good = search(good_query, output)
-        get_skip = search(skip_query, output)
+        added_data = findall(self.added_query, output)
+        skip_data = findall(self.skip_query, output)
         # Check return
-        if get_good is not None:
-            new_file = get_good.group(1)
-        elif get_skip is not None:
-            skipped = True
-            new_file = get_skip.group(2)
-            logging.warning("Duplicate file was skipped: %s", new_file)
-        # Check for failure
-        if new_file is None:
+        results = []
+        if len(added_data) > 0:
+            for added_item in added_data:
+                results.append(added_item[self.added_i])
+        # Get skipped results
+        skipped = []
+        if len(skip_data) > 0:
+            for skip_item in skip_data:
+                skipped.append(skip_item[self.skip_i])
+                logging.warning("File was skipped: %s (%s)",
+                        skip_item[self.skip_i],
+                        self.reason)
+        # Return error if nothing found
+        if len(skipped) == 0 and len(results) == 0:
             return self.match_error(file_path)
-        # Return info
-        logging.debug("New file: %s", new_file)
-        return new_file, skipped
+        # Return results
+        return results, skipped
 
     # ======== MATCH ERROR ======== #
 
