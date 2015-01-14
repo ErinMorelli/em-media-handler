@@ -63,7 +63,10 @@ class Media(object):
                               % (self.ptype, self.dst_path))
         # Set up Query info
         action = self.filebot['action'].upper()
-        self.added_query = r"\[%s\] Rename \[(.*)\] to \[(.*)\]" % action
+        file_types = r'(mkv|avi|m4v|mp4)'
+        # Object defaults
+        self.added_query = (r"\[%s\] Rename \[(.*)\] to \[(.*)\.%s\]"
+                            % (action, file_types))
         self.skip_query = r"Skipped \[(.*)\] because \[(.*)\] already exists"
         self.added_i = 1
         self.skip_i = 0
@@ -118,8 +121,8 @@ class Media(object):
             for skip_item in skip_data:
                 skipped.append(skip_item[self.skip_i])
                 logging.warning("File was skipped: %s (%s)",
-                        skip_item[self.skip_i],
-                        self.reason)
+                                skip_item[self.skip_i],
+                                self.reason)
         # Return error if nothing found
         if len(skipped) == 0 and len(results) == 0:
             return self.match_error(file_path)
