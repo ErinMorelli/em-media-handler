@@ -27,7 +27,7 @@ class DelugeTests(unittest.TestCase):
     def test_empty_args(self):
         sys.argv = ['']
         self.assertRaisesRegexp(
-            SystemExit, '1', Torrent.get_deluge_arguments)
+            SystemExit, '2', Torrent.get_deluge_arguments)
 
     def test_get_good_args(self):
         expected = {
