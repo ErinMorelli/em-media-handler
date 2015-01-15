@@ -149,33 +149,47 @@ class InitLoggingTests(unittest.TestCase):
 class SimpleValidationConfigTests(unittest.TestCase):
 
     def setUp(self):
-        self.conf = _common.get_conf_file()
-        self.parser = CP.ConfigParser()
-        self.parser.read(self.conf)
+        self.settings = _common.get_settings()
 
     def test_valid_bool(self):
         # Empty string case
-        bool_null = Config._get_valid_bool(self.parser, 'Deluge', 'user')
+        bool_null = Config._get_valid_bool('Deluge', 'user', '')
         self.assertFalse(bool_null)
         # Valid case
-        bool_reg = Config._get_valid_bool(self.parser, 'TV', 'enabled')
+        bool_reg = Config._get_valid_bool('TV', 'enabled', 'true')
         self.assertTrue(bool_reg)
+        # Bad case
+        regex = regex = r'Value provided for \'Sect: opt\' is not a valid boolean'
+        self.assertRaisesRegexp(
+            CP.Error, regex, Config._get_valid_bool, 'Sect', 'opt', 'astring')
 
     def test_valid_string(self):
         # Empty string case
-        string_null = Config._get_valid_string(self.parser, 'Deluge', 'pass')
+        string_null = Config._get_valid_string('Deluge', 'pass', '')
         self.assertIsNone(string_null)
         # Valid case
-        string_reg = Config._get_valid_string(self.parser, 'Deluge', 'host')
-        self.assertTrue(string_reg)
+        value_reg = self.settings['Deluge']['host']
+        string_reg = Config._get_valid_string('Deluge', 'host', value_reg)
+        self.assertIs(type(string_reg), str)
+        self.assertEqual(string_reg, '127.0.0.1')
+        # Bad case
+        regex = regex = r'Value provided for \'Sect: opt\' is not a valid string'
+        self.assertRaisesRegexp(
+            CP.Error, regex, Config._get_valid_string, 'Sect', 'opt', 6789)
 
     def test_valid_number(self):
         # Empty string case
-        num_null = Config._get_valid_number(self.parser, 'Audiobooks', 'folder')
+        num_null = Config._get_valid_number('Audiobooks', 'folder', '')
         self.assertIsNone(num_null)
         # Valid case
-        num_reg = Config._get_valid_number(self.parser, 'Deluge', 'port')
+        value_reg = self.settings['Deluge']['port']
+        num_reg = Config._get_valid_number('Deluge', 'port', value_reg)
+        self.assertIs(type(num_reg), int)
         self.assertEqual(num_reg, 58846)
+        # Bad case
+        regex = r'Value provided for \'Sect: opt\' is not a valid number'
+        self.assertRaisesRegexp(
+            CP.Error, regex, Config._get_valid_number, 'Sect', 'opt', 'astring')
 
 
 class FileValidationConfigTests(unittest.TestCase):
@@ -201,70 +215,30 @@ class FileValidationConfigTests(unittest.TestCase):
 
     def test_valid_file(self):
         self.tmp_file = _common.make_tmp_file('.log')
-        self.modify_conf_file_options(self.tmp_file)
-        parser = CP.ConfigParser()
-        parser.read(self.new_conf)
         # Empty string case
-        file_null = Config._get_valid_file(parser, 'Deluge', 'user')
+        file_null = Config._get_valid_file('Deluge', 'user', '')
         self.assertIsNone(file_null)
         # Valid case
-        file_good = Config._get_valid_file(parser, 'Music', 'log_file')
+        file_good = Config._get_valid_file('Music', 'log_file', self.tmp_file)
         self.assertEqual(file_good, self.tmp_file)
         # Invalid case
         regex = "Path to file provided for 'Logging: log_file' does not exist:"
         self.assertRaisesRegexp(CP.Error, regex,
-                                Config._get_valid_file, parser, 'Logging', 'log_file')
+                                Config._get_valid_file, 'Logging', 'log_file', '/path/to/log.log')
 
     def test_valid_folder(self):
         self.dir = self.dir = tempfile.mkdtemp(
             dir=os.path.dirname(self.conf))
-        self.modify_conf_folder_options(self.dir)
-        parser = CP.ConfigParser()
-        parser.read(self.new_conf)
         # Empty string case
-        folder_null = Config._get_valid_folder(parser, 'Deluge', 'pass')
+        folder_null = Config._get_valid_folder('Deluge', 'pass', '')
         self.assertIsNone(folder_null)
         # Valid case
-        folder_good = Config._get_valid_folder(parser, 'TV', 'folder')
+        folder_good = Config._get_valid_folder('TV', 'folder', self.dir)
         self.assertEqual(folder_good, self.dir)
         # Invalid case
         regex = r"Path provided for 'Movies: folder' does not exist: .*"
         self.assertRaisesRegexp(CP.Error, regex,
-                                Config._get_valid_folder, parser, 'Movies', 'folder')
-
-    def modify_conf_file_options(self, tmp_file):
-        # Get conf file content
-        with open(self.new_conf) as conf_file:
-                conf_content = conf_file.read()
-        # Set up new file content
-        regex_file1 = r"(\[Music\]\n.*\n)log_file = \n"
-        replace_file1 = r'\1log_file = %s\n' % tmp_file
-        regex_file2 = r"(\[Logging\]\n.*\n.*\n)log_file = \n"
-        replace_file2 = r"\1log_file = /path/to/fake.tmp\n"
-        # Make updates
-        conf_content = re.sub(regex_file1, replace_file1, conf_content)
-        conf_content = re.sub(regex_file2, replace_file2, conf_content)
-        # Write new file
-        new_conf = open(self.new_conf, 'w')
-        new_conf.write(conf_content)
-        new_conf.close()
-
-    def modify_conf_folder_options(self, tmp_file):
-        # Get conf file content
-        with open(self.new_conf) as conf_file:
-                conf_content = conf_file.read()
-        # Set up new folder content
-        regex_folder1 = r"(\[TV\]\n.*\n)folder = \n"
-        replace_folder1 = r"\1folder = %s\n" % tmp_file
-        regex_folder2 = r"(\[Movies\]\n.*\n)folder = \n"
-        replace_folder2 = r"\1folder = /path/to/fake\n"
-        # Make updates
-        conf_content = re.sub(regex_folder1, replace_folder1, conf_content)
-        conf_content = re.sub(regex_folder2, replace_folder2, conf_content)
-        # Write new file
-        new_conf = open(self.new_conf, 'w')
-        new_conf.write(conf_content)
-        new_conf.close()
+                                Config._get_valid_folder, 'Movies', 'folder', '/path/to/movies')
 
 
 class MissingSectionConfigTest(unittest.TestCase):
@@ -283,9 +257,14 @@ class MissingSectionConfigTest(unittest.TestCase):
 
     def test_missing_section(self):
         self.remove_conf_section()
-        regex = r"No section: 'Pushover'"
-        self.assertRaisesRegexp(CP.NoSectionError, regex,
-            _common.get_settings, self.new_conf)
+        settings = _common.get_settings(self.new_conf)
+        expected = {
+            'enabled': False,
+            'api_key': None,
+            'user_key': None,
+            'notify_name': None,
+        }
+        self.assertDictEqual(expected, settings['Pushover'])
 
     def remove_conf_section(self):
         # Get conf file content
@@ -315,16 +294,16 @@ class MissingOptionConfigTest(unittest.TestCase):
         os.unlink(self.conf)
 
     def test_missing_option(self):
-        regex = r"No option 'user' in section: 'Deluge'"
-        self.assertRaisesRegexp(CP.NoOptionError, regex,
-            Config.parse_config, self.conf)
+        settings = Config.parse_config(self.conf)
+        self.assertIn('host', settings['Deluge'].keys())
+        self.assertEqual(settings['Deluge']['host'], '127.0.0.1')
 
     def remove_conf_option(self):
         # Get conf file content
         with open(self.conf) as conf_file:
                 conf_content = conf_file.read()
         # Set up new file content
-        regex = r"(\[Deluge\]\n(.|\n)*)user =\s"
+        regex = r"(\[Deluge\]\n(.|\n)*)host = 127.0.0.1\s"
         # Make updates
         conf_content = re.sub(regex, r"\1", conf_content)
         # Write new file

@@ -86,7 +86,7 @@ Fetching episode data for [Fake Show]
 Processed 1 files
 Done ?(?????)?
 '''
-        regex = r'Unable to match episode: /TV/Fake Show/Fake.Show.S01E01.mkv, /TV/Fake Show/Fake.Show.S01E02.mkv'
+        regex = r'Unable to match episode: /TV/Fake Show/Fake.Show.S01E01, /TV/Fake Show/Fake.Show.S01E02'
         self.assertRaisesRegexp(
             SystemExit, regex, self.episode.process_output, output, self.tmp_file)
 
@@ -97,6 +97,7 @@ Fetching episode data for [Grey's Anatomy]
 Skipped [/Downloaded/Archer Season 3/Archer.s03e01.avi] because [{0}/Archer/Season 3/Archer.S03E01.avi] already exists
 Skipped [/Downloaded/Archer Season 3/Archer.s03e02.avi] because [{0}/Archer/Season 3/Archer.S03E02.avi] already exists
 Skipped [/Downloaded/Archer Season 3/Archer.s03e03.avi] because [{0}/Archer/Season 3/Archer.S03E03.avi] already exists
+[COPY] Rename [/Downloaded/Archer Season 3/Archer.s03e03.nfo] to [{0}/Archer/Season 3/Archer.S03E03.nfo]
 Processed 3 files
 Done ?(?????)?
 '''.format(self.folder)

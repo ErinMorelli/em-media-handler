@@ -26,7 +26,7 @@ from mediahandler.util.config import make_config
 
 setup(
     name='EM Media Handler',
-    version='0.5.0',
+    version='0.5.1',
     author='Erin Morelli',
     author_email='erin@erinmorelli.com',
     url='http://code.erinmorelli.com/em-media-handler/',
@@ -41,7 +41,8 @@ setup(
     package_data={
         'mediahandler': [
             'extras/blacklist.txt',
-            'extras/settings.cfg',
+            'extras/settings.json',
+            'extras/requirements.json',
         ]
     },
     packages=[

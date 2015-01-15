@@ -20,6 +20,7 @@
 
 import os
 import imp
+import json
 import logging
 from ast import literal_eval
 
@@ -83,51 +84,41 @@ def _check_modules(settings):
     if settings['Logging']['enabled']:
         init_logging(settings)
         logging.info('Logging enabled')
-    # Check deluge requirements
-    if settings['Deluge']['enabled']:
-        # Check for Twisted
-        _find_module('twisted', 'internet')
-        # Check for Deluge
-        _find_module('deluge', 'ui')
-        _find_module('deluge', 'log')
-    # Check video requirements
-    if (settings['TV']['enabled']
-            or settings['Movies']['enabled']):
-        settings['has_filebot'] = False
-        # Check for Filebot
-        if (not os.path.isfile('/usr/bin/filebot') and
-                not os.path.isfile('/usr/local/bin/filebot')):
-            raise ImportError('Filebot application not found')
-        else:
-            settings['has_filebot'] = True
-    # Check music requirements
-    if settings['Music']['enabled']:
-        # Check for Beets
-        _find_module('beets', 'util')
-    # Check audiobook requirements
-    if settings['Audiobooks']['enabled']:
-        # Check for Google API
-        _find_module('googleapiclient', 'discovery')
-        # Is chaptering enabled
-        if settings['Audiobooks']['make_chapters']:
-            # Check for Mutagen
-            _find_module('mutagen', 'mp3')
-            _find_module('mutagen', 'ogg')
-            # Check fo ABC
-            if not os.path.isfile('/usr/bin/abc.php'):
-                raise ImportError('ABC application not found')
+    # Check for requirements
+    requirements = _get_json('requirements')
+    for item in requirements['items']:
+        section = item['section']
+        option = item['option']
+        if settings[section][option]:
+            # Check modules
+            if 'modules' in item.keys():
+                for module in item['modules']:
+                    _find_module(module[0], module[1])
+            # Check applications
+            if 'apps' in item.keys():
+                # Save in settings
+                name = 'has_%s' % item['apps']['name'].lower()
+                settings[name] = False
+                # Look for app
+                for path in item['apps']['paths']:
+                    if os.path.isfile(path):
+                        settings[name] = True
+                        break
+                if not settings[name]:
+                    error = '%s application not found' % item['apps']['name']
+                    raise ImportError(error)
     return
 
 
 # ======== GET FILE STRUCTURE ======== #
 
-def _get_struct():
-    '''Retrieve config structure from cfg file'''
-    struct_file = '%s/settings.cfg' % mh.__mediaextras__
-    # Read file to string
-    struct = open(struct_file).read()
-    # Convert file to list
-    return literal_eval(struct)
+def _get_json(filename):
+    '''Retrieve config structure from json file'''
+    json_file = '%s/%s.json' % (mh.__mediaextras__, filename)
+    # Read json file
+    json_contents = open(json_file).read()
+    # Return decoded json
+    return json.loads(json_contents)
 
 
 # ======== PARSE CONFIG FILE ======== #
@@ -137,23 +128,29 @@ def parse_config(file_path):
     parser = CP.ConfigParser()
     parser.read(file_path)
     settings = {}
+    struct = _get_json('settings')
     # Loop through config & validate
-    for item in _get_struct():
+    for item in struct['items']:
         section = item['section']
-        # Check that section exists
-        if not parser.has_section(section):
-            raise CP.NoSectionError(section)
         # Loop through options
         new_options = {}
         for item_option in item['options']:
-            option = item_option[0]
-            # Check that option exists
-            if not parser.has_option(section, option):
-                raise CP.NoOptionError(option, section)
-            # Get valid option
-            valid_func = "_get_valid_%s" % item_option[1]
+            option = item_option['name']
+            value = ''
+            # If option exists, get value
+            if parser.has_option(section, option):
+                value = parser.get(section, option)
+            # Otherwise use default
+            elif 'default' in item_option.keys():
+                value = item_option['default'].encode("utf8")
+            # Fallback to non
+            else:
+                new_options[option] = None
+                continue
+            # Validate values
+            valid_func = "_get_valid_%s" % item_option['type']
             validator = getattr(util.config, valid_func)
-            new_options[option] = validator(parser, section, option)
+            new_options[option] = validator(section, option, value)
         # Populate hash
         settings[section] = new_options
     # Check that appropriate modules are installed
@@ -165,36 +162,48 @@ def parse_config(file_path):
 # ======== VALIDATION ======== #
 
 # BOOLEAN
-def _get_valid_bool(parser, section, option):
+def _get_valid_bool(section, option, provided):
     '''Validate config option as a boolean'''
-    provided = parser.get(section, option)
-    if provided == '':
+    boolean = provided.lower()
+    if boolean == '':
         return False
-    return parser.getboolean(section, option)
-
+    elif boolean in ['1', 'yes', 'true', 'on']:
+        return True
+    elif boolean in ['0', 'no', 'false', 'off']:
+        return False
+    else:
+        error = ("Value provided for '%s: %s' is not a valid boolean"
+                 % (section, option))
+        raise CP.Error(error)
 
 # STRING
-def _get_valid_string(parser, section, option):
+def _get_valid_string(section, option, provided):
     '''Validate config option as a string'''
-    provided = parser.get(section, option)
     if provided == '':
         return None
+    if type(provided) is not str:
+        error = ("Value provided for '%s: %s' is not a valid string"
+                 % (section, option))
+        raise CP.Error(error)
     return provided
 
 
 # NUMBER (INT)
-def _get_valid_number(parser, section, option):
+def _get_valid_number(section, option, provided):
     '''Validate config option as an int'''
-    provided = parser.get(section, option)
     if provided == '':
         return None
-    return parser.getint(section, option)
+    try:
+        return int(provided)
+    except ValueError:
+        error = ("Value provided for '%s: %s' is not a valid number"
+                 % (section, option))
+        raise CP.Error(error)
 
 
 # PATH TO FILE
-def _get_valid_file(parser, section, option):
+def _get_valid_file(section, option, provided):
     '''Validate config option as a filepath'''
-    provided = parser.get(section, option)
     if provided == '':
         return None
     folder = os.path.dirname(provided)
@@ -206,9 +215,8 @@ def _get_valid_file(parser, section, option):
 
 
 # FOLDER
-def _get_valid_folder(parser, section, option):
+def _get_valid_folder(section, option, provided):
     '''Validate config option as a folder'''
-    provided = parser.get(section, option)
     if provided == '':
         return None
     if not os.path.exists(provided):
@@ -235,11 +243,15 @@ def make_config(new_file=None):
         if not os.access(config_file, os.R_OK):
             raise Warning('Configuration file cannot be opened')
     else:
+        struct = _get_json('settings')
         # Setup sections and defaults
-        for item in _get_struct():
+        for item in struct['items']:
             parser.add_section(item['section'])
             for option in item['options']:
-                parser.set(item['section'], option[0], option[2])
+                value = ''
+                if 'default' in option.keys():
+                    value = option['default']
+                parser.set(item['section'], option['name'], value)
         # Make directories for config file
         config_path = os.path.dirname(config_file)
         if not os.path.exists(config_path):

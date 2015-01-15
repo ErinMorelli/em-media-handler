@@ -76,11 +76,11 @@ Done ?(?????)?
         output = '''Rename movies using [TheMovieDB]
 Auto-detect movie from context: [/Downloaded/Movies/Fake.Movie.avi]
 [COPY] Rename [/Downloaded/Movies/Fake.Movie.avi] to [/Movies/Fake Movie.avi]
-[COPY] Rename [/Downloaded/Movies/Another.Fake.Movie.avi] to [/Movies/Another.Fake Movie.avi]
+[COPY] Rename [/Downloaded/Movies/Another.Fake.Movie.avi] to [/Movies/Another.Fake.Movie.avi]
 Processed 1 files
 Done ?(?????)?
 '''
-        regex = r'Unable to match movie: /Movies/Fake Movie.avi, /Movies/Another.Fake Movie.avi'
+        regex = r'Unable to match movie: /Movies/Fake Movie, /Movies/Another.Fake.Movie'
         self.assertRaisesRegexp(
             SystemExit, regex, self.movies.process_output, output, self.tmp_file)
 

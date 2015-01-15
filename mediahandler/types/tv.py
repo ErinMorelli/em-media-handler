@@ -49,7 +49,7 @@ class Episode(mediahandler.types.Media):
             return info
         # Set search query
         epath = escape(self.dst_path)
-        tv_find = (r"%s\/(.*)\/(.*)\/.*\.S\d{2,4}E(\d{2,3}).\w{3}" % epath)
+        tv_find = (r"%s\/(.*)\/(.*)\/.*\.S\d{2,4}E(\d{2,3})" % epath)
         logging.debug("Search query: %s", tv_find)
         # See what TV files were added
         new_added_files = []

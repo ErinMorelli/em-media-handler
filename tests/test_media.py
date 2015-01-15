@@ -106,7 +106,7 @@ Processed 1 files
 Done ?(?????)?
 '''
         (new_file, skipped) = self.media.process_output(output, self.tmp_file)
-        expected = ['/media/TV/@midnight/Season 2015/@midnight.S2015E01.mkv']
+        expected = ['/media/TV/@midnight/Season 2015/@midnight.S2015E01']
         self.assertEqual(skipped, [])
         self.assertEqual(new_file, expected)
 
