@@ -1,0 +1,44 @@
+General:
+    keep_files: no
+    keep_if_skips: yes
+
+Deluge:
+    enabled: yes
+    host: 127.0.0.1
+    port: 58846
+    user: 
+    pass: 
+
+Logging:
+    enabled: yes
+    level: 30
+    log_file: 
+
+Pushover:
+    enabled: no
+    api_key: 
+    user_key: 
+    notify_name: 
+
+TV:
+    enabled: yes
+    folder: 
+    ignore_subs: yes
+    log_file:
+
+Movies:
+    enabled: yes
+    folder: 
+    ignore_subs: yes
+    log_file:
+
+Music:
+    enabled: no
+    log_file: 
+
+Audiobooks:
+    enabled: no
+    folder: 
+    api_key: 
+    make_chapters: off
+    chapter_length: 8

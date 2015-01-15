@@ -6,5 +6,8 @@ recursive-include docs *.txt
 # Include blacklist
 include mediahandler/types/blacklist.txt
 
+# Include yml files
+include *.txt
+
 # Exclude junk
 global-exclude .DS_Store

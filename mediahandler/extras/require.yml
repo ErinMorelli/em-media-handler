@@ -1,0 +1,43 @@
+Deluge:
+    option: enabled
+    modules: 
+        - [twisted, internet]
+        - [deluge, ui]
+        - [deluge, log]
+
+Music:
+    option: enabled
+    modules: 
+        - [beets, util]
+
+Audiobooks:
+    option: enabled
+    modules: 
+        - [googleapiclient, discovery]
+        - [mutagen, mp3]
+        - [mutagen, ogg]
+
+Audiobooks:
+    option: make_chapters
+    apps: 
+        name: ABC
+        paths: 
+            - /usr/bin/abc.php
+            - /usr/local/bin/abc.php
+
+TV:
+    option: enabled
+    apps: 
+        name: Filebot
+        paths: 
+            - /usr/bin/filebot
+            - /usr/local/bin/filebot
+
+Movies:
+    option: enabled
+    apps: 
+        name: Filebot
+        paths: 
+            - /usr/bin/filebot
+            - /usr/local/bin/filebot
+
