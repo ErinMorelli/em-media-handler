@@ -47,7 +47,8 @@ class MediaObjectTests(unittest.TestCase):
         if not os.path.isfile('/usr/bin/filebot'):
             self.filebot = '/usr/local/bin/filebot'
         # Build base settings
-        self.settings = { 'folder': self.folder }
+        self.settings = _common.get_settings()['TV']
+        self.settings['folder'] = self.folder
        
     def tearDown(self):
         if os.path.exists(self.folder):
@@ -63,6 +64,14 @@ class BaseMediaObjectTests(MediaObjectTests):
         super(BaseMediaObjectTests, self).setUp()
         # Make an object
         self.media = Types.Media(self.settings, self.push)
+
+    def tearDown(self):
+        # Call super
+        super(BaseMediaObjectTests, self).tearDown()
+        # Remove extra
+        if self.settings['log_file'] is not None:
+            if os.path.exists(self.settings['log_file']):
+                os.unlink(self.settings['log_file'])
 
     def test_new_media_object(self):
         expected = {
@@ -81,17 +90,23 @@ class BaseMediaObjectTests(MediaObjectTests):
 
     def test_new_media_bad_folder(self):
         # Dummy folder path
-        tmp = { 'folder': '/path/to/fake' }
+        self.settings['folder'] = '/path/to/fake'
         # Run test 1
         regex1 = r'Folder for Media not found: /path/to/fake'
         self.assertRaisesRegexp(
-            SystemExit, regex1, Types.Media, tmp, self.push)
+            SystemExit, regex1, Types.Media, self.settings, self.push)
         # Run test 2
         regex2 = r'Folder for Media not found: .*/Media/Media'
         self.assertRaisesRegexp(
             SystemExit, regex2, Types.Media, {}, self.push)
 
     def test_media_add(self):
+        regex = r'Unable to match media: %s' % self.tmp_file
+        self.assertRaisesRegexp(
+            SystemExit, regex, self.media.add, self.tmp_file)
+
+    def test_media_add_logging(self):
+        self.settings['log_file'] = '%s/media.log' % self.folder
         regex = r'Unable to match media: %s' % self.tmp_file
         self.assertRaisesRegexp(
             SystemExit, regex, self.media.add, self.tmp_file)
@@ -122,6 +137,20 @@ Done ?(?????)?
         expected = ['/Downloaded/TV/Downton.Abbey.5x03.720p.HDTV.x264.mkv']
         self.assertEqual(skipped, expected)
         self.assertEqual(new_file, [])
+
+    def test_remove_bad_files(self):
+        # Add files to folder
+        file1 = _common.make_tmp_file('.nfo', self.folder)
+        file2 = _common.make_tmp_file('.srt', self.folder)
+        file3 = _common.make_tmp_file('.txt', self.folder)
+        # Run test
+        self.media._remove_bad_files(self.folder)
+        # Check results
+        self.assertFalse(os.path.exists(file1))
+        self.assertFalse(os.path.exists(file2))
+        self.assertFalse(os.path.exists(file3))
+        self.assertTrue(os.path.exists(self.tmp_file))
+
 
 
 def suite():

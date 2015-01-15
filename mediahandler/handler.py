@@ -133,7 +133,8 @@ class Handler(object):
         if re.search(regex, file_string, flags):
             logging.debug("Zipped file type detected")
             # Send to extractor
-            if self.settings['has_filebot']:
+            if ('has_filebot' in self.settings['TV'].keys() or
+                    'has_filebot' in self.settings['Movies'].keys()):
                 get_files = self.extract_files(files)
                 # Rescan files
                 self._file_handler(get_files)

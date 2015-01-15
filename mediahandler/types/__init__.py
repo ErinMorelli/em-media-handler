@@ -18,9 +18,9 @@
 
 # ======== IMPORT MODULES ======== #
 
+import os
 import logging
-from os import path
-from re import findall
+from re import findall, search
 from subprocess import Popen, PIPE
 
 
@@ -41,42 +41,43 @@ class Media(object):
         self.push = push
         # Filebot
         self.filebot = {
-            'bin': '/usr/bin/filebot',
             'action': 'copy',
             'db': '',
             'format': '',
             'flags': '-non-strict',
         }
-        # Check binary
-        if not path.isfile(self.filebot['bin']):
-            self.filebot['bin'] = '/usr/local/bin/filebot'
+        # Check for filebot
+        if 'has_filebot' in self.settings.keys():
+            self.filebot['bin'] = self.settings['has_filebot']
         # Type specific
-        self.dst_path = '%s/Media/%s' % (path.expanduser("~"), self.ptype)
+        self.dst_path = '%s/Media/%s' % (os.path.expanduser("~"), self.ptype)
         # Check for custom path in settings
         if 'folder' in self.settings.keys() and self.ptype is not None:
             if self.settings['folder'] is not None:
                 self.dst_path = self.settings['folder']
                 logging.debug("Using custom path: %s", self.dst_path)
         # Check destination exists
-        if not path.exists(self.dst_path) and self.ptype is not None:
+        if not os.path.exists(self.dst_path) and self.ptype is not None:
             self.push.failure("Folder for %s not found: %s"
                               % (self.ptype, self.dst_path))
         # Set up Query info
         action = self.filebot['action'].upper()
-        file_types = r'(mkv|avi|m4v|mp4)'
         # Object defaults
-        self.added_query = (r"\[%s\] Rename \[(.*)\] to \[(.*)\.%s\]"
-                            % (action, file_types))
-        self.skip_query = r"Skipped \[(.*)\] because \[(.*)\] already exists"
-        self.added_i = 1
-        self.skip_i = 0
-        self.reason = "%s already exists in %s" % (self.type, self.dst_path)
+        self.query = {
+            'file_types': r'(mkv|avi|m4v|mp4)',
+            'skip': r'Skipped \[(.*)\] because \[(.*)\] already exists',
+            'added_i': 1,
+            'skip_i': 0,
+            'reason': '%s already exists in %s' % (self.type, self.dst_path)
+        }
+        self.query['added'] = (r"\[%s\] Rename \[(.*)\] to \[(.*)\.%s\]"
+                               % (action, self.query['file_types']))
 
     # ======== GET VIDEO ======== #
 
     def add(self, file_path):
         '''A new media file'''
-        logging.info("Starting %s information handler", self.type)
+        logging.info("Starting %s handler", self.type)
         # Set up query
         m_cmd = [self.filebot['bin'],
                  '-rename', file_path,
@@ -84,6 +85,16 @@ class Media(object):
                  '--format', self.filebot['format'],
                  '--action', self.filebot['action'],
                  self.filebot['flags']]
+        # Check for logfile
+        if self.settings['log_file'] is not None:
+            loginfo = [
+                '--log', 'all',
+                '--log-file', self.settings['log_file']]
+            m_cmd.extend(loginfo)
+        # If we are ignoring subs, remove all non-video files
+        if self.settings['ignore_subs']:
+            logging.debug("Ignoring subtitle files")
+            self._remove_bad_files(file_path)
         # Get info
         return self.media_info(m_cmd, file_path)
 
@@ -108,26 +119,42 @@ class Media(object):
         '''Check for good response or skipped content'''
         logging.info("Processing query output")
         # Look for content
-        added_data = findall(self.added_query, output)
-        skip_data = findall(self.skip_query, output)
+        added_data = findall(self.query['added'], output)
+        skip_data = findall(self.query['skip'], output)
         # Check return
         results = []
         if len(added_data) > 0:
             for added_item in added_data:
-                results.append(added_item[self.added_i])
+                results.append(added_item[self.query['added_i']])
         # Get skipped results
         skipped = []
         if len(skip_data) > 0:
             for skip_item in skip_data:
-                skipped.append(skip_item[self.skip_i])
+                skipped.append(skip_item[self.query['skip_i']])
                 logging.warning("File was skipped: %s (%s)",
-                                skip_item[self.skip_i],
-                                self.reason)
+                                skip_item[self.query['skip_i']],
+                                self.query['reason'])
         # Return error if nothing found
         if len(skipped) == 0 and len(results) == 0:
             return self.match_error(file_path)
         # Return results
         return results, skipped
+
+    # ======== REMOVE BAD FILES ======== #
+
+    def _remove_bad_files(self, file_path):
+        '''Removes non-video files from folder'''
+        logging.info("Removing bad files")
+        # Skip if this is not a folder
+        if os.path.isfile(file_path):
+            return
+        # Look for bad files and remove them
+        for item in os.listdir(file_path):
+            regex = r'\.%s$' % self.query['file_types']
+            if not search(regex, item):
+                item_path = '%s/%s' % (file_path, item)
+                os.unlink(item_path)
+        return
 
     # ======== MATCH ERROR ======== #
 

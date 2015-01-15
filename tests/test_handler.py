@@ -408,7 +408,9 @@ class FindZippedTests(HandlerTestClass):
 
     def run_process_folder_test(self, ext, filebot=False):
         # Set filebot
-        self.handler.settings['has_filebot'] = filebot
+        if not filebot:
+            del self.handler.settings['TV']['has_filebot']
+            del self.handler.settings['Movies']['has_filebot']
         # Make a dummy file in dummy folder
         self.tmp_file = _common.make_tmp_file(ext, self.dir)
         # Run test
@@ -419,8 +421,10 @@ class FindZippedTests(HandlerTestClass):
             SystemExit, regex, self.handler._find_zipped, self.dir)
 
     def run_single_file_test(self, ext, filebot=False):
-        # Set up handler
-        self.handler.settings['has_filebot'] = filebot
+        # Set filebot
+        if not filebot:
+            del self.handler.settings['TV']['has_filebot']
+            del self.handler.settings['Movies']['has_filebot']
         # Make a dummy file
         self.tmp_file = _common.make_tmp_file(ext)
         # Run test
@@ -617,5 +621,5 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(verbosity=2, buffer=True)
+    unittest.main(verbosity=2) #, buffer=True)
     

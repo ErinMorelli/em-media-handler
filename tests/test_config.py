@@ -20,17 +20,13 @@ import re
 import sys
 import shutil
 import logging
+from pwd import getpwuid
 
 import _common
 from _common import unittest
 from _common import tempfile
 
 import mediahandler.util.config as Config
-
-try:
-    import ConfigParser as CP
-except ImportError:
-    import configparser as CP
 
 
 class FindModulesTests(unittest.TestCase):
@@ -52,8 +48,11 @@ class CheckModulesTests(unittest.TestCase):
     def setUp(self):
         # Get settings
         self.settings = _common.get_settings()
-        # Bypass unneeded sections
-        self.settings['has_filebot'] = False 
+        # Remove settings we are testing for
+        del self.settings['TV']['has_filebot']
+        del self.settings['Movies']['has_filebot']
+        if 'has_abc' in self.settings['Audiobooks'].keys():
+            del self.settings['Audiobooks']['has_abc']
     
     def test_check_logging(self):
         # Modify settings
@@ -71,11 +70,19 @@ class CheckModulesTests(unittest.TestCase):
 
     def test_check_filebot(self):
         # Modify settings
-        self.settings['TV']['enabled'] = True    
+        self.settings['TV']['enabled'] = True
+        self.settings['Movies']['enabled'] = False
         # Run
         result = Config._check_modules(self.settings)
         self.assertIsNone(result)
-        self.assertTrue(self.settings['has_filebot'])
+        self.assertIn('has_filebot', self.settings['TV'].keys())
+        self.assertNotIn('has_filebot', self.settings['Movies'].keys())
+        # Modify settings again
+        self.settings['Movies']['enabled'] = True
+        # Run2
+        result2 = Config._check_modules(self.settings)
+        self.assertIsNone(result2)
+        self.assertIn('has_filebot', self.settings['Movies'].keys())
 
     def test_audiobook_module(self):
         # Modify settings
@@ -84,6 +91,7 @@ class CheckModulesTests(unittest.TestCase):
         # Run
         result = Config._check_modules(self.settings)
         self.assertIsNone(result)
+        self.assertNotIn('has_abc', self.settings['Audiobooks'].keys())
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Ubuntu")
     def test_audiobook_good_abc_(self):
@@ -93,6 +101,7 @@ class CheckModulesTests(unittest.TestCase):
         # Run
         result = Config._check_modules(self.settings)
         self.assertIsNone(result)
+        self.assertIn('has_abc', self.settings['Audiobooks'].keys())
 
     @unittest.skipUnless(not sys.platform.startswith("linux"), "requires not Ubuntu")
     def test_audiobook_bad_abc_(self):
@@ -153,19 +162,19 @@ class SimpleValidationConfigTests(unittest.TestCase):
 
     def test_valid_bool(self):
         # Empty string case
-        bool_null = Config._get_valid_bool('Deluge', 'user', '')
+        bool_null = Config._get_valid_bool('Deluge', 'user', None)
         self.assertFalse(bool_null)
         # Valid case
-        bool_reg = Config._get_valid_bool('TV', 'enabled', 'true')
+        bool_reg = Config._get_valid_bool('TV', 'enabled', True)
         self.assertTrue(bool_reg)
         # Bad case
         regex = regex = r'Value provided for \'Sect: opt\' is not a valid boolean'
         self.assertRaisesRegexp(
-            CP.Error, regex, Config._get_valid_bool, 'Sect', 'opt', 'astring')
+            ValueError, regex, Config._get_valid_bool, 'Sect', 'opt', 'astring')
 
     def test_valid_string(self):
         # Empty string case
-        string_null = Config._get_valid_string('Deluge', 'pass', '')
+        string_null = Config._get_valid_string('Deluge', 'pass', None)
         self.assertIsNone(string_null)
         # Valid case
         value_reg = self.settings['Deluge']['host']
@@ -175,11 +184,11 @@ class SimpleValidationConfigTests(unittest.TestCase):
         # Bad case
         regex = regex = r'Value provided for \'Sect: opt\' is not a valid string'
         self.assertRaisesRegexp(
-            CP.Error, regex, Config._get_valid_string, 'Sect', 'opt', 6789)
+            ValueError, regex, Config._get_valid_string, 'Sect', 'opt', 6789)
 
     def test_valid_number(self):
         # Empty string case
-        num_null = Config._get_valid_number('Audiobooks', 'folder', '')
+        num_null = Config._get_valid_number('Audiobooks', 'folder', None)
         self.assertIsNone(num_null)
         # Valid case
         value_reg = self.settings['Deluge']['port']
@@ -189,7 +198,7 @@ class SimpleValidationConfigTests(unittest.TestCase):
         # Bad case
         regex = r'Value provided for \'Sect: opt\' is not a valid number'
         self.assertRaisesRegexp(
-            CP.Error, regex, Config._get_valid_number, 'Sect', 'opt', 'astring')
+            ValueError, regex, Config._get_valid_number, 'Sect', 'opt', 'astring')
 
 
 class FileValidationConfigTests(unittest.TestCase):
@@ -199,7 +208,7 @@ class FileValidationConfigTests(unittest.TestCase):
         self.conf = _common.get_conf_file()
         # Setup temp conf path
         conf_dir = os.path.dirname(self.conf)
-        self.new_conf = os.path.join(conf_dir, 'temp_FVCT.conf')
+        self.new_conf = os.path.join(conf_dir, 'temp_FVCT.yml')
         # Copy into temp file
         shutil.copy(self.conf, self.new_conf)
         # Placholders
@@ -216,28 +225,28 @@ class FileValidationConfigTests(unittest.TestCase):
     def test_valid_file(self):
         self.tmp_file = _common.make_tmp_file('.log')
         # Empty string case
-        file_null = Config._get_valid_file('Deluge', 'user', '')
+        file_null = Config._get_valid_file('Deluge', 'user', None)
         self.assertIsNone(file_null)
         # Valid case
         file_good = Config._get_valid_file('Music', 'log_file', self.tmp_file)
         self.assertEqual(file_good, self.tmp_file)
         # Invalid case
         regex = "Path to file provided for 'Logging: log_file' does not exist:"
-        self.assertRaisesRegexp(CP.Error, regex,
+        self.assertRaisesRegexp(ValueError, regex,
                                 Config._get_valid_file, 'Logging', 'log_file', '/path/to/log.log')
 
     def test_valid_folder(self):
         self.dir = self.dir = tempfile.mkdtemp(
             dir=os.path.dirname(self.conf))
         # Empty string case
-        folder_null = Config._get_valid_folder('Deluge', 'pass', '')
+        folder_null = Config._get_valid_folder('Deluge', 'pass', None)
         self.assertIsNone(folder_null)
         # Valid case
         folder_good = Config._get_valid_folder('TV', 'folder', self.dir)
         self.assertEqual(folder_good, self.dir)
         # Invalid case
         regex = r"Path provided for 'Movies: folder' does not exist: .*"
-        self.assertRaisesRegexp(CP.Error, regex,
+        self.assertRaisesRegexp(ValueError, regex,
                                 Config._get_valid_folder, 'Movies', 'folder', '/path/to/movies')
 
 
@@ -248,7 +257,7 @@ class MissingSectionConfigTest(unittest.TestCase):
         self.old_conf = _common.get_conf_file()
         # Setup temp conf path
         conf_dir = os.path.dirname(self.old_conf)
-        self.new_conf = os.path.join(conf_dir, 'temp_MSCT.conf')
+        self.new_conf = os.path.join(conf_dir, 'temp_MSCT.yml')
         # Copy into temp file
         shutil.copy(self.old_conf, self.new_conf)
 
@@ -271,9 +280,9 @@ class MissingSectionConfigTest(unittest.TestCase):
         with open(self.new_conf) as conf_file:
                 conf_content = conf_file.read()
         # Set up new file content
-        regex = r"\[Pushover\](.|\n)*notify_name = \n"
+        regex = r'(Pushover:(.|\n)*)notify_name:\s'
         # Make updates
-        conf_content = re.sub(regex, '', conf_content)
+        conf_content = re.sub(regex, r'\1', conf_content)
         # Write new file
         new_conf = open(self.new_conf, 'w')
         new_conf.write(conf_content)
@@ -286,7 +295,7 @@ class MissingOptionConfigTest(unittest.TestCase):
     def setUp(self):
         old_conf = _common.get_conf_file()
         conf_dir = os.path.dirname(old_conf)
-        self.conf = os.path.join(conf_dir, 'temp_MOCT.conf')
+        self.conf = os.path.join(conf_dir, 'temp_MOCT.yml')
         shutil.copy(old_conf, self.conf)
         self.remove_conf_option()
 
@@ -303,7 +312,7 @@ class MissingOptionConfigTest(unittest.TestCase):
         with open(self.conf) as conf_file:
                 conf_content = conf_file.read()
         # Set up new file content
-        regex = r"(\[Deluge\]\n(.|\n)*)host = 127.0.0.1\s"
+        regex = r'(Deluge:(.|\n)*)host: 127.0.0.1'
         # Make updates
         conf_content = re.sub(regex, r"\1", conf_content)
         # Write new file
@@ -316,8 +325,9 @@ class MakeConfigTests(unittest.TestCase):
 
     def setUp(self):
         # Conf
-        self.conf = ('%s/.config/mediahandler/settings.conf' % 
-                   os.path.expanduser("~")) 
+        self.conf = ('%s/.config/mediahandler/config.yml' % 
+                   os.path.expanduser("~"))
+        self.name = _common.get_test_id()
         # New conf
         self.tmp_file = ''
         self.maxDiff = None
@@ -335,11 +345,18 @@ class MakeConfigTests(unittest.TestCase):
 
     @unittest.skipIf('SUDO_UID' in os.environ.keys(), 'for non-sudoers only')
     def test_bad_conf(self):
-        self.tmp_file = _common.make_tmp_file('.conf')
+        self.tmp_file = _common.make_tmp_file('.yml')
         os.chmod(self.tmp_file, 0o000)
         regex = r'Configuration file cannot be opened'
         self.assertRaisesRegexp(
             Warning, regex, Config.make_config, self.tmp_file)
+
+    @unittest.skipUnless('SUDO_UID' in os.environ.keys(), 'for sudoers only')
+    def test_conf_permissions(self):
+        self.tmp_file = '%s/%s.yml' % (os.path.dirname(self.conf), self.name)
+        file_path = Config.make_config(self.tmp_file)
+        self.assertEqual(
+            int(os.environ['SUDO_UID']), self.get_owner(file_path))
 
     def test_custom_conf(self):
         name = 'test-%s.conf' % _common.get_test_id()
@@ -350,6 +367,9 @@ class MakeConfigTests(unittest.TestCase):
         expected = Config.parse_config(self.conf)
         settings = Config.parse_config(results)
         self.assertListEqual(settings.keys(), expected.keys())
+
+    def get_owner(self, filename):
+        return getpwuid(os.stat(filename).st_uid).pw_uid
 
 
 def suite():

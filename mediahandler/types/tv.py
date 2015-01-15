@@ -55,19 +55,16 @@ class Episode(mediahandler.types.Media):
         new_added_files = []
         for added_file in added_files:
             # Extract info
-            episode = search(tv_find, added_file)
-            if episode is None:
+            ep_info= search(tv_find, added_file)
+            if ep_info is None:
                 continue
-            # Show title
-            show_name = episode.group(1)
-            # Season
-            season = episode.group(2)
             # Episode
-            ep_num = episode.group(3)
+            ep_num = ep_info.group(3)
             ep_num_fix = sub('^0', '', ep_num)
             episode = "Episode %s" % ep_num_fix
             # Set title
-            ep_title = "%s (%s, %s)" % (show_name, season, episode)
+            ep_title = ("%s (%s, %s)"
+                        % (ep_info.group(1), ep_info.group(2), episode))
             # Append to new array
             new_added_files.append(ep_title)
         # Make sure we found episodes

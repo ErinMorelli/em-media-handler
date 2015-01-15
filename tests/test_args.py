@@ -59,6 +59,9 @@ class ArgsTests(unittest.TestCase):
             SystemExit, '2', Args.get_arguments)
 
     def test_cli_bad_args(self):
+        sys.argv = ['', '--single']
+        self.assertRaisesRegexp(
+            SystemExit, '2', Args.get_arguments)
         sys.argv = ['', '--test']
         self.assertRaisesRegexp(
             SystemExit, '2', Args.get_arguments)

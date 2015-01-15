@@ -20,17 +20,12 @@
 
 import os
 import imp
-import json
+import yaml
+import shutil
 import logging
-from ast import literal_eval
 
 import mediahandler as mh
 import mediahandler.util as util
-
-try:
-    import ConfigParser as CP
-except ImportError:
-    import configparser as CP
 
 
 # ======== LOOK FOR MODULE ======== #
@@ -85,9 +80,9 @@ def _check_modules(settings):
         init_logging(settings)
         logging.info('Logging enabled')
     # Check for requirements
-    requirements = _get_json('requirements')
-    for item in requirements['items']:
-        section = item['section']
+    require = _get_yaml('%s/require.yml' % mh.__mediaextras__)
+    for section in require:
+        item = require[section]
         option = item['option']
         if settings[section][option]:
             # Check modules
@@ -98,13 +93,13 @@ def _check_modules(settings):
             if 'apps' in item.keys():
                 # Save in settings
                 name = 'has_%s' % item['apps']['name'].lower()
-                settings[name] = False
+                settings[section][name] = None
                 # Look for app
                 for path in item['apps']['paths']:
                     if os.path.isfile(path):
-                        settings[name] = True
+                        settings[section][name] = path
                         break
-                if not settings[name]:
+                if settings[section][name] is None:
                     error = '%s application not found' % item['apps']['name']
                     raise ImportError(error)
     return
@@ -112,24 +107,23 @@ def _check_modules(settings):
 
 # ======== GET FILE STRUCTURE ======== #
 
-def _get_json(filename):
-    '''Retrieve config structure from json file'''
-    json_file = '%s/%s.json' % (mh.__mediaextras__, filename)
-    # Read json file
-    json_contents = open(json_file).read()
-    # Return decoded json
-    return json.loads(json_contents)
+def _get_yaml(yaml_file):
+    '''Retrieve config structure from yaml file'''
+    # Read yaml file
+    yaml_contents = open(yaml_file).read()
+    # Return decoded yaml
+    return yaml.load(yaml_contents)
 
 
 # ======== PARSE CONFIG FILE ======== #
 
 def parse_config(file_path):
     '''Read config file'''
-    parser = CP.ConfigParser()
-    parser.read(file_path)
-    settings = {}
-    struct = _get_json('settings')
+    # Read yaml files
+    parsed = _get_yaml(file_path)
+    struct = _get_yaml('%s/settings.yml' % mh.__mediaextras__)
     # Loop through config & validate
+    settings = {}
     for item in struct['items']:
         section = item['section']
         # Loop through options
@@ -138,11 +132,11 @@ def parse_config(file_path):
             option = item_option['name']
             value = ''
             # If option exists, get value
-            if parser.has_option(section, option):
-                value = parser.get(section, option)
+            if option in parsed[section].keys():
+                value = parsed[section][option]
             # Otherwise use default
             elif 'default' in item_option.keys():
-                value = item_option['default'].encode("utf8")
+                value = item_option['default']
             # Fallback to non
             else:
                 new_options[option] = None
@@ -164,65 +158,62 @@ def parse_config(file_path):
 # BOOLEAN
 def _get_valid_bool(section, option, provided):
     '''Validate config option as a boolean'''
-    boolean = provided.lower()
-    if boolean == '':
+    if provided is None:
         return False
-    elif boolean in ['1', 'yes', 'true', 'on']:
-        return True
-    elif boolean in ['0', 'no', 'false', 'off']:
-        return False
-    else:
+    if type(provided) is not bool:
         error = ("Value provided for '%s: %s' is not a valid boolean"
                  % (section, option))
-        raise CP.Error(error)
+        raise ValueError(error)
+    return provided
+
 
 # STRING
 def _get_valid_string(section, option, provided):
     '''Validate config option as a string'''
-    if provided == '':
+    if provided is None:
         return None
     if type(provided) is not str:
         error = ("Value provided for '%s: %s' is not a valid string"
                  % (section, option))
-        raise CP.Error(error)
+        raise ValueError(error)
     return provided
 
 
 # NUMBER (INT)
 def _get_valid_number(section, option, provided):
     '''Validate config option as an int'''
-    if provided == '':
+    if provided is None:
         return None
     try:
         return int(provided)
     except ValueError:
         error = ("Value provided for '%s: %s' is not a valid number"
                  % (section, option))
-        raise CP.Error(error)
+        raise ValueError(error)
 
 
 # PATH TO FILE
 def _get_valid_file(section, option, provided):
     '''Validate config option as a filepath'''
-    if provided == '':
+    if provided is None:
         return None
     folder = os.path.dirname(provided)
     if not os.path.exists(folder):
         error = ("Path to file provided for '%s: %s' does not exist: %s"
                  % (section, option, folder))
-        raise CP.Error(error)
+        raise ValueError(error)
     return provided
 
 
 # FOLDER
 def _get_valid_folder(section, option, provided):
     '''Validate config option as a folder'''
-    if provided == '':
+    if provided is None:
         return None
     if not os.path.exists(provided):
         error = ("Path provided for '%s: %s' does not exist: %s"
                  % (section, option, provided))
-        raise CP.Error(error)
+        raise ValueError(error)
     return provided
 
 
@@ -230,9 +221,8 @@ def _get_valid_folder(section, option, provided):
 
 def make_config(new_file=None):
     '''Generate default config file'''
-    parser = CP.ConfigParser()
     # Set default path
-    config_file = ('%s/.config/mediahandler/settings.conf' %
+    config_file = ('%s/.config/mediahandler/config.yml' %
                    os.path.expanduser("~"))
     # Check for user-provided path
     if new_file is not None:
@@ -243,22 +233,19 @@ def make_config(new_file=None):
         if not os.access(config_file, os.R_OK):
             raise Warning('Configuration file cannot be opened')
     else:
-        struct = _get_json('settings')
-        # Setup sections and defaults
-        for item in struct['items']:
-            parser.add_section(item['section'])
-            for option in item['options']:
-                value = ''
-                if 'default' in option.keys():
-                    value = option['default']
-                parser.set(item['section'], option['name'], value)
+        # Copy default config to user file
+        default_config = '%s/config.yml' % mh.__mediaextras__
         # Make directories for config file
         config_path = os.path.dirname(config_file)
         if not os.path.exists(config_path):
             os.makedirs(config_path)
             os.chmod(config_path, 0o775)
-        # Write new configuration file to path
-        with open(config_file, 'w') as config_file_open:
-            parser.write(config_file_open)
+        # Copy new configuration file to path
+        shutil.copy(default_config, config_file)
+        # Change permissions to current user if sudo
+        if 'SUDO_UID' in os.environ.keys():
+            filed = os.open(config_file, os.O_RDONLY)
+            os.fchown(filed, int(os.environ['SUDO_UID']), -1)
+            os.close(filed)
     # Return with path to file
     return config_file

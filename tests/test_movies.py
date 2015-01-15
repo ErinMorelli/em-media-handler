@@ -49,6 +49,18 @@ Done ?(?????)?
         self.assertEqual(new_file, ['Snowpiercer (2013)'])
         self.assertEqual(skipped, [])
 
+    def test_movie_output_only_skips(self):
+        output = '''Rename movies using [TheMovieDB]
+Auto-detect movie from context: [/Downloaded/Movies/Snowpiercer.2013.1080p.BluRay.x264.mp4]
+Skipped [/Downloaded/Movies/Snowpiercer.2013.1080p.BluRay.x264.mp4] because [%s/Snowpiercer (2013).mp4] already exists
+Processed 1 files
+Done ?(?????)?
+''' % self.folder
+        (new_file, skipped) = self.movies.process_output(output, self.tmp_file)
+        self.assertEqual(new_file, [])
+        self.assertEqual(skipped,
+            ['/Downloaded/Movies/Snowpiercer.2013.1080p.BluRay.x264.mp4'])
+
     def test_movie_output_multi(self):
         output = '''Rename movies using [TheMovieDB]
 Auto-detect movie from context: [/Downloaded/Star Wars/star.wars.a.new.hope.1977.avi]

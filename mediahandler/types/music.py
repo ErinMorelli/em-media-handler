@@ -17,7 +17,6 @@
 
 # ======== IMPORT MODULES ======== #
 
-import re
 import logging
 import mediahandler.types
 from os import path, makedirs
@@ -38,15 +37,19 @@ class Tracks(mediahandler.types.Media):
         self.beet = "/usr/local/bin/beet"
         self.beetslog = '%s/logs/beets.log' % path.expanduser("~")
         # Query info
-        self.tags = '-ql'
-        self.added_query = r"(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n"
-        self.skip_query = r"(^|\n).*\/(.*) \(\d+ items\)\nSkipping.\n"
-        self.skip_i = 1
-        self.reason = "see beets log"
+        self.query = {
+            'tags': '-ql',
+            'added': r"(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n",
+            'skip': r"(^|\n).*\/(.*) \(\d+ items\)\nSkipping.\n",
+            'added_i': 1,
+            'skip_i': 1,
+            'reason': "see beets log",
+        }
         # Check for single track
         if self.settings['single_track']:
-            self.tags = "-sql"
-            self.added_query = r"(Tagging track)\:\s(.*)\nURL\:\n\s{1,4}(.*)\n"
+            self.query['tags'] = "-sql"
+            single_regex = r"(Tagging track)\:\s(.*)\nURL\:\n\s{1,4}(.*)\n"
+            self.query['added'] = single_regex
 
     # ======== ADD MUSIC ======== #
 
@@ -64,6 +67,6 @@ class Tracks(mediahandler.types.Media):
         # Set up query
         m_cmd = [self.beet,
                  "import", file_path,
-                 self.tags, self.beetslog]
+                 self.query['tags'], self.beetslog]
         # Get info
         return self.media_info(m_cmd, file_path)

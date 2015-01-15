@@ -38,16 +38,16 @@ class MusicMediaObjectTests(MediaObjectTests):
     def test_new_music_object(self):
         expected = r"(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n"
         self.assertEqual(self.tracks.beet, '/usr/local/bin/beet')
-        self.assertEqual(self.tracks.tags, '-ql')
-        self.assertEqual(self.tracks.added_query, expected)
+        self.assertEqual(self.tracks.query['tags'], '-ql')
+        self.assertEqual(self.tracks.query['added'], expected)
 
     def test_new_music_single(self):
         self.settings['single_track'] = True
         self.tracks = Music.Tracks(self.settings, self.push)
         # Check results
         expected = r"(Tagging track)\:\s(.*)\nURL\:\n\s{1,4}(.*)\n" 
-        self.assertEqual(self.tracks.tags, '-sql')
-        self.assertEqual(self.tracks.added_query, expected)
+        self.assertEqual(self.tracks.query['tags'], '-sql')
+        self.assertEqual(self.tracks.query['added'], expected)
 
     def test_music_add_log(self):
         # Make dummy logfile

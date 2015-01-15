@@ -87,6 +87,9 @@ class Book(mediahandler.types.Media):
             logging.debug("Using custom chapter length: %s",
                           self.handler['max_length'])
         self.handler['make_chapters'] = settings['make_chapters']
+        # Check for abc
+        if self.handler['make_chapters']:
+            self.handler['abc'] = settings['has_abc']
         # Look for custom search query
         if 'custom_search' in settings.keys():
             self.handler['custom_search'] = settings['custom_search']
@@ -242,7 +245,7 @@ class Book(mediahandler.types.Media):
         for i, file_part in enumerate(file_parts):
             part_path = '%s/Part %s' % (file_path, str(i+1))
             # Define chapter query
-            b_cmd = ['/usr/bin/php', '-f', '/usr/bin/abc.php',
+            b_cmd = ['/usr/bin/php', '-f', self.handler['abc'],
                      file_part,  # Path to book files
                      self.book_info['author'].encode("utf8"),  # artist
                      self.book_info['long_title'].encode("utf8"),  # album
