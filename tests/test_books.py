@@ -16,6 +16,7 @@
 '''Initialize module'''
 
 import os
+import sys
 import shutil
 from mutagen.mp3 import MP3
 
@@ -122,7 +123,7 @@ class BookCalculateChunkTests(BookMediaObjectTests):
             dst = '%s/0%s-track.mp3' % (self.folder, str(x+1))
             shutil.copy(self.audio_file, dst)
         # Set up query
-        file_array = os.listdir(self.folder)
+        file_array = sorted(os.listdir(self.folder))
         expected = [
             ['01-track.mp3', '02-track.mp3'],
             ['03-track.mp3', '04-track.mp3'],
@@ -141,7 +142,7 @@ class BookCalculateChunkTests(BookMediaObjectTests):
         dst = '%s/01-track.mp3' % self.folder
         shutil.copy(self.audio_file, dst)
         # Set up query
-        file_array = os.listdir(self.folder)
+        file_array = sorted(os.listdir(self.folder))
         expected = [['01-track.mp3']]
         # Run test
         result = self.book._calculate_chunks(self.folder, file_array, 'mp3')
@@ -156,7 +157,7 @@ class BookCalculateChunkTests(BookMediaObjectTests):
         dst = '%s/01-track.mp3' % self.folder
         shutil.copy(self.audio_file, dst)
         # Set up query
-        file_array = os.listdir(self.folder)
+        file_array = sorted(os.listdir(self.folder))
         expected = [['01-track.mp3']]
         # Run test
         result = self.book._calculate_chunks(self.folder, file_array, 'mp3')
@@ -181,7 +182,7 @@ class GetChaptersTests(BookMediaObjectTests):
             dst = '%s/0%s-track.mp3' % (self.folder, str(x+1))
             shutil.copy(self.audio_file, dst)
         # Set up query
-        file_array = os.listdir(self.folder)
+        file_array = sorted(os.listdir(self.folder))
         # Make cover
         self.make_cover()
         expected = [
@@ -202,7 +203,7 @@ class GetChaptersTests(BookMediaObjectTests):
         dst = '%s/01-track.mp3' % self.folder
         shutil.copy(self.audio_file, dst)
         # Set up query
-        file_array = os.listdir(self.folder)
+        file_array = sorted(os.listdir(self.folder))
         # Make cover
         self.make_cover()
         expected = [('%s/Part 1' % self.folder)]
@@ -212,12 +213,18 @@ class GetChaptersTests(BookMediaObjectTests):
         self.assertEqual(len(result), 1)
         self.assertListEqual(result, expected)
 
-
+@unittest.skipUnless(sys.platform.startswith("linux"), "requires Ubuntu")
 class ChapterizeFilesTests(BookMediaObjectTests):
 
     def setUp(self):
         super(ChapterizeFilesTests, self).setUp()
         self.book.settings['file_type'] = 'mp3'
+        # Set up book info
+        self.book.book_info = self.book.ask_google('Paul Doiron Bone Orchard')
+        # Set up abc path
+        self.book.settings['has_abc'] = '/usr/local/bin/abc.php'
+        if not os.path.exists(self.book.settings['has_abc']):
+            self.book.settings['has_abc'] = '/usr/bin/abc.php'
 
     def make_cover(self):
         # Make dummy cover image
@@ -225,46 +232,26 @@ class ChapterizeFilesTests(BookMediaObjectTests):
         cover_img = '%s/cover.jpg' % self.folder
         shutil.move(tmp_img, cover_img)
 
-    # @unittest.skipUnless(sys.platform.startswith("linux"), "requires Ubuntu")
-    # def test_chapters_mulipart(self):
-    #     # Set max length to 30 mins
-    #     self.book.settings['max_length'] = 1800
-    #     # Copy files into folder
-    #     for x in range(0, 6):
-    #         dst = '%s/0%s-track.mp3' % (self.folder, str(x+1))
-    #         shutil.copy(self.audio_file, dst)
-    #     # Set up query
-    #     file_array = os.listdir(self.folder)
-    #     # Make cover
-    #     self.make_cover()
-    #     expected = [
-    #         ('%s/Part 1' % self.folder),
-    #         ('%s/Part 2' % self.folder),
-    #         ('%s/Part 3' % self.folder),
-    #     ]
-    #     # Run test
-    #     result = self.book._chapterize_files(self.folder, file_array)
-    #     # Check results
-    #     self.assertEqual(len(result), 3)
-    #     self.assertListEqual(result, expected)
-
-    # @unittest.skipUnless(sys.platform.startswith("linux"), "requires Ubuntu")
-    # def test_chunks_single(self):
-    #     # Set max length to 15 mins
-    #     self.book.settings['max_length'] = 900
-    #     # Copy file into folder
-    #     dst = '%s/01-track.mp3' % self.folder
-    #     shutil.copy(self.audio_file, dst)
-    #     # Set up query
-    #     file_array = os.listdir(self.folder)
-    #     # Make cover
-    #     self.make_cover()
-    #     expected = [('%s/Part 1' % self.folder)]
-    #     # Run test
-    #     result = self.book._get_chapters(self.folder, file_array, 'mp3')
-    #     # Check results
-    #     self.assertEqual(len(result), 1)
-    #     self.assertListEqual(result, expected)
+    def test_make_chapters(self):
+        # Set max length to 30 mins
+        self.book.settings['max_length'] = 1800
+        # Copy files into folder
+        for x in range(0, 2):
+            dst = '%s/0%s-track.mp3' % (self.folder, str(x+1))
+            shutil.copy(self.audio_file, dst)
+        # Set up query
+        file_array = sorted(os.listdir(self.folder))
+        # Make cover
+        self.make_cover()
+        expected = [
+            ('%s/Paul Doiron - The Bone Orchard: A Novel - 1.m4b' % self.folder),
+        ]
+        # Run test
+        (success, result) = self.book._chapterize_files(self.folder, file_array)
+        # # Check results
+        self.assertTrue(success)
+        self.assertEqual(len(result), 1)
+        self.assertListEqual(result, expected)
 
 
 def suite():
