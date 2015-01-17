@@ -44,6 +44,9 @@ class BookMediaObjectTests(MediaObjectTests):
         # Make an object
         self.book = Books.Book(self.settings, self.push)
 
+
+class BaseBookObjectTests(BookMediaObjectTests):
+
     def test_bad_google_api(self):
         self.settings['api_key'] = None
         regex = r'Google Books API key not found'
@@ -214,32 +217,33 @@ class GetChaptersTests(BookMediaObjectTests):
         self.assertEqual(len(result), 1)
         self.assertListEqual(result, expected)
 
-    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Ubuntu")
-    def test_make_chapters(self):
-        # Set up book info
-        self.make_cover()
-        self.book.book_info = self.book.ask_google('Paul Doiron Bone Orchard')
+
+@unittest.skipUnless(sys.platform.startswith("linux"), "requires Ubuntu")
+class AddBookTest(BookMediaObjectTests):
+    
+    def test_add_book(self):
         # Set up abc path
         self.book.settings['has_abc'] = '/usr/local/bin/abc.php'
         if not os.path.exists(self.book.settings['has_abc']):
             self.book.settings['has_abc'] = '/usr/bin/abc.php'
         # Set max length to 30 mins
         self.book.settings['max_length'] = 1800
-        self.book.settings['file_type'] = 'mp3'
+        self.book.settings['make_chapters'] = True
+        self.book.settings['custom_search'] = 'Paul Doiron Bone Orchard'
         # Copy files into folder
         for x in range(0, 2):
             dst = '%s/0%s-track.mp3' % (self.folder, str(x+1))
             shutil.copy(self.audio_file, dst)
-        # Make cover
-        expected = [
-            ('%s/Paul Doiron - The Bone Orchard: A Novel - 1.m4b' % self.folder),
-        ]
         # Run test
-        (success, result) = self.book._get_files(self.folder, True)
-        # # Check results
-        self.assertTrue(success)
-        self.assertEqual(len(result), 1)
-        self.assertListEqual(result, expected)
+        (result, skips) = self.book.add(self.folder)
+        # Check results
+        regex = r'"The Bone Orchard: A Novel" by Paul Doiron'
+        self.assertRegexpMatches(result, regex)
+        self.assertFalse(skips)
+        # Check that file was made
+        created = ('%s/Paul Doiron/The Bone Orchard_ A Novel/The Bone Orchard.m4b'
+                  % self.folder)
+        self.assertTrue(os.path.exists(created))
 
 
 class GetFilesTests(BookMediaObjectTests):
