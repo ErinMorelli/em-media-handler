@@ -27,7 +27,6 @@ from urllib2 import build_opener
 from subprocess import Popen, PIPE
 from os import path, listdir, makedirs
 
-import mediahandler.types
 import mediahandler as mh
 
 from googleapiclient.discovery import build
@@ -37,19 +36,18 @@ from mutagen.ogg import OggFileType
 
 # ======== BOOK CLASS DECLARTION ======== #
 
-class Book(mediahandler.types.Media):
+class Book(object):
     ''' Audiobook handler class'''
     # ======== SET GLOBAL CLASS OPTIONS ======== #
 
     def __init__(self, settings, push):
         '''Init book class'''
         logging.info("Starting audiobook handler class")
-        self.ptype = None
-        super(Book, self).__init__(settings, push)
-        # Set global bookinfo
+        # Set globals
         self.book_info = {}
-        # Set up handler info
-        self.handler = {
+        self.push = push
+        # Set up book settings
+        self.settings = dict(settings.items() + {
             'regex': {
                 "nc": r".(mp3|ogg|wav)$",
                 "c": r".(m4b)$",
@@ -58,41 +56,30 @@ class Book(mediahandler.types.Media):
                 'MP3': MP3,
                 'OGG': OggFileType,
             },
-        }
-        # Default TV path
-        self.handler['path'] = '%s/Media/Audiobooks' % path.expanduser("~")
-        # Check for custom path in settings
-        if settings['folder'] is not None:
-            self.handler['path'] = settings['folder']
-            logging.debug("Using custom path: %s", self.handler['path'])
+        }.items())
+        # Check for null path in settings
+        if self.settings['folder'] is None:
+            self.settings['folder'] = ('%s/Media/Audiobooks'
+                                       % path.expanduser("~"))
+            logging.debug("Using default path: %s", self.settings['folder'])
         # Check destination exists
-        if not path.exists(self.handler['path']):
+        if not path.exists(self.settings['folder']):
             self.push.failure("Folder for Audiobooks not found: %s"
-                              % self.handler['path'])
+                              % self.settings['folder'])
         # Look for Google api key
-        if settings['api_key'] is not None:
-            self.handler['api_key'] = settings['api_key']
-            logging.debug("Found Google Books API key")
-        else:
+        if settings['api_key'] is None:
             logging.warning("Google Books API key not found")
             raise Warning("Google Books API key not found")
         # Default chapter length
-        self.handler['max_length'] = 28800  # 8hrs (in seconds)
+        self.settings['max_length'] = 28800  # 8hrs (in seconds)
         # Look for custom chapter length
-        if settings['chapter_length'] is not None:
+        if self.settings['chapter_length'] is not None:
             # Convert hours to seconds
-            custom_length = settings['chapter_length'] * 3600
+            custom_length = self.settings['chapter_length'] * 3600
             # Set new length
-            self.handler['max_length'] = custom_length
+            self.settings['max_length'] = custom_length
             logging.debug("Using custom chapter length: %s",
-                          self.handler['max_length'])
-        self.handler['make_chapters'] = settings['make_chapters']
-        # Check for abc
-        if self.handler['make_chapters']:
-            self.handler['abc'] = settings['has_abc']
-        # Look for custom search query
-        if 'custom_search' in settings.keys():
-            self.handler['custom_search'] = settings['custom_search']
+                          self.settings['max_length'])
 
     # ======== CLEAN UP SEARCH STRING ======== #
 
@@ -104,7 +91,7 @@ class Book(mediahandler.types.Media):
         string = find_book.group(3)
         logging.debug("Initial string: %s", string)
         # Save original path for later
-        self.handler['orig_path'] = find_book.group(2)
+        self.settings['orig_path'] = find_book.group(2)
         # Get blacklist items from file
         blacklist_file = '%s/blacklist.txt' % mh.__mediaextras__
         blacklist = [line.strip() for line in open(blacklist_file)]
@@ -177,18 +164,18 @@ class Book(mediahandler.types.Media):
         # Sum all the file durations
         for get_file in file_array:
             full_path = '%s/%s' % (file_path, get_file)
-            audio_track = self.handler['audio'][file_type](full_path)
+            audio_track = self.settings['audio'][file_type](full_path)
             total_length += audio_track.info.length
             logging.debug("%s:  %s", get_file, audio_track.info.length)
         logging.debug("Total book length: %s seconds", total_length)
         # Check against defined max part length
-        if total_length <= self.handler['max_length']:
+        if total_length <= self.settings['max_length']:
             book_parts = 1
             logging.debug("Parts: %s", book_parts)
             chunks = [file_array]
         else:
             # Determine how many parts should be made
-            book_parts = int(ceil(total_length / self.handler['max_length']))
+            book_parts = int(ceil(total_length / self.settings['max_length']))
             logging.debug("Parts: %s", book_parts)
             # Count files
             logging.debug("File count: %s", len(file_array))
@@ -240,19 +227,19 @@ class Book(mediahandler.types.Media):
         new_files = []
         # Get chapter parts
         file_parts = self._get_chapters(file_path, file_array,
-                                        self.handler['file_type'])
+                                        self.settings['file_type'])
         # Create m4b for each file part
         for i, file_part in enumerate(file_parts):
             part_path = '%s/Part %s' % (file_path, str(i+1))
             # Define chapter query
-            b_cmd = ['/usr/bin/php', '-f', self.handler['abc'],
+            b_cmd = ['/usr/bin/php', '-f', self.settings['abc'],
                      file_part,  # Path to book files
                      self.book_info['author'].encode("utf8"),  # artist
                      self.book_info['long_title'].encode("utf8"),  # album
                      self.book_info['short_title'].encode("utf8"),  # title
                      self.book_info['genre'].encode("utf8"),  # genre
                      self.book_info['year'].encode("utf8"),  # year
-                     self.handler['file_type']]  # file type
+                     self.settings['file_type']]  # file type
             logging.debug("ABC query:\n%s", b_cmd)
             # Process query
             b_open = Popen(b_cmd, stdout=PIPE, stderr=PIPE)
@@ -269,7 +256,7 @@ class Book(mediahandler.types.Media):
             created_file = '%s/%s.m4b' % (part_path, bfiles.group(1))
             new_file_path = '%s/%s - %s.m4b' % (file_path,
                                                 bfiles.group(1), str(i+1))
-            # Remave file with part #
+            # Rename file with part #
             move(created_file, new_file_path)
             logging.debug("New file path: %s", new_file_path)
             # Add to array
@@ -292,14 +279,14 @@ class Book(mediahandler.types.Media):
         # loop through all the files in dir
         for item in sorted(file_list):
             # Look for file types we want
-            good_file = re.search(self.handler['regex']['c'], item, re.I)
+            good_file = re.search(self.settings['regex']['c'], item, re.I)
             if good_file:
                 full_path = '%s/%s' % (file_dir, item)
                 book_files.append(full_path)
             # Look for file types we can chapterize
-            bad_file = re.search(self.handler['regex']['nc'], item, re.I)
+            bad_file = re.search(self.settings['regex']['nc'], item, re.I)
             if bad_file:
-                self.handler['file_type'] = bad_file.group(1)
+                self.settings['file_type'] = bad_file.group(1)
                 to_chapterize.append(item)
         # See if any files need chapterizing
         if make_chapters:
@@ -334,7 +321,7 @@ class Book(mediahandler.types.Media):
             folder_title = '%s_ %s' % (self.book_info['short_title'],
                                        self.book_info['subtitle'])
         # Set new book directory path
-        book_dir = '%s/%s/%s' % (self.handler['path'],
+        book_dir = '%s/%s/%s' % (self.settings['folder'],
                                  self.book_info['author'], folder_title)
         logging.debug("New directory: %s", book_dir)
         # Create the folder
@@ -361,9 +348,9 @@ class Book(mediahandler.types.Media):
                 new_path = '%s/%s.m4b' % (book_dir, new_name)
             else:
                 # Set non-chaptered file paths & formatting
-                start_path = '%s/%s' % (self.handler['orig_path'], book_file)
+                start_path = '%s/%s' % (self.settings['orig_path'], book_file)
                 new_path = "%s/%02d - %s.%s" % (book_dir, i+1, new_name,
-                                                self.handler['file_type'])
+                                                self.settings['file_type'])
             logging.debug("Start path: %s", start_path)
             logging.debug("New path: %s", new_path)
             # Check for duplicate
@@ -390,7 +377,7 @@ class Book(mediahandler.types.Media):
         '''Move single file into its own folder'''
         logging.info("Handling as single file")
         # Set root path
-        path_root = self.handler['orig_path']
+        path_root = self.settings['orig_path']
         # Set new folder
         new_folder = path.join(path_root, path_name)
         logging.debug("New folder: %s", new_folder)
@@ -415,7 +402,7 @@ class Book(mediahandler.types.Media):
         '''Get metadata from google books api '''
         logging.info("Querying Google Books")
         # Connect to Google Books API
-        service = build('books', 'v1', developerKey=self.handler['api_key'])
+        service = build('books', 'v1', developerKey=self.settings['api_key'])
         # Make API request
         request = service.volumes().list(
             q=query,
@@ -433,23 +420,20 @@ class Book(mediahandler.types.Media):
             logging.debug("Published date: %s", published)
             # Extract just the year
             find_year = re.match(r"(\d{4})", published)
-            if find_year is None:
-                logging.error("No year found")
-                year = '9999'
-            else:
+            year = ''
+            if find_year is not None:
                 year = find_year.group(1)
             # Check for categories
+            category = "Audiobook"
             if 'categories' in book['volumeInfo']:
                 category = book['volumeInfo']['categories'][0]
-            else:
-                category = "Audiobook"
+            # look for titles
+            long_title = book['volumeInfo']['title']
+            subtitle = None
             if 'subtitle' in book['volumeInfo']:
                 long_title = '%s: %s' % (book['volumeInfo']['title'],
                                          book['volumeInfo']['subtitle'])
                 subtitle = book['volumeInfo']['subtitle']
-            else:
-                long_title = book['volumeInfo']['title']
-                subtitle = None
             # Set book information file structure
             logging.info("Google Book ID: %s", book['id'])
             new_book_info = {
@@ -478,8 +462,8 @@ class Book(mediahandler.types.Media):
         if path.isfile(raw):
             raw = self._single_file(raw, refined)
         # Use custom search string, if defined
-        if 'custom_search' in self.handler.keys():
-            refined = self.handler['custom_search']
+        if 'custom_search' in self.settings.keys():
+            refined = self.settings['custom_search']
             logging.debug("Custom search query: %s", refined)
         # Get book info from Google
         self.book_info = self.ask_google(refined)
@@ -488,7 +472,7 @@ class Book(mediahandler.types.Media):
         cover_file = self._save_cover(raw, self.book_info['cover'])
         logging.debug("Cover image: %s", cover_file)
         # Get files and chapterize files, if enabled
-        get_result = self._get_files(raw, self.handler['make_chapters'])
+        get_result = self._get_files(raw, self.settings['make_chapters'])
         (is_chapterized, book_files) = get_result
         logging.debug(book_files)
         # Verify success
@@ -496,7 +480,7 @@ class Book(mediahandler.types.Media):
             self.push.failure("Unable to chapterize book: %s" % raw)
         # Move & rename files
         (move_files, skips) = self._move_files(book_files,
-                                               self.handler['make_chapters'])
+                                               self.settings['make_chapters'])
         logging.debug("Move was successful: %s", move_files)
         # Verify success
         if move_files is None:

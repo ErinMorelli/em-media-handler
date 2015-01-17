@@ -107,10 +107,18 @@ class Handler(object):
         '''Send files to be extracted'''
         logging.info("Extracting files from compressed file")
         self.settings['extracted'] = raw
+        # Look for filebot
+        if 'has_filebot' in self.settings['TV'].keys():
+            filebot = self.settings['TV']['has_filebot']
+        elif 'has_filebot' in self.settings['Movies'].keys():
+            filebot = self.settings['Movies']['has_filebot']
+        else:
+            self.push.failure("Filebot required to extract: %s"
+                              % self.args['name'])
         # Import extract module
         import mediahandler.util.extract as Extract
         # Send to handler
-        extracted = Extract.get_files(raw)
+        extracted = Extract.get_files(filebot, raw)
         if extracted is None:
             self.push.failure("Unable to extract files: %s"
                               % self.args['name'])
@@ -133,14 +141,9 @@ class Handler(object):
         if re.search(regex, file_string, flags):
             logging.debug("Zipped file type detected")
             # Send to extractor
-            if ('has_filebot' in self.settings['TV'].keys() or
-                    'has_filebot' in self.settings['Movies'].keys()):
-                get_files = self.extract_files(files)
-                # Rescan files
-                self._file_handler(get_files)
-            else:
-                self.push.failure("Filebot required to extract: %s"
-                                  % self.args['name'])
+            get_files = self.extract_files(files)
+            # Rescan files
+            self._file_handler(get_files)
         return
 
     # ======== REMOVE FILES ======== #
@@ -173,7 +176,6 @@ class Handler(object):
     def _file_handler(self, files):
         '''Handle files by type'''
         logging.info("Starting files handler")
-        skip = False
         # Look for zipped file first
         self._find_zipped(files)
         # Only set this flag for single files
@@ -184,8 +186,19 @@ class Handler(object):
         elif len(listdir(files)) == 0:
             self.push.failure("No %s files found for: %s" %
                               (self.args['stype'], self.args['name']))
-        # Process file location type
-        (added_files, skipped_files) = self.add_media_files(files)
+        # Add files
+        results = self.add_media_files(files)
+        # Check results
+        return self._check_success(files, results)
+
+    # ======== CHECK FOR SUCCESS ======== #
+
+    def _check_success(self, files, results):
+        '''Check the results of add_media_files'''
+        logging.info("Checking for success")
+        skip = False
+        # Extract results
+        (added_files, skipped_files) = results
         # Make sure files were added
         if len(added_files) == 0 and len(skipped_files) == 0:
             self.push.failure("No %s files found for: %s" %

@@ -39,6 +39,7 @@ class ExtractBadZipTests(unittest.TestCase):
         args = { 'name': self.name }
         # Make handler
         self.handler = MH.Handler(args)
+        self.filebot = self.handler.settings['TV']['has_filebot']
         # Bad zip non without extension
         get_bad_non_zip = tempfile.NamedTemporaryFile(
             dir=os.path.dirname(self.conf),
@@ -61,26 +62,24 @@ class ExtractBadZipTests(unittest.TestCase):
         os.unlink(self.bad_non_zip)
 
     def test_bad_zip(self):
-        self.assertIsNone(Extract.get_files(self.bad_zip))
+        self.assertIsNone(Extract.get_files(self.filebot, self.bad_zip))
     
     def test_bad_non_zip(self):
-        self.assertIsNone(Extract.get_files(self.bad_non_zip))
+        self.assertIsNone(Extract.get_files(self.filebot, self.bad_non_zip))
 
     def test_bad_handler_zip(self):
         # Run handler
         regex = r'Unable to extract files: %s' % self.name
         self.assertRaisesRegexp(
             SystemExit, regex,
-            self.handler.extract_files, self.bad_zip
-        )
+            self.handler.extract_files, self.bad_zip)
 
     def test_bad_handler_non_zip(self):
         # Run handler
         regex = r'Unable to extract files: %s' % self.name
         self.assertRaisesRegexp(
             SystemExit, regex,
-            self.handler.extract_files, self.bad_non_zip
-        )
+            self.handler.extract_files, self.bad_non_zip)
 
 
 class ExtractGoodZipTests(unittest.TestCase):
@@ -98,6 +97,7 @@ class ExtractGoodZipTests(unittest.TestCase):
         }
         # Make handler
         self.handler = MH.Handler(args)
+        self.filebot = self.handler.settings['Movies']['has_filebot']
         # Make a good zip file contents
         get_good_zip1 = tempfile.NamedTemporaryFile(
             suffix='.tmp',
@@ -126,12 +126,21 @@ class ExtractGoodZipTests(unittest.TestCase):
         shutil.rmtree(folder)
 
     def test_good_extract(self):
-        files = Extract.get_files(self.zip_name)
+        files = Extract.get_files(self.filebot, self.zip_name)
         folder = '%s/test_ET' % os.path.dirname(self.conf)
         self.assertEqual(files, folder)
         self.assertTrue(os.path.exists(files))
 
-    def test_good_handler_zip(self):
+    def test_good_handler_zip_tv(self):
+        # Run handler
+        files = self.handler.extract_files(self.zip_name)
+        folder = '%s/test_ET' % os.path.dirname(self.conf)
+        self.assertEqual(files, folder)
+        self.assertTrue(os.path.exists(files))
+        self.assertEqual(self.handler.settings['extracted'], self.zip_name)
+
+    def test_good_handler_zip_movies(self):
+        del self.handler.settings['TV']['has_filebot']
         # Run handler
         files = self.handler.extract_files(self.zip_name)
         folder = '%s/test_ET' % os.path.dirname(self.conf)
@@ -143,7 +152,8 @@ class ExtractGoodZipTests(unittest.TestCase):
         # Run handler
         regex = r'Folder for TV not found: .*/Media/TV'
         self.assertRaisesRegexp(
-            SystemExit, regex, self.handler._find_zipped, self.zip_name)
+            SystemExit, regex,
+            self.handler._find_zipped, self.zip_name)
 
 
 def suite():

@@ -26,13 +26,9 @@ from subprocess import Popen, PIPE
 
 # ======== GET FILES ======== #
 
-def get_files(file_name):
+def get_files(filebot, file_name):
     '''Extract files'''
     logging.info("Getting files from compressed folder")
-    # Filebot path
-    filebot = '/usr/bin/filebot'
-    if not path.isfile(filebot):
-        filebot = '/usr/local/bin/filebot'
     # Set up query
     m_cmd = [filebot,
              "-extract",

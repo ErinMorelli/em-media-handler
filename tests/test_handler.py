@@ -404,6 +404,43 @@ class FileHandlerTests(HandlerTestClass):
             SystemExit, regex, self.handler._file_handler, self.dir)
 
 
+class CheckSuccessTests(HandlerTestClass):
+
+    def test_results_none(self):
+        results = ([], [])
+        regex = r'No TV files found for: %s' % self.name
+        self.assertRaisesRegexp(
+            SystemExit, regex, self.handler._check_success, self.dir, results)
+
+    def test_results_skips(self):
+        results = ([], [self.dir])
+        regex = r'Some files were skipped:\n - %s' % self.dir 
+        added = self.handler._check_success(self.dir, results)
+        self.assertRegexpMatches(added, regex)
+        self.assertTrue(os.path.exists(self.dir))
+
+    def test_results_good(self):
+        self.handler.settings['single_file'] = False
+        results = ([self.dir], [])
+        regex = (r'Media was successfully added to your server:\n \+ %s'
+                % self.dir)
+        added = self.handler._check_success(self.dir, results)
+        self.assertRegexpMatches(added, regex)
+        self.assertFalse(os.path.exists(self.dir))
+
+    def test_results_both(self):
+        self.handler.settings['single_file'] = True
+        self.tmp_file = _common.make_tmp_file()
+        results = ([self.tmp_file], [self.dir])
+        regex1 = (r'Media was successfully added to your server:\n \+ %s'
+                % self.tmp_file)
+        regex2 = r'Some files were skipped:\n - %s' % self.dir 
+        regex = r'%s\n\n%s' % (regex1, regex2)
+        added = self.handler._check_success(self.dir, results)
+        self.assertRegexpMatches(added, regex)
+        self.assertTrue(os.path.exists(self.dir))
+
+
 class FindZippedTests(HandlerTestClass):
 
     def run_process_folder_test(self, ext, filebot=False):
