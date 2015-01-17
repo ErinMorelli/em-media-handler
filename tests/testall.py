@@ -20,27 +20,19 @@ import re
 import sys
 
 from _common import unittest
+from _common import MHTestSuite
 
 pkgpath = os.path.dirname(__file__) or '.'
 sys.path.append(pkgpath)
-#os.chdir(pkgpath)
-
-# try:
-#     del sys.modules["mediahandler"]
-# except KeyError:
-#     pass
 
 
 # TODO:
-#  - Create new, default settings.conf
-#    + save old one
-#    + restore old conf on test finish
 #  - Fix output buffering
 #    + http://nullege.com/codes/search/unittest.TestResult
 
 
 def suite():
-    s = unittest.TestSuite()
+    s = MHTestSuite()
     for fname in os.listdir(pkgpath):
         match = re.match(r'(test_\S+)\.py$', fname)
         if match:
@@ -50,4 +42,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite', verbosity=2, buffer=False)
+    unittest.main(defaultTest='suite', verbosity=0, buffer=True)

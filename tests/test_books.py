@@ -22,6 +22,7 @@ from mutagen.mp3 import MP3
 
 import _common
 from _common import unittest
+from _common import MHTestSuite
 
 from test_media import MediaObjectTests
 
@@ -213,50 +214,114 @@ class GetChaptersTests(BookMediaObjectTests):
         self.assertEqual(len(result), 1)
         self.assertListEqual(result, expected)
 
-@unittest.skipUnless(sys.platform.startswith("linux"), "requires Ubuntu")
-class ChapterizeFilesTests(BookMediaObjectTests):
-
-    def setUp(self):
-        super(ChapterizeFilesTests, self).setUp()
-        self.book.settings['file_type'] = 'mp3'
+    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Ubuntu")
+    def test_make_chapters(self):
         # Set up book info
+        self.make_cover()
         self.book.book_info = self.book.ask_google('Paul Doiron Bone Orchard')
         # Set up abc path
         self.book.settings['has_abc'] = '/usr/local/bin/abc.php'
         if not os.path.exists(self.book.settings['has_abc']):
             self.book.settings['has_abc'] = '/usr/bin/abc.php'
-
-    def make_cover(self):
-        # Make dummy cover image
-        tmp_img = _common.make_tmp_file('.jpg')
-        cover_img = '%s/cover.jpg' % self.folder
-        shutil.move(tmp_img, cover_img)
-
-    def test_make_chapters(self):
         # Set max length to 30 mins
         self.book.settings['max_length'] = 1800
+        self.book.settings['file_type'] = 'mp3'
         # Copy files into folder
         for x in range(0, 2):
             dst = '%s/0%s-track.mp3' % (self.folder, str(x+1))
             shutil.copy(self.audio_file, dst)
-        # Set up query
-        file_array = sorted(os.listdir(self.folder))
         # Make cover
-        self.make_cover()
         expected = [
             ('%s/Paul Doiron - The Bone Orchard: A Novel - 1.m4b' % self.folder),
         ]
         # Run test
-        (success, result) = self.book._chapterize_files(self.folder, file_array)
+        (success, result) = self.book._get_files(self.folder, True)
         # # Check results
         self.assertTrue(success)
         self.assertEqual(len(result), 1)
         self.assertListEqual(result, expected)
 
 
+class GetFilesTests(BookMediaObjectTests):
+
+    def test_get_files_mixed(self):
+        # Set up folder
+        book_file1 = _common.make_tmp_file('.m4b', self.folder)
+        book_file2 = _common.make_tmp_file('.m4b', self.folder)
+        book_file3 = _common.make_tmp_file('.mp3', self.folder)
+        # Set up test
+        expected = [book_file1, book_file2]
+        # Run test
+        (success, result) = self.book._get_files(self.folder, False)
+        # Check results
+        self.assertTrue(success)
+        self.assertListEqual(sorted(expected), sorted(result))
+
+    def test_get_files_good(self):
+        # Set up folder
+        book_file1 = _common.make_tmp_file('.m4b', self.folder)
+        book_file2 = _common.make_tmp_file('.m4b', self.folder)
+        # Set up test
+        expected = [book_file1, book_file2]
+        # Run test
+        (success, result) = self.book._get_files(self.folder, False)
+        # Check results
+        self.assertTrue(success)
+        self.assertListEqual(sorted(expected), sorted(result))
+
+    def test_get_files_bad(self):
+        # Set up folder
+        book_file1 = _common.make_tmp_file('.mp3', self.folder)
+        book_file2 = _common.make_tmp_file('.mp3', self.folder)
+        # Set up test
+        expected = [
+            os.path.basename(book_file1),
+            os.path.basename(book_file2)
+        ]
+        # Run test
+        (success, result) = self.book._get_files(self.folder, False)
+        # Check results
+        self.assertTrue(success)
+        self.assertListEqual(sorted(expected), sorted(result))
+        self.assertEqual(self.book.settings['file_type'], 'mp3')
+
+    @_common.skipUnlessHasMod('mutagen', 'mp3')
+    def test_get_files_bad_chaptered(self):
+        # Set up folder
+        book_file1 = _common.make_tmp_file('.mp3', self.folder)
+        book_file2 = _common.make_tmp_file('.mp3', self.folder)
+        # Set up test
+        import mutagen.mp3
+        # Run test
+        regex = r''
+        self.assertRaisesRegexp(mutagen.mp3.HeaderNotFoundError,
+            regex, self.book._get_files, self.folder, True)
+
+    def test_get_files_none(self):
+        # Set up folder
+        book_file1 = _common.make_tmp_file('.m4a', self.folder)
+        book_file2 = _common.make_tmp_file('.m4a', self.folder)
+        # Set up test
+        expected = []
+        # Run test
+        (success, result) = self.book._get_files(self.folder, False)
+        # Check results
+        self.assertFalse(success)
+        self.assertListEqual(expected, result)
+
+# TO DO:
+#  - only book files
+#  - only bad files
+#      + with/without chaptering
+#  - no files
+
+
 def suite():
-    return unittest.TestLoader().loadTestsFromName(__name__)
+    s = MHTestSuite()
+    tests = unittest.TestLoader().loadTestsFromName(__name__)
+    s.addTest(tests)
+    return s
 
 
 if __name__ == '__main__':
-    unittest.main(verbosity=2) #, buffer=True)
+    unittest.main(defaultTest='suite', verbosity=2) #, buffer=True)

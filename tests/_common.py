@@ -16,6 +16,7 @@
 '''Common testing functions module'''
 
 import os
+import shutil
 import string
 import tempfile
 from random import choice
@@ -26,6 +27,54 @@ except ImportError:
     import unittest
 
 import mediahandler.util.config as Config
+
+
+class MHTestSuite(unittest.TestSuite):
+
+    def setUpSuite(self):
+        # Back up current config
+        curr_config = get_conf_file()
+        backup = '%s/config.yml.orig' % os.path.dirname(curr_config)
+        if not os.path.exists(backup):
+            shutil.move(curr_config, backup)
+        # Make new config for testing
+        new_config = Config.make_config()
+
+    def tearDownSuite(self):
+        # Restore original config
+        curr_config = get_conf_file()
+        backup = '%s/config.yml.orig' % os.path.dirname(curr_config)
+        if os.path.exists(backup):
+            shutil.move(backup, curr_config)
+
+    def run(self, result):
+        # Before tests
+        self.setUpSuite()
+        # Run tests
+        super(MHTestSuite, self).run(result)
+        # After tests
+        self.tearDownSuite()
+
+
+def skipUnlessHasMod(module, submodule):
+    try:
+        Config._find_module(module, submodule)
+    except ImportError:
+        return unittest.skip("requires module {0}.{1}".format(module, submodule))
+    else:
+        return lambda func: func
+
+
+def _find_module(parent_mod, sub_mod):
+    '''Look to see if module is installed'''
+    try:
+        mod_info = imp.find_module(parent_mod)
+        mod = imp.load_module(parent_mod, *mod_info)
+        imp.find_module(sub_mod, mod.__path__)
+        return True
+    except ImportError:
+        err_msg = 'Module %s.%s is not installed' % (parent_mod, sub_mod)
+        raise ImportError(err_msg)
 
 
 def get_test_id(size=4):

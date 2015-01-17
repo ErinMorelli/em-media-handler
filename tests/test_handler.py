@@ -24,6 +24,7 @@ from twisted.internet import error
 import _common
 from _common import unittest
 from _common import tempfile
+from _common import MHTestSuite
 
 import mediahandler.handler as MH
 import mediahandler.util.notify as Notify
@@ -654,9 +655,12 @@ class AddMediaFilesTests(HandlerTestClass):
 
 
 def suite():
-    return unittest.TestLoader().loadTestsFromName(__name__)
+    s = MHTestSuite()
+    tests = unittest.TestLoader().loadTestsFromName(__name__)
+    s.addTest(tests)
+    return s
 
 
 if __name__ == '__main__':
-    unittest.main(verbosity=2) #, buffer=True)
+    unittest.main(defaultTest='suite', verbosity=2, buffer=True)
     

@@ -49,8 +49,8 @@ class Book(object):
         # Set up book settings
         self.settings = dict(settings.items() + {
             'regex': {
-                "nc": r".(mp3|ogg|wav)$",
-                "c": r".(m4b)$",
+                "nc": r"\.(mp3|ogg|wav)$",
+                "c": r"\.(m4b)$",
             },
             'audio': {
                 'MP3': MP3,
@@ -299,9 +299,12 @@ class Book(object):
                     book_files = new_files
                 else:
                     return False, new_files
-        else:
+        elif len(book_files) == 0 and len(to_chapterize) > 0:
             logging.debug("Not making chapters")
             book_files = to_chapterize
+        elif len(book_files) > 0 and len(to_chapterize):
+            logging.warning('Non-chaptered files were found and ignored: %s',
+                            ', '.join(to_chapterize))
         # Make sure we have chapterized files to return
         logging.debug("Final book file count: %s", len(book_files))
         if len(book_files) > 0:

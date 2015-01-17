@@ -20,6 +20,7 @@ import shutil
 
 import _common
 from _common import unittest
+from _common import MHTestSuite
 
 from test_media import MediaObjectTests
 
@@ -140,8 +141,11 @@ Skipping.
 
 
 def suite():
-    return unittest.TestLoader().loadTestsFromName(__name__)
+    s = MHTestSuite()
+    tests = unittest.TestLoader().loadTestsFromName(__name__)
+    s.addTest(tests)
+    return s
 
 
 if __name__ == '__main__':
-    unittest.main(verbosity=2, buffer=True)
+    unittest.main(defaultTest='suite', verbosity=2, buffer=True)
