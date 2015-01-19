@@ -38,7 +38,8 @@ class MusicMediaObjectTests(MediaObjectTests):
 
     def test_new_music_object(self):
         expected = r"(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n"
-        self.assertEqual(self.tracks.beet, '/usr/local/bin/beet')
+        beet_path = os.path.join('/', 'usr', 'local', 'bin', 'beet')
+        self.assertEqual(self.tracks.beet, beet_path)
         self.assertEqual(self.tracks.query['tags'], '-ql')
         self.assertEqual(self.tracks.query['added'], expected)
 
@@ -52,12 +53,12 @@ class MusicMediaObjectTests(MediaObjectTests):
 
     def test_music_add_log(self):
         # Make dummy logfile
-        name = 'test-%s.log' % _common.get_test_id()
-        folder = '%s/tmpl' % os.path.dirname(self.conf)
-        log_file = '%s/%s' % (folder, name)
+        name = 'test-{0}.log'.format(_common.get_test_id())
+        folder = os.path.join(os.path.dirname(self.conf), 'tmpl')
+        log_file = os.path.join(folder, name)
         self.tracks.settings['log_file'] = log_file
         # Run tests
-        regex = r'Unable to match tracks: %s' % self.tmp_file
+        regex = r'Unable to match tracks: {0}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.tracks.add, self.tmp_file)
         self.assertTrue(os.path.exists(folder))

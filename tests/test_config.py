@@ -39,7 +39,7 @@ class FindModulesTests(unittest.TestCase):
     def test_find_module_failure(self):
         module = _common.random_string(8)
         submod = _common.random_string(5)
-        regex = "Module %s.%s is not installed" % (module, submod)
+        regex = "Module {0}.{1} is not installed".format(module, submod)
         self.assertRaisesRegexp(ImportError, regex,
                                 Config._find_module, module, submod)
 
@@ -128,11 +128,11 @@ class InitLoggingTests(unittest.TestCase):
         # Conf
         self.conf = _common.get_conf_file()
         # Unique test ID
-        self.name = 'test-%s' % _common.get_test_id()
+        self.name = 'test-{0}'.format(_common.get_test_id())
         self.folder = _common.random_string(9)
         # Set logfile
-        self.dir = '%s/%s' % (os.path.dirname(self.conf), self.folder)
-        self.log_file = '%s/%s.log' % (self.dir, self.name)
+        self.dir = os.path.join(os.path.dirname(self.conf), self.folder)
+        self.log_file = os.path.join(self.dir, '{0}.log'.format(self.name))
 
     def tearDown(self):
         if os.path.exists(self.dir):
@@ -232,9 +232,10 @@ class FileValidationConfigTests(unittest.TestCase):
         file_good = Config._get_valid_file('Music', 'log_file', self.tmp_file)
         self.assertEqual(file_good, self.tmp_file)
         # Invalid case
+        log_file = os.path.join('path', 'to', 'log.log')
         regex = "Path to file provided for 'Logging: log_file' does not exist:"
         self.assertRaisesRegexp(ValueError, regex,
-                                Config._get_valid_file, 'Logging', 'log_file', '/path/to/log.log')
+                                Config._get_valid_file, 'Logging', 'log_file', log_file)
 
     def test_valid_folder(self):
         self.dir = self.dir = tempfile.mkdtemp(
@@ -246,9 +247,10 @@ class FileValidationConfigTests(unittest.TestCase):
         folder_good = Config._get_valid_folder('TV', 'folder', self.dir)
         self.assertEqual(folder_good, self.dir)
         # Invalid case
+        mov_folder = os.path.join('path', 'to', 'movies')
         regex = r"Path provided for 'Movies: folder' does not exist: .*"
         self.assertRaisesRegexp(ValueError, regex,
-                                Config._get_valid_folder, 'Movies', 'folder', '/path/to/movies')
+                                Config._get_valid_folder, 'Movies', 'folder', mov_folder)
 
 
 class MissingSectionConfigTest(unittest.TestCase):
@@ -326,15 +328,15 @@ class MakeConfigTests(unittest.TestCase):
 
     def setUp(self):
         # Conf
-        self.conf = ('%s/.config/mediahandler/config.yml' % 
-                   os.path.expanduser("~"))
+        self.conf = os.path.join(os.path.expanduser("~"),
+            '.config', 'mediahandler', 'config.yml')
         self.name = _common.get_test_id()
         # New conf
         self.tmp_file = ''
         self.maxDiff = None
 
     def tearDown(self):
-        folder = '%s/tmp' % os.path.dirname(self.conf)
+        folder = os.path.join(os.path.dirname(self.conf), 'tmp')
         if os.path.exists(folder):
             shutil.rmtree(folder)
         if os.path.exists(self.tmp_file):
@@ -354,14 +356,14 @@ class MakeConfigTests(unittest.TestCase):
 
     @unittest.skipUnless('SUDO_UID' in os.environ.keys(), 'for sudoers only')
     def test_conf_permissions(self):
-        self.tmp_file = '%s/%s.yml' % (os.path.dirname(self.conf), self.name)
+        self.tmp_file = os.path.join(os.path.dirname(self.conf), '{0}.yml'.format(self.name))
         file_path = Config.make_config(self.tmp_file)
         self.assertEqual(
             int(os.environ['SUDO_UID']), self.get_owner(file_path))
 
     def test_custom_conf(self):
-        name = 'test-%s.conf' % _common.get_test_id()
-        self.tmp_file = '%s/tmp/%s' % (os.path.dirname(self.conf), name)
+        name = 'test-{0}.conf'.format(_common.get_test_id())
+        self.tmp_file =  os.path.join(os.path.dirname(self.conf), 'tmp', name)
         results = Config.make_config(self.tmp_file)
         self.assertEqual(self.tmp_file, results)
         # Check formatting

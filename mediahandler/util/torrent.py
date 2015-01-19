@@ -29,15 +29,15 @@ def show_deluge_usage(code, msg=None):
     '''Show command line usage'''
     # Generate usage text
     usage_text = '''
-EM Media Handler v%s / by %s
+EM Media Handler v{0} / by {1}
 
 Usage:
         addmedia-deluge [Torrent ID] [Torrent Name] [Torrent Path]
 
-''' % (mh.__version__, mh.__author__)
+'''.format(mh.__version__, mh.__author__)
     # Print error, if it exists
     if msg is not None:
-        print "\nERROR: %s\n" % msg
+        print "\nERROR: {0}\n".format(msg)
     # Output text
     print usage_text
     # Exit program

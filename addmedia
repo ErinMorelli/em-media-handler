@@ -33,7 +33,7 @@ def main():
     # Add files
     added = handler.add_media()
     # Print for CLI
-    print '\n%s' % added
+    print '\n{0}'.format(added)
     # Finish
     return added
 

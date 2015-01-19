@@ -34,8 +34,8 @@ class Tracks(mediahandler.types.Media):
         self.ptype = None
         super(Tracks, self).__init__(settings, push)
         # Beet
-        self.beet = "/usr/local/bin/beet"
-        self.beetslog = '%s/logs/beets.log' % path.expanduser("~")
+        self.beet = path.join('/', 'usr', 'local', 'bin', 'beet')
+        self.beetslog = path.join(path.expanduser("~"), 'logs', 'beets.log')
         # Query info
         self.query = {
             'tags': '-ql',

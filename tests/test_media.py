@@ -44,9 +44,9 @@ class MediaObjectTests(unittest.TestCase):
             dir=os.path.dirname(self.conf))
         self.tmp_file = _common.make_tmp_file('.avi')
         # Set filebot
-        self.filebot = '/usr/bin/filebot'
-        if not os.path.isfile('/usr/bin/filebot'):
-            self.filebot = '/usr/local/bin/filebot'
+        self.filebot = os.path.join('/', 'usr', 'bin', 'filebot')
+        if not os.path.isfile(self.filebot):
+            self.filebot = os.path.join('/', 'usr', 'local', 'bin', 'filebot')
         # Build base settings
         self.settings = _common.get_settings()['TV']
         self.settings['folder'] = self.folder
@@ -91,24 +91,24 @@ class BaseMediaObjectTests(MediaObjectTests):
 
     def test_new_media_bad_folder(self):
         # Dummy folder path
-        self.settings['folder'] = '/path/to/fake'
+        self.settings['folder'] = os.path.join('path', 'to', 'fake')
         # Run test 1
-        regex1 = r'Folder for Media not found: /path/to/fake'
+        regex1 = r'Folder for Media not found: {0}'.format(self.settings['folder'])
         self.assertRaisesRegexp(
             SystemExit, regex1, Types.Media, self.settings, self.push)
         # Run test 2
-        regex2 = r'Folder for Media not found: .*/Media/Media'
+        regex2 = r'Folder for Media not found: .*Media'
         self.assertRaisesRegexp(
             SystemExit, regex2, Types.Media, {}, self.push)
 
     def test_media_add(self):
-        regex = r'Unable to match media: %s' % self.tmp_file
+        regex = r'Unable to match media: {0}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.media.add, self.tmp_file)
 
     def test_media_add_logging(self):
-        self.settings['log_file'] = '%s/media.log' % self.folder
-        regex = r'Unable to match media: %s' % self.tmp_file
+        self.settings['log_file'] = os.path.join(self.folder, 'media.log')
+        regex = r'Unable to match media: {0}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.media.add, self.tmp_file)
 

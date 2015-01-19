@@ -19,7 +19,6 @@
 # ======== IMPORT MODULES ======== #
 
 import logging
-from os import path
 from re import search
 from subprocess import Popen, PIPE
 

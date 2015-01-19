@@ -35,8 +35,8 @@ class BookMediaObjectTests(MediaObjectTests):
         # Call Super
         super(BookMediaObjectTests, self).setUp()
         # Real audio file for testing
-        self.audio_file = ('%s/extra/test_mp3_file.mp3'
-                            % os.path.dirname(__file__))
+        self.audio_file = os.path.join(
+            os.path.dirname(__file__), 'extra', 'test_mp3_file.mp3')
         # Book-specific settings
         self.settings['api_key'] = _common.get_google_api()
         self.settings['chapter_length'] = None
@@ -68,27 +68,27 @@ class BaseBookObjectTests(BookMediaObjectTests):
 class BookCleanStringTests(BookMediaObjectTests):
 
     def test_blacklist_string(self):
-        string = '%s/Yes Please iTunes Audiobook Unabridged' % self.folder
+        string = os.path.join(self.folder, 'Yes Please iTunes Audiobook Unabridged')
         expected = 'Yes Please'
         self.assertEqual(self.book._clean_string(string), expected)
 
     def test_bracket_string(self):
-        string = '%s/The Lovely Bones [A Novel] (Mp3) {TKP}' % self.folder
+        string = os.path.join(self.folder, 'The Lovely Bones [A Novel] (Mp3) {TKP}')
         expected = 'The Lovely Bones'
         self.assertEqual(self.book._clean_string(string), expected)
 
     def test_non_alphanum_string(self):
-        string = '%s/Jar City - A Novel - 2000' % self.folder
+        string = os.path.join(self.folder, 'Jar City - A Novel - 2000')
         expected = 'Jar City A Novel'
         self.assertEqual(self.book._clean_string(string), expected)
 
     def test_whitespace_string(self):
-        string = '%s/The   Goldfinch  ' % self.folder
+        string = os.path.join(self.folder, 'The   Goldfinch  ')
         expected = 'The Goldfinch'
         self.assertEqual(self.book._clean_string(string), expected)
 
     def test_extras_string(self):
-        string = '%s/Black Skies CPK MP3 ENG YIFY' % self.folder
+        string = os.path.join(self.folder, 'Black Skies CPK MP3 ENG YIFY')
         expected = 'Black Skies'
         self.assertEqual(self.book._clean_string(string), expected)
 
@@ -97,7 +97,7 @@ class BookSaveCoverTests(BookMediaObjectTests):
 
     def test_save_cover_new(self):
         img_url = 'http://books.google.com/books/content?id=4lYZAwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api'
-        expected = '%s/cover.jpg' % self.folder
+        expected = os.path.join(self.folder, 'cover.jpg')
         self.assertFalse(os.path.exists(expected))
         result = self.book._save_cover(self.folder, img_url)
         self.assertEqual(result, expected)
@@ -106,7 +106,7 @@ class BookSaveCoverTests(BookMediaObjectTests):
 
     def test_save_cover_exists(self):
         img_url = 'http://books.google.com/books/content?id=4lYZAwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api'
-        expected = '%s/cover.jpg' % self.folder
+        expected = os.path.join(self.folder, 'cover.jpg')
         # Make file
         with open(expected, 'w'):
             pass
@@ -124,7 +124,7 @@ class BookCalculateChunkTests(BookMediaObjectTests):
         self.book.settings['max_length'] = 1800
         # Copy files into folder
         for x in range(0, 6):
-            dst = '%s/0%s-track.mp3' % (self.folder, str(x+1))
+            dst = os.path.join(self.folder, '0{0}-track.mp3'.format(str(x+1)))
             shutil.copy(self.audio_file, dst)
         # Set up query
         file_array = sorted(os.listdir(self.folder))
@@ -143,7 +143,7 @@ class BookCalculateChunkTests(BookMediaObjectTests):
         # Set max length to 15 mins
         self.book.settings['max_length'] = 900
         # Copy file into folder
-        dst = '%s/01-track.mp3' % self.folder
+        dst = os.path.join(self.folder, '01-track.mp3')
         shutil.copy(self.audio_file, dst)
         # Set up query
         file_array = sorted(os.listdir(self.folder))
@@ -158,7 +158,7 @@ class BookCalculateChunkTests(BookMediaObjectTests):
         # Set max length to 10 mins
         self.book.settings['max_length'] = 600
         # Copy file into folder
-        dst = '%s/01-track.mp3' % self.folder
+        dst = os.path.join(self.folder, '01-track.mp3')
         shutil.copy(self.audio_file, dst)
         # Set up query
         file_array = sorted(os.listdir(self.folder))
@@ -175,7 +175,7 @@ class GetChaptersTests(BookMediaObjectTests):
     def make_cover(self):
         # Make dummy cover image
         tmp_img = _common.make_tmp_file('.jpg')
-        cover_img = '%s/cover.jpg' % self.folder
+        cover_img = os.path.join(self.folder, 'cover.jpg')
         shutil.move(tmp_img, cover_img)
 
     def test_chapters_mulipart(self):
@@ -183,16 +183,16 @@ class GetChaptersTests(BookMediaObjectTests):
         self.book.settings['max_length'] = 1800
         # Copy files into folder
         for x in range(0, 6):
-            dst = '%s/0%s-track.mp3' % (self.folder, str(x+1))
+            dst = os.path.join(self.folder, '0{0}-track.mp3'.format(str(x+1)))
             shutil.copy(self.audio_file, dst)
         # Set up query
         file_array = sorted(os.listdir(self.folder))
         # Make cover
         self.make_cover()
         expected = [
-            ('%s/Part 1' % self.folder),
-            ('%s/Part 2' % self.folder),
-            ('%s/Part 3' % self.folder),
+            os.path.join(self.folder, 'Part 1'),
+            os.path.join(self.folder, 'Part 2'),
+            os.path.join(self.folder, 'Part 3'),
         ]
         # Run test
         result = self.book._get_chapters(self.folder, file_array, 'mp3')
@@ -204,13 +204,13 @@ class GetChaptersTests(BookMediaObjectTests):
         # Set max length to 15 mins
         self.book.settings['max_length'] = 900
         # Copy file into folder
-        dst = '%s/01-track.mp3' % self.folder
+        dst = os.path.join(self.folder, '01-track.mp3')
         shutil.copy(self.audio_file, dst)
         # Set up query
         file_array = sorted(os.listdir(self.folder))
         # Make cover
         self.make_cover()
-        expected = [('%s/Part 1' % self.folder)]
+        expected = [os.path.join(self.folder, 'Part 1')]
         # Run test
         result = self.book._get_chapters(self.folder, file_array, 'mp3')
         # Check results
@@ -223,16 +223,16 @@ class AddBookTest(BookMediaObjectTests):
     
     def test_add_book(self):
         # Set up abc path
-        self.book.settings['has_abc'] = '/usr/local/bin/abc.php'
+        self.book.settings['has_abc'] = os.path.join('/', 'usr', 'local', 'bin', 'abc.php')
         if not os.path.exists(self.book.settings['has_abc']):
-            self.book.settings['has_abc'] = '/usr/bin/abc.php'
+            self.book.settings['has_abc'] = os.path.join('/', 'usr', 'bin', 'abc.php')
         # Set max length to 30 mins
         self.book.settings['max_length'] = 1800
         self.book.settings['make_chapters'] = True
         self.book.settings['custom_search'] = 'Paul Doiron Bone Orchard'
         # Copy files into folder
         for x in range(0, 2):
-            dst = '%s/0%s-track.mp3' % (self.folder, str(x+1))
+            dst = os.path.join(self.folder, '0{0}-track.mp3'.format(str(x+1)))
             shutil.copy(self.audio_file, dst)
         # Run test
         (result, skips) = self.book.add(self.folder)
@@ -241,8 +241,8 @@ class AddBookTest(BookMediaObjectTests):
         self.assertRegexpMatches(result, regex)
         self.assertFalse(skips)
         # Check that file was made
-        created = ('%s/Paul Doiron/The Bone Orchard_ A Novel/The Bone Orchard.m4b'
-                  % self.folder)
+        created = os.path.join(self.folder, 'Paul Doiron',
+            'The Bone Orchard_ A Novel', 'The Bone Orchard.m4b')
         self.assertTrue(os.path.exists(created))
 
 
@@ -313,11 +313,71 @@ class GetFilesTests(BookMediaObjectTests):
         self.assertFalse(success)
         self.assertListEqual(expected, result)
 
+
+class MoveFilesBookTests(BookMediaObjectTests):
+
+    def setUp(self):
+        super(MoveFilesBookTests, self).setUp()
+        # Set up book info
+        new_book_info = self.book.ask_google('Outrage Arnaldur')
+        self.book.book_info = new_book_info
+        # Settings
+        self.book.settings['orig_path'] = self.folder
+
+    def test_move_no_subtitle(self):
+        new_book_info = self.book.ask_google('The Lovely Bones Alice Sebold')
+        self.book.book_info = new_book_info
+         # Make dummy file
+        book_file = _common.make_tmp_file('.m4b', self.folder)
+        # Set up file array
+        file_array = [book_file]
+        # Run test
+        (added, skipped) = self.book._move_files(file_array, True)
+        # Check results
+        expected = ['The Lovely Bones']
+        new_file = os.path.join(self.folder,
+            'Alice Sebold','The Lovely Bones', 'The Lovely Bones.m4b')
+        self.assertFalse(skipped)
+        self.assertListEqual(expected, added)
+        self.assertTrue(os.path.exists(new_file))
+
+    def test_move_no_chapters(self):
+        self.book.settings['file_type'] = 'mp3'
+        # Make dummy files
+        book_file1 = _common.make_tmp_file('.mp3', self.folder)
+        book_file2 = _common.make_tmp_file('.mp3', self.folder)
+        # Set up file array
+        file_array = sorted(os.listdir(self.folder))
+        # Run test
+        (added, skipped) = self.book._move_files(file_array, False)
+        # Check results
+        expected = ['01 - Outrage.mp3', '02 - Outrage.mp3']
+        self.assertFalse(skipped)
+        self.assertListEqual(expected, added)
+
+    def test_move_chapters(self):
+        # Make dummy files
+        book_file1 = _common.make_tmp_file('.m4b', self.folder)
+        book_file2 = _common.make_tmp_file('.m4b', self.folder)
+        # Set up file array
+        file_array =[book_file1, book_file2]
+        # Run test
+        (added, skipped) = self.book._move_files(file_array, True)
+        # Set expected values
+        expected = ['Outrage, Part 1', 'Outrage, Part 2']
+        new_file1 = os.path.join(self.folder, 'Arnaldur Indridason',
+            'Outrage_ An Inspector Erlendur Novel', 'Outrage, Part 1.m4b')
+        new_file2 = os.path.join(self.folder, 'Arnaldur Indridason',
+            'Outrage_ An Inspector Erlendur Novel', 'Outrage, Part 2.m4b')
+        # Check results
+        self.assertFalse(skipped)
+        self.assertListEqual(expected, added)
+        self.assertTrue(os.path.exists(new_file1))
+        self.assertTrue(os.path.exists(new_file2))
+
+
 # TO DO:
-#  - only book files
-#  - only bad files
-#      + with/without chaptering
-#  - no files
+#  - Duplicates (skips)
 
 
 def suite():

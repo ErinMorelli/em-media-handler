@@ -32,10 +32,10 @@ def show_usage(code, msg=None):
     types = []
     # Get list of types
     for mtype in sorted(mtypes):
-        types.append("%s : %s" % (mtype, mtypes[mtype]))
+        types.append("{0} : {1}".format(mtype, mtypes[mtype]))
     # Generate usage text
     usage_text = '''
-EM Media Handler v%s / by %s
+EM Media Handler v{0} / by {1}
 
 Usage:
         addmedia --files /path/to/files --type [TYPE] [OPTIONS]
@@ -70,11 +70,11 @@ Options:
             Displays this usage message.
 
 Types:
-        %s
-''' % (mh.__version__, mh.__author__, '\n\t'.join(types))
+        {2}
+'''.format(mh.__version__, mh.__author__, '\n\t'.join(types))
     # Print error, if it exists
     if msg is not None:
-        print "\nERROR: %s\n" % msg
+        print "\nERROR: {0}\n".format(msg)
     # Output text
     print usage_text
     # Exit program
@@ -134,7 +134,7 @@ def parse_arguments(optlist):
             new_args['no_push'] = True
         elif opt in ("-t", "--type"):
             if arg not in mh.__mediakeys__:
-                show_usage(2, ("Media type not valid: %s" % arg))
+                show_usage(2, "Media type not valid: {0}".format(arg))
             new_args['type'] = mh.__mediakeys__[arg]
     # Check for failure
     if not success:

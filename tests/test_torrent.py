@@ -15,6 +15,7 @@
 # included in all copies or substantial portions of the Software.
 '''Initialize module'''
 
+import os
 import sys
 
 from _common import unittest
@@ -32,13 +33,13 @@ class DelugeTests(unittest.TestCase):
 
     def test_get_good_args(self):
         expected = {
-            'media': '/path/to/file/name',
+            'media': os.path.join('path', 'to', 'file', 'name'),
             'name': 'name',
             'no_push': False,
             'single_track': False,
         }
         # Run test
-        sys.argv = ['', 'hash', 'name', '/path/to/file']
+        sys.argv = ['', 'hash', 'name', os.path.join('path', 'to', 'file')]
         args = Torrent.get_deluge_arguments()
         self.assertDictEqual(args, expected)
 
@@ -48,7 +49,7 @@ class DelugeTests(unittest.TestCase):
         self.assertRaisesRegexp(
             SystemExit, '2', Torrent.get_deluge_arguments)
         # Test 2
-        sys.argv = ['', 'hash', 'name', '/path/to/file', 'extra']
+        sys.argv = ['', 'hash', 'name', os.path.join('path', 'to', 'file'), 'extra']
         self.assertRaisesRegexp(
             SystemExit, '2', Torrent.get_deluge_arguments)
 

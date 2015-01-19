@@ -34,7 +34,8 @@ class MHTestSuite(unittest.TestSuite):
     def setUpSuite(self):
         # Back up current config
         curr_config = get_conf_file()
-        backup = '%s/config.yml.orig' % os.path.dirname(curr_config)
+        backup = os.path.join(
+            os.path.dirname(curr_config), 'config.yml.orig') 
         if not os.path.exists(backup):
             shutil.move(curr_config, backup)
         # Make new config for testing
@@ -43,7 +44,8 @@ class MHTestSuite(unittest.TestSuite):
     def tearDownSuite(self):
         # Restore original config
         curr_config = get_conf_file()
-        backup = '%s/config.yml.orig' % os.path.dirname(curr_config)
+        backup = os.path.join(
+            os.path.dirname(curr_config), 'config.yml.orig') 
         if os.path.exists(backup):
             shutil.move(backup, curr_config)
 
@@ -65,18 +67,6 @@ def skipUnlessHasMod(module, submodule):
         return lambda func: func
 
 
-def _find_module(parent_mod, sub_mod):
-    '''Look to see if module is installed'''
-    try:
-        mod_info = imp.find_module(parent_mod)
-        mod = imp.load_module(parent_mod, *mod_info)
-        imp.find_module(sub_mod, mod.__path__)
-        return True
-    except ImportError:
-        err_msg = 'Module %s.%s is not installed' % (parent_mod, sub_mod)
-        raise ImportError(err_msg)
-
-
 def get_test_id(size=4):
     num = []
     while size > 0:
@@ -93,8 +83,8 @@ def random_string(size=5):
 
 def temp_file(name=None):
     if name is None:
-        name = "%s.tmp" % random_string(6)
-    return tempfile.gettempdir() + '/' + name
+        name = "{0}.tmp".format(random_string(6))
+    return os.path.join(tempfile.gettempdir(), name)
 
 
 def make_tmp_file(text=None, tdir=None):

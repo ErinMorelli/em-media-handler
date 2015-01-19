@@ -15,6 +15,7 @@
 # included in all copies or substantial portions of the Software.
 '''Initialize module'''
 
+import os
 import _common
 from _common import unittest
 from _common import MHTestSuite
@@ -33,8 +34,8 @@ class TVMediaObjectTests(MediaObjectTests):
         self.episode = TV.Episode(self.settings, self.push)
 
     def test_new_tv_object(self):
-        form = "/{n}/Season {s}/{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}" 
-        expected = self.folder + form
+        form = os.path.join("{n}", "Season {s}", "{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}")
+        expected = os.path.join(self.folder, form)
         self.assertEqual(self.episode.filebot['db'], 'thetvdb')
         self.assertEqual(self.episode.filebot['format'], expected)
 
@@ -42,10 +43,11 @@ class TVMediaObjectTests(MediaObjectTests):
         output = '''Rename episodes using [TheTVDB]
 Auto-detected query: [Greys Anatomy]
 Fetching episode data for [Grey's Anatomy]
-[COPY] Rename [/Downloaded/TV/Greys.Anatomy.S10E24.720p.HDTV.X264.mkv] to [%s/Grey's Anatomy/Season 10/Grey's.Anatomy.S10E24.mkv]
+[COPY] Rename [/Downloaded/TV/Greys.Anatomy.S10E24.720p.HDTV.X264.mkv] to [{0}]
 Processed 1 files
 Done ?(?????)?
-''' % self.folder
+'''.format(os.path.join(
+        self.folder, "Grey's Anatomy", "Season 10", "Grey's.Anatomy.S10E24.mkv"))
         (new_file, skipped) = self.episode.process_output(output, self.tmp_file)
         expected = ["Grey's Anatomy (Season 10, Episode 24)"]
         self.assertEqual(new_file, expected)

@@ -39,6 +39,7 @@ class Media(object):
         # Input
         self.settings = settings
         self.push = push
+        self.dst_path = ''
         # Filebot
         self.filebot = {
             'action': 'copy',
@@ -50,16 +51,19 @@ class Media(object):
         if 'has_filebot' in self.settings.keys():
             self.filebot['bin'] = self.settings['has_filebot']
         # Type specific
-        self.dst_path = '%s/Media/%s' % (os.path.expanduser("~"), self.ptype)
-        # Check for custom path in settings
-        if 'folder' in self.settings.keys() and self.ptype is not None:
-            if self.settings['folder'] is not None:
-                self.dst_path = self.settings['folder']
-                logging.debug("Using custom path: %s", self.dst_path)
-        # Check destination exists
-        if not os.path.exists(self.dst_path) and self.ptype is not None:
-            self.push.failure("Folder for %s not found: %s"
-                              % (self.ptype, self.dst_path))
+        if self.ptype is not None:
+            # Set destination path
+            self.dst_path = os.path.join(
+                os.path.expanduser("~"), 'Media', self.ptype)
+            # Check for custom path in settings
+            if 'folder' in self.settings.keys():
+                if self.settings['folder'] is not None:
+                    self.dst_path = self.settings['folder']
+                    logging.debug("Using custom path: %s", self.dst_path)
+            # Check destination exists
+            if not os.path.exists(self.dst_path):
+                self.push.failure("Folder for {0} not found: {1}".format(
+                    self.ptype, self.dst_path))
         # Set up Query info
         action = self.filebot['action'].upper()
         # Object defaults
@@ -68,10 +72,11 @@ class Media(object):
             'skip': r'Skipped \[(.*)\] because \[(.*)\] already exists',
             'added_i': 1,
             'skip_i': 0,
-            'reason': '%s already exists in %s' % (self.type, self.dst_path)
+            'reason': '{0} already exists'.format(
+                self.type, self.dst_path)
         }
-        self.query['added'] = (r"\[%s\] Rename \[(.*)\] to \[(.*)\.%s\]"
-                               % (action, self.query['file_types']))
+        self.query['added'] = r'\[{}\] Rename \[(.*)\] to \[(.*)\.{}\]'.format(
+            action, self.query['file_types'])
 
     # ======== GET VIDEO ======== #
 
@@ -150,9 +155,9 @@ class Media(object):
             return
         # Look for bad files and remove them
         for item in os.listdir(file_path):
-            regex = r'\.%s$' % self.query['file_types']
+            regex = r'\.{0}$'.format(self.query['file_types'])
             if not search(regex, item):
-                item_path = '%s/%s' % (file_path, item)
+                item_path = os.path.join(file_path, item)
                 os.unlink(item_path)
         return
 
@@ -160,4 +165,5 @@ class Media(object):
 
     def match_error(self, name):
         '''Return a match error'''
-        return self.push.failure("Unable to match %s: %s" % (self.type, name))
+        return self.push.failure(
+            "Unable to match {0}: {1}".format(self.type, name))

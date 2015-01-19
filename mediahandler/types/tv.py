@@ -17,6 +17,7 @@
 
 # ======== IMPORT MODULES ======== #
 
+import os
 import logging
 import mediahandler.types
 from re import escape, search, sub
@@ -35,8 +36,9 @@ class Episode(mediahandler.types.Media):
         super(Episode, self).__init__(settings, push)
         # Filebot
         self.filebot['db'] = "thetvdb"
-        form = "/{n}/Season {s}/{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}"
-        self.filebot['format'] = self.dst_path + form
+        form = os.path.join(
+            "{n}", "Season {s}", "{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}")
+        self.filebot['format'] = os.path.join(self.dst_path, form)
 
     # ======== EPISODE OUTOUT PROCESSING ======== #
 
@@ -49,13 +51,13 @@ class Episode(mediahandler.types.Media):
             return info
         # Set search query
         epath = escape(self.dst_path)
-        tv_find = (r"%s\/(.*)\/(.*)\/.*\.S\d{2,4}E(\d{2,3})" % epath)
+        tv_find = r"{0}\/(.*)\/(.*)\/.*\.S\d{{2,4}}E(\d{{2,3}})".format(epath)
         logging.debug("Search query: %s", tv_find)
         # See what TV files were added
         new_added_files = []
         for added_file in added_files:
             # Extract info
-            ep_info= search(tv_find, added_file)
+            ep_info = search(tv_find, added_file)
             if ep_info is None:
                 continue
             # Episode
@@ -63,8 +65,8 @@ class Episode(mediahandler.types.Media):
             ep_num_fix = sub('^0', '', ep_num)
             episode = "Episode %s" % ep_num_fix
             # Set title
-            ep_title = ("%s (%s, %s)"
-                        % (ep_info.group(1), ep_info.group(2), episode))
+            ep_title = "{0} ({1}, {2})".format(
+                ep_info.group(1), ep_info.group(2), episode)
             # Append to new array
             new_added_files.append(ep_title)
         # Make sure we found episodes

@@ -17,6 +17,7 @@
 
 # ======== IMPORT MODULES ======== #
 
+import os
 import logging
 import mediahandler.types
 from re import escape, search
@@ -35,7 +36,7 @@ class Movie(mediahandler.types.Media):
         super(Movie, self).__init__(settings, push)
         # Filebot
         self.filebot['db'] = "themoviedb"
-        self.filebot['format'] = "%s/{n} ({y})" % self.dst_path
+        self.filebot['format'] = os.path.join(self.dst_path, "{n} ({y})")
 
     # ======== MOVIE OUTOUT PROCESSING ======== #
 
@@ -48,7 +49,7 @@ class Movie(mediahandler.types.Media):
             return info
         # Set search query
         epath = escape(self.dst_path)
-        mov_find = (r"%s\/(.*\(\d{4}\))" % epath)
+        mov_find = r"{0}\/(.*\(\d{{4}}\))".format(epath)
         logging.debug("Search query: %s", mov_find)
         # See what movies were added
         new_added_files = []
