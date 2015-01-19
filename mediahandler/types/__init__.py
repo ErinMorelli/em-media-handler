@@ -155,6 +155,10 @@ class Media(object):
             return
         # Look for bad files and remove them
         for item in os.listdir(file_path):
+            # Skip if this is a folder
+            if os.isdir(item):
+                continue
+            # Otherwise check for non-video files
             regex = r'\.{}$'.format(self.query['file_types'])
             if not search(regex, item):
                 item_path = os.path.join(file_path, item)
