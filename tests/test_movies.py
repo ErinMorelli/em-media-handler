@@ -45,7 +45,7 @@ class MoviesMediaObjectTests(MediaObjectTests):
     def test_movie_output_good(self):
         output = '''Rename movies using [TheMovieDB]
 Auto-detect movie from context: [/Downloaded/Movies/Snowpiercer.2013.1080p.BluRay.x264.mp4]
-[COPY] Rename [/Downloaded/Movies/Snowpiercer.2013.1080p.BluRay.x264.mp4] to [{0}]
+[COPY] Rename [/Downloaded/Movies/Snowpiercer.2013.1080p.BluRay.x264.mp4] to [{}]
 Processed 1 files
 Done ?(?????)?
 ''' .format(os.path.join(self.folder, 'Snowpiercer (2013).mp4'))
@@ -56,7 +56,7 @@ Done ?(?????)?
     def test_movie_output_only_skips(self):
         output = '''Rename movies using [TheMovieDB]
 Auto-detect movie from context: [/Downloaded/Movies/Snowpiercer.2013.1080p.BluRay.x264.mp4]
-Skipped [/Downloaded/Movies/Snowpiercer.2013.1080p.BluRay.x264.mp4] because [{0}/Snowpiercer (2013).mp4] already exists
+Skipped [/Downloaded/Movies/Snowpiercer.2013.1080p.BluRay.x264.mp4] because [{}/Snowpiercer (2013).mp4] already exists
 Processed 1 files
 Done ?(?????)?
 '''.format(self.folder)

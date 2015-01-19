@@ -62,7 +62,7 @@ class Media(object):
                     logging.debug("Using custom path: %s", self.dst_path)
             # Check destination exists
             if not os.path.exists(self.dst_path):
-                self.push.failure("Folder for {0} not found: {1}".format(
+                self.push.failure("Folder for {} not found: {}".format(
                     self.ptype, self.dst_path))
         # Set up Query info
         action = self.filebot['action'].upper()
@@ -72,7 +72,7 @@ class Media(object):
             'skip': r'Skipped \[(.*)\] because \[(.*)\] already exists',
             'added_i': 1,
             'skip_i': 0,
-            'reason': '{0} already exists in {1}'.format(
+            'reason': '{} already exists in {}'.format(
                 self.type, self.dst_path)
         }
         self.query['added'] = r'\[{}\] Rename \[(.*)\] to \[(.*)\.{}\]'.format(
@@ -155,7 +155,7 @@ class Media(object):
             return
         # Look for bad files and remove them
         for item in os.listdir(file_path):
-            regex = r'\.{0}$'.format(self.query['file_types'])
+            regex = r'\.{}$'.format(self.query['file_types'])
             if not search(regex, item):
                 item_path = os.path.join(file_path, item)
                 os.unlink(item_path)
@@ -166,4 +166,4 @@ class Media(object):
     def match_error(self, name):
         '''Return a match error'''
         return self.push.failure(
-            "Unable to match {0}: {1}".format(self.type, name))
+            "Unable to match {}: {}".format(self.type, name))

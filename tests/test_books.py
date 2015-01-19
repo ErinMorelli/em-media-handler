@@ -124,7 +124,7 @@ class BookCalculateChunkTests(BookMediaObjectTests):
         self.book.settings['max_length'] = 1800
         # Copy files into folder
         for x in range(0, 6):
-            dst = os.path.join(self.folder, '0{0}-track.mp3'.format(str(x+1)))
+            dst = os.path.join(self.folder, '0{}-track.mp3'.format(str(x+1)))
             shutil.copy(self.audio_file, dst)
         # Set up query
         file_array = sorted(os.listdir(self.folder))
@@ -183,7 +183,7 @@ class GetChaptersTests(BookMediaObjectTests):
         self.book.settings['max_length'] = 1800
         # Copy files into folder
         for x in range(0, 6):
-            dst = os.path.join(self.folder, '0{0}-track.mp3'.format(str(x+1)))
+            dst = os.path.join(self.folder, '0{}-track.mp3'.format(str(x+1)))
             shutil.copy(self.audio_file, dst)
         # Set up query
         file_array = sorted(os.listdir(self.folder))
@@ -232,7 +232,7 @@ class AddBookTest(BookMediaObjectTests):
         self.book.settings['custom_search'] = 'Paul Doiron Bone Orchard'
         # Copy files into folder
         for x in range(0, 2):
-            dst = os.path.join(self.folder, '0{0}-track.mp3'.format(str(x+1)))
+            dst = os.path.join(self.folder, '0{}-track.mp3'.format(str(x+1)))
             shutil.copy(self.audio_file, dst)
         # Run test
         (result, skips) = self.book.add(self.folder)

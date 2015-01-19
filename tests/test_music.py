@@ -53,12 +53,12 @@ class MusicMediaObjectTests(MediaObjectTests):
 
     def test_music_add_log(self):
         # Make dummy logfile
-        name = 'test-{0}.log'.format(_common.get_test_id())
+        name = 'test-{}.log'.format(_common.get_test_id())
         folder = os.path.join(os.path.dirname(self.conf), 'tmpl')
         log_file = os.path.join(folder, name)
         self.tracks.settings['log_file'] = log_file
         # Run tests
-        regex = r'Unable to match tracks: {0}'.format(self.tmp_file)
+        regex = r'Unable to match tracks: {}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.tracks.add, self.tmp_file)
         self.assertTrue(os.path.exists(folder))

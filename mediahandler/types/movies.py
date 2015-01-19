@@ -50,7 +50,7 @@ class Movie(mediahandler.types.Media):
             return info
         # Set search query
         epath = escape(self.dst_path)
-        mov_find = r"{0}\/(.*\(\d{{4}}\))".format(epath)
+        mov_find = r"{}\/(.*\(\d{{4}}\))".format(epath)
         logging.debug("Search query: %s", mov_find)
         # See what movies were added
         new_added_files = []

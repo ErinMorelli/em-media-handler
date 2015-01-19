@@ -200,7 +200,7 @@ class ParseDirTests(unittest.TestCase):
 
     def setUp(self):
         # Test name
-        self.name = 'test-{0}'.format(_common.get_test_id())
+        self.name = 'test-{}'.format(_common.get_test_id())
         # Temp args
         args = { 'no_push': False }
         # Make handler
@@ -218,14 +218,14 @@ class ParseDirTests(unittest.TestCase):
         self.handler.args['name'] = self.name
         # Test bad path structure
         path = 'filename-only'
-        regex = r'No type or name specified for media: {0}'.format(self.name)
+        regex = r'No type or name specified for media: {}'.format(self.name)
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler._parse_dir, path)
 
     def run_good_type_path(self, stype): 
         itype = self.types_hash[stype]
         # Build expected values
-        filename = '{0}-{1}'.format(stype, _common.get_test_id())
+        filename = '{}-{}'.format(stype, _common.get_test_id())
         path = os.path.join('path', 'to', stype)
         full_path = os.path.join(path, filename)
         expected = {
@@ -257,7 +257,7 @@ class HandlerTestClass(unittest.TestCase):
         # Conf
         self.conf = _common.get_conf_file()
         # Dummy args
-        self.name = "test-{0}".format(_common.get_test_id())
+        self.name = "test-{}".format(_common.get_test_id())
         self.args = {
             'name': self.name,
             'type': 1,
@@ -374,7 +374,7 @@ class FileHandlerTests(HandlerTestClass):
         # Make a dummy file
         self.tmp_file = _common.make_tmp_file('.mp3')
         # Run test
-        regex = r'Unable to match tracks: {0}'.format(self.tmp_file)
+        regex = r'Unable to match tracks: {}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler._file_handler, self.tmp_file)
 
@@ -399,7 +399,7 @@ class FileHandlerTests(HandlerTestClass):
         # Make a dummy file in dummy folder
         self.tmp_file = _common.make_tmp_file('.mp3', self.dir)
         # Run test
-        regex = r'Unable to match tracks: {0}'.format(self.dir)
+        regex = r'Unable to match tracks: {}'.format(self.dir)
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler._file_handler, self.dir)
 
@@ -408,13 +408,13 @@ class CheckSuccessTests(HandlerTestClass):
 
     def test_results_none(self):
         results = ([], [])
-        regex = r'No TV files found for: {0}'.format(self.name)
+        regex = r'No TV files found for: {}'.format(self.name)
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler._check_success, self.dir, results)
 
     def test_results_skips(self):
         results = ([], [self.dir])
-        regex = r'Some files were skipped:\n - {0}'.format(self.dir)
+        regex = r'Some files were skipped:\n- {}'.format(self.dir)
         added = self.handler._check_success(self.dir, results)
         self.assertRegexpMatches(added, regex)
         self.assertTrue(os.path.exists(self.dir))
@@ -422,7 +422,7 @@ class CheckSuccessTests(HandlerTestClass):
     def test_results_good(self):
         self.handler.settings['single_file'] = False
         results = ([self.dir], [])
-        regex = r'Media was successfully added to your server:\n \+ {0}'.format(self.dir)
+        regex = r'Media was successfully added to your server:\n\+ {}'.format(self.dir)
         added = self.handler._check_success(self.dir, results)
         self.assertRegexpMatches(added, regex)
         self.assertFalse(os.path.exists(self.dir))
@@ -431,9 +431,9 @@ class CheckSuccessTests(HandlerTestClass):
         self.handler.settings['single_file'] = True
         self.tmp_file = _common.make_tmp_file()
         results = ([self.tmp_file], [self.dir])
-        regex1 = r'Media was successfully added to your server:\n \+ {0}'.format(self.tmp_file)
-        regex2 = r'Some files were skipped:\n - {0}'.format(self.dir)
-        regex = r'{0}\n\n{1}'.format(regex1, regex2)
+        regex1 = r'Media was successfully added to your server:\n\+ {}'.format(self.tmp_file)
+        regex2 = r'Some files were skipped:\n- {}'.format(self.dir)
+        regex = r'{}\n\n{}'.format(regex1, regex2)
         added = self.handler._check_success(self.dir, results)
         self.assertRegexpMatches(added, regex)
         self.assertTrue(os.path.exists(self.dir))
@@ -449,9 +449,9 @@ class FindZippedTests(HandlerTestClass):
         # Make a dummy file in dummy folder
         self.tmp_file = _common.make_tmp_file(ext, self.dir)
         # Run test
-        regex = r'Filebot required to extract: {0}'.format(self.name)
+        regex = r'Filebot required to extract: {}'.format(self.name)
         if filebot:
-            regex = r'Unable to extract files: {0}'.format(self.name)
+            regex = r'Unable to extract files: {}'.format(self.name)
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler._find_zipped, self.dir)
 
@@ -463,9 +463,9 @@ class FindZippedTests(HandlerTestClass):
         # Make a dummy file
         self.tmp_file = _common.make_tmp_file(ext)
         # Run test
-        regex = r'Filebot required to extract: {0}'.format(self.name)
+        regex = r'Filebot required to extract: {}'.format(self.name)
         if filebot:
-            regex = r'Unable to extract files: {0}'.format(self.name)
+            regex = r'Unable to extract files: {}'.format(self.name)
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler._find_zipped, self.tmp_file)
 
@@ -510,7 +510,7 @@ class AddMediaTests(HandlerTestClass):
         # Modify args
         self.handler.args['media'] = self.dir
         # Run test
-        regex = r'No TV files found for: {0}'.format(self.name)
+        regex = r'No TV files found for: {}'.format(self.name)
         self.assertRaisesRegexp(SystemExit, regex, self.handler.add_media)
 
     def test_handle_bad_path(self):
@@ -527,7 +527,7 @@ class AddMediaTests(HandlerTestClass):
         # Modify args
         self.handler.args['media'] = os.path.join('path', 'to', 'fake')
         # Run test
-        regex = r'No media files found: {0}'.format(self.name)
+        regex = r'No media files found: {}'.format(self.name)
         self.assertRaisesRegexp(SystemExit, regex, self.handler.add_media)
 
 
@@ -550,7 +550,7 @@ class AddMediaFilesTests(HandlerTestClass):
         self.tmp_file = _common.make_tmp_file('.mp3')
         # Run test
         self.assertNotIn('single_track', self.handler.settings['Music'].keys())
-        regex = r'Unable to match tracks: {0}'.format(self.tmp_file)
+        regex = r'Unable to match tracks: {}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler.add_media_files, self.tmp_file)
         # Check settings
@@ -566,7 +566,7 @@ class AddMediaFilesTests(HandlerTestClass):
         self.tmp_file = _common.make_tmp_file('.mp3')
         # Run test
         self.assertNotIn('single_track', self.handler.settings['Music'].keys())
-        regex = r'Unable to match tracks: {0}'.format(self.tmp_file)
+        regex = r'Unable to match tracks: {}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler.add_media_files, self.tmp_file)
         # Check settings
@@ -602,9 +602,9 @@ class AddMediaFilesTests(HandlerTestClass):
         # Make a dummy file
         self.tmp_file = _common.make_tmp_file()
         # Run test
-        regex = r'{0} type is not enabled'.format(stype)
+        regex = r'{} type is not enabled'.format(stype)
         if enabled:
-            regex = r'Folder for {0} not found: .*{1}'.format(stype, stype)
+            regex = r'Folder for {} not found: .*{}'.format(stype, stype)
             if stype is 'Music':
                 regex = r'Unable to match tracks: .*'
         self.assertRaisesRegexp(

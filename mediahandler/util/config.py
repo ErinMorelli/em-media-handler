@@ -38,7 +38,7 @@ def _find_module(parent_mod, sub_mod):
         imp.find_module(sub_mod, mod.__path__)
         return True
     except ImportError:
-        err_msg = 'Module {0}.{1} is not installed'.format(parent_mod, sub_mod)
+        err_msg = 'Module {}.{} is not installed'.format(parent_mod, sub_mod)
         raise ImportError(err_msg)
 
 
@@ -93,7 +93,7 @@ def _check_modules(settings):
             # Check applications
             if 'apps' in item.keys():
                 # Save in settings
-                name = 'has_{0}'.format(item['apps']['name'].lower())
+                name = 'has_{}'.format(item['apps']['name'].lower())
                 settings[section][name] = None
                 # Look for app
                 for path in item['apps']['paths']:
@@ -101,7 +101,7 @@ def _check_modules(settings):
                         settings[section][name] = path
                         break
                 if settings[section][name] is None:
-                    error = '{0} application not found'.format(
+                    error = '{} application not found'.format(
                         item['apps']['name'])
                     raise ImportError(error)
     return
@@ -144,7 +144,7 @@ def parse_config(file_path):
                 new_options[option] = None
                 continue
             # Validate values
-            valid_func = "_get_valid_{0}".format(item_option['type'])
+            valid_func = "_get_valid_{}".format(item_option['type'])
             validator = getattr(Util.config, valid_func)
             new_options[option] = validator(section, option, value)
         # Populate hash
@@ -213,7 +213,7 @@ def _get_valid_folder(section, option, provided):
     if provided is None:
         return None
     if not os.path.exists(provided):
-        error = "Path provided for '{0}: {1}' does not exist: {2}".format(
+        error = "Path provided for '{}: {}' does not exist: {}".format(
             section, option, provided)
         raise ValueError(error)
     return provided

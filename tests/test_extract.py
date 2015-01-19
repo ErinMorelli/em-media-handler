@@ -35,7 +35,7 @@ class ExtractBadZipTests(unittest.TestCase):
         # Conf
         self.conf = _common.get_conf_file()
         # Tmp name
-        self.name = "test-{0}".format(_common.get_test_id())
+        self.name = "test-{}".format(_common.get_test_id())
          # Tmp args
         args = { 'name': self.name }
         # Make handler
@@ -70,14 +70,14 @@ class ExtractBadZipTests(unittest.TestCase):
 
     def test_bad_handler_zip(self):
         # Run handler
-        regex = r'Unable to extract files: {0}'.format(self.name)
+        regex = r'Unable to extract files: {}'.format(self.name)
         self.assertRaisesRegexp(
             SystemExit, regex,
             self.handler.extract_files, self.bad_zip)
 
     def test_bad_handler_non_zip(self):
         # Run handler
-        regex = r'Unable to extract files: {0}'.format(self.name)
+        regex = r'Unable to extract files: {}'.format(self.name)
         self.assertRaisesRegexp(
             SystemExit, regex,
             self.handler.extract_files, self.bad_non_zip)
@@ -89,7 +89,7 @@ class ExtractGoodZipTests(unittest.TestCase):
         # Conf
         self.conf = _common.get_conf_file()
         # Tmp name
-        self.name = "test-{0}".format(_common.get_test_id())
+        self.name = "test-{}".format(_common.get_test_id())
         self.folder = os.path.join(os.path.dirname(self.conf), 'test_ET')
         # Tmp args
         args = {

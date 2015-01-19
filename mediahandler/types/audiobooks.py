@@ -65,7 +65,7 @@ class Book(object):
             logging.debug("Using default path: %s", self.settings['folder'])
         # Check destination exists
         if not path.exists(self.settings['folder']):
-            self.push.failure("Folder for Audiobooks not found: {0}".format(
+            self.push.failure("Folder for Audiobooks not found: {}".format(
                 self.settings['folder']))
         # Look for Google api key
         if settings['api_key'] is None:
@@ -203,7 +203,7 @@ class Book(object):
         logging.info("Creating book part subfolders")
         for i, chunk in enumerate(chunks):
             # Create new folder for part
-            part_path = path.join(file_path, 'Part {0}'.format(str(i+1)))
+            part_path = path.join(file_path, 'Part {}'.format(str(i+1)))
             if not path.exists(part_path):
                 makedirs(part_path)
             # Move files for part into new path
@@ -231,7 +231,7 @@ class Book(object):
                                         self.settings['file_type'])
         # Create m4b for each file part
         for i, file_part in enumerate(file_parts):
-            part_path = path.join(file_path, 'Part {0}'.format(str(i+1)))
+            part_path = path.join(file_path, 'Part {}'.format(str(i+1)))
             # Define chapter query
             b_cmd = ['/usr/bin/php', '-f', self.settings['has_abc'],
                      file_part,  # Path to book files
@@ -255,8 +255,8 @@ class Book(object):
                 return False, output
             # Set full file path
             created_file = path.join(
-                part_path, '{0}.m4b'.format(bfiles.group(1)))
-            new_file_path = path.join(file_path, '{0} - {1}.m4b'.format(
+                part_path, '{}.m4b'.format(bfiles.group(1)))
+            new_file_path = path.join(file_path, '{} - {}.m4b'.format(
                 bfiles.group(1), str(i+1)))
             # Rename file with part #
             move(created_file, new_file_path)
@@ -323,8 +323,8 @@ class Book(object):
         if self.book_info['subtitle'] is None:
             folder_title = self.book_info['short_title']
         else:
-            folder_title = '{0}_ {1}'.format(self.book_info['short_title'],
-                                             self.book_info['subtitle'])
+            folder_title = '{}_ {}'.format(self.book_info['short_title'],
+                                           self.book_info['subtitle'])
         # Set new book directory path
         book_dir = path.join(self.settings['folder'],
                              self.book_info['author'], folder_title)
@@ -347,10 +347,10 @@ class Book(object):
                 start_path = book_file
                 # Check for multiple parts
                 if len(file_array) > 1:
-                    book_part = ', Part {0}'.format(str(i+1))
+                    book_part = ', Part {}'.format(str(i+1))
                     new_name = self.book_info['short_title'] + book_part
                 # Set new file path
-                new_path = path.join(book_dir, '{0}.m4b'.format(new_name))
+                new_path = path.join(book_dir, '{}.m4b'.format(new_name))
             else:
                 # Set non-chaptered file paths & formatting
                 start_path = path.join(self.settings['orig_path'], book_file)
@@ -386,8 +386,6 @@ class Book(object):
         if not path.exists(new_folder):
             makedirs(new_folder)
         # Get file name
-        # name_query = r"^{0}\/(.*)$".format(re.escape(path_root))
-        # name_search = re.search(name_query, file_path)
         file_name = path.basename(file_path)
         # Set new path
         new_path = path.join(new_folder, file_name)
@@ -432,8 +430,8 @@ class Book(object):
             long_title = book['volumeInfo']['title']
             subtitle = None
             if 'subtitle' in book['volumeInfo']:
-                long_title = '{0}: {1}'.format(book['volumeInfo']['title'],
-                                               book['volumeInfo']['subtitle'])
+                long_title = '{}: {}'.format(book['volumeInfo']['title'],
+                                             book['volumeInfo']['subtitle'])
                 subtitle = book['volumeInfo']['subtitle']
             # Set book information file structure
             logging.info("Google Book ID: %s", book['id'])
@@ -478,7 +476,7 @@ class Book(object):
         logging.debug(book_files)
         # Verify success
         if not is_chapterized:
-            self.push.failure("Unable to chapterize book: {0}".format(raw))
+            self.push.failure("Unable to chapterize book: {}".format(raw))
         # Move & rename files
         (move_files, skipped) = self._move_files(
             book_files, self.settings['make_chapters'])
@@ -486,10 +484,10 @@ class Book(object):
         # Verify success
         if move_files is None:
             return self.push.failure(
-                "Unable to move book files: {0}".format(raw))
+                "Unable to move book files: {}".format(raw))
         # format book title
-        book_title = '"{0}" by {1}'.format(self.book_info['long_title'],
-                                           self.book_info['author'])
+        book_title = '"{}" by {}'.format(self.book_info['long_title'],
+                                         self.book_info['author'])
         logging.info("Book title: %s", book_title)
         # return new book title
         return [book_title], skipped
