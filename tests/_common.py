@@ -52,6 +52,8 @@ class MHTestSuite(unittest.TestSuite):
     def run(self, result):
         # Before tests
         self.setUpSuite()
+        # Set buffering
+        result.buffer = True
         # Run tests
         super(MHTestSuite, self).run(result)
         # After tests

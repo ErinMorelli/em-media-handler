@@ -26,11 +26,6 @@ pkgpath = os.path.dirname(__file__) or '.'
 sys.path.append(pkgpath)
 
 
-# TODO:
-#  - Fix output buffering
-#    + http://nullege.com/codes/search/unittest.TestResult
-
-
 def suite():
     s = MHTestSuite()
     for fname in os.listdir(pkgpath):
@@ -42,4 +37,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite', verbosity=0, buffer=True)
+    unittest.main(defaultTest='suite', verbosity=2, buffer=True)

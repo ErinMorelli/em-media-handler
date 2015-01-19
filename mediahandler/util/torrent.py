@@ -140,7 +140,7 @@ def _process_deluge(args):
     logging.info("Processing from deluge")
     file_path = path.join(args['path'], args['name'])
     # Remove torrent
-    if settings['Deluge']['enabled']:
+    if settings['Deluge']['enabled'] and settings['Deluge']['remove']:
         _remove_torrent(settings['Deluge'], args['hash'])
     # Set modified args
     new_args = {

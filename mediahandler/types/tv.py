@@ -36,9 +36,8 @@ class Episode(mediahandler.types.Media):
         super(Episode, self).__init__(settings, push)
         # Filebot
         self.filebot['db'] = "thetvdb"
-        form = os.path.join(
-            "{n}", "Season {s}", "{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}")
-        self.filebot['format'] = os.path.join(self.dst_path, form)
+        self.filebot['format'] = os.path.join(
+            self.dst_path, self.settings['format'])
 
     # ======== EPISODE OUTOUT PROCESSING ======== #
 

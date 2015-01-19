@@ -31,6 +31,9 @@ class MoviesMediaObjectTests(MediaObjectTests):
     def setUp(self):
         # Call Super
         super(MoviesMediaObjectTests, self).setUp()
+        # Use Movie settings
+        self.settings = _common.get_settings()['Movies']
+        self.settings['folder'] = self.folder
         # Make an object
         self.movies = Movies.Movie(self.settings, self.push)
 

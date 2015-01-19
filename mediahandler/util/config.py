@@ -25,7 +25,7 @@ import shutil
 import logging
 
 import mediahandler as mh
-import mediahandler.util as util
+import mediahandler.util as Util
 
 
 # ======== LOOK FOR MODULE ======== #
@@ -145,7 +145,7 @@ def parse_config(file_path):
                 continue
             # Validate values
             valid_func = "_get_valid_{0}".format(item_option['type'])
-            validator = getattr(util.config, valid_func)
+            validator = getattr(Util.config, valid_func)
             new_options[option] = validator(section, option, value)
         # Populate hash
         settings[section] = new_options

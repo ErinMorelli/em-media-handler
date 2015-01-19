@@ -72,7 +72,7 @@ class Media(object):
             'skip': r'Skipped \[(.*)\] because \[(.*)\] already exists',
             'added_i': 1,
             'skip_i': 0,
-            'reason': '{0} already exists'.format(
+            'reason': '{0} already exists in {1}'.format(
                 self.type, self.dst_path)
         }
         self.query['added'] = r'\[{}\] Rename \[(.*)\] to \[(.*)\.{}\]'.format(

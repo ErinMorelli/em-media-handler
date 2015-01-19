@@ -337,7 +337,7 @@ class MoveFilesBookTests(BookMediaObjectTests):
         expected = ['The Lovely Bones']
         new_file = os.path.join(self.folder,
             'Alice Sebold','The Lovely Bones', 'The Lovely Bones.m4b')
-        self.assertFalse(skipped)
+        self.assertListEqual(skipped, [])
         self.assertListEqual(expected, added)
         self.assertTrue(os.path.exists(new_file))
 
@@ -352,7 +352,7 @@ class MoveFilesBookTests(BookMediaObjectTests):
         (added, skipped) = self.book._move_files(file_array, False)
         # Check results
         expected = ['01 - Outrage.mp3', '02 - Outrage.mp3']
-        self.assertFalse(skipped)
+        self.assertListEqual(skipped, [])
         self.assertListEqual(expected, added)
 
     def test_move_chapters(self):
@@ -365,19 +365,71 @@ class MoveFilesBookTests(BookMediaObjectTests):
         (added, skipped) = self.book._move_files(file_array, True)
         # Set expected values
         expected = ['Outrage, Part 1', 'Outrage, Part 2']
-        new_file1 = os.path.join(self.folder, 'Arnaldur Indridason',
-            'Outrage_ An Inspector Erlendur Novel', 'Outrage, Part 1.m4b')
-        new_file2 = os.path.join(self.folder, 'Arnaldur Indridason',
-            'Outrage_ An Inspector Erlendur Novel', 'Outrage, Part 2.m4b')
+        new_path = os.path.join(self.folder, 'Arnaldur Indridason',
+            'Outrage_ An Inspector Erlendur Novel')
+        new_file1 = os.path.join(new_path, 'Outrage, Part 1.m4b')
+        new_file2 = os.path.join(new_path, 'Outrage, Part 2.m4b')
         # Check results
-        self.assertFalse(skipped)
+        self.assertListEqual(skipped, [])
         self.assertListEqual(expected, added)
         self.assertTrue(os.path.exists(new_file1))
         self.assertTrue(os.path.exists(new_file2))
 
+    def test_move_duplicates(self):
+        # Make existing files
+        new_path = os.path.join(self.folder, 'Arnaldur Indridason',
+            'Outrage_ An Inspector Erlendur Novel')
+        new_file1 = os.path.join(new_path, 'Outrage, Part 1.m4b')
+        new_file2 = os.path.join(new_path, 'Outrage, Part 2.m4b')
+        dummy_file = _common.make_tmp_file('.m4b', self.folder)
+        # Make directories & files
+        os.makedirs(new_path)
+        shutil.copy(dummy_file, new_file1)
+        shutil.copy(dummy_file, new_file2)
+        # Make dummy files
+        book_file1 = _common.make_tmp_file('.m4b', self.folder)
+        book_file2 = _common.make_tmp_file('.m4b', self.folder)
+        # Set up file array
+        file_array =[book_file1, book_file2]
+        # Run test
+        (added, skipped) = self.book._move_files(file_array, True)
+        # Set expected values
+        expected = [new_file1, new_file2]
+        # Check results
+        self.assertListEqual(added, [])
+        self.assertListEqual(expected, skipped)
 
-# TO DO:
-#  - Duplicates (skips)
+
+class SingleFileBookTests(BookMediaObjectTests):
+
+    def test_single_file_good(self):
+        # Set up test
+        self.book.settings['orig_path'] = self.folder
+        book_file = _common.make_tmp_file('.m4b', self.folder)
+        # Run test
+        result = self.book._single_file(book_file, 'The Lovely Bones')
+        # Check results
+        expected_path = os.path.join(self.folder, 'The Lovely Bones')
+        expected_file = os.path.join(expected_path, os.path.basename(book_file))
+        self.assertEqual(expected_path, result)
+        self.assertTrue(os.path.exists(expected_file))
+
+    def test_ask_google_return(self):
+        # Run test
+        result = self.book.ask_google('Voices Arnaldur')
+        # Check result
+        expected = {
+            'author': 'Arnaldur Indridason',
+            'cover': 'http://books.google.com/books/content?id=BDgMX4r2efUC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api',
+            'genre': 'Fiction',
+            'id': 'BDgMX4r2efUC',
+            'long_title': 'Voices: An Inspector Erlendur Novel',
+            'short_title': 'Voices',
+            'subtitle': 'An Inspector Erlendur Novel',
+            'year': '2008'
+        }
+        self.assertDictEqual(expected, result)
+
 
 
 def suite():
@@ -388,4 +440,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite', verbosity=2) #, buffer=True)
+    unittest.main(defaultTest='suite', verbosity=2, buffer=True)

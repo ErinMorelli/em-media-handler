@@ -8,6 +8,7 @@ Deluge:
     port: 58846
     user: 
     pass: 
+    remove: yes
 
 Logging:
     enabled: yes
@@ -24,12 +25,14 @@ TV:
     enabled: yes
     folder: 
     ignore_subs: yes
+    format: "{n}/Season {s}/{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}"
     log_file:
 
 Movies:
     enabled: yes
     folder: 
     ignore_subs: yes
+    format: "{n} ({y})"
     log_file:
 
 Music:

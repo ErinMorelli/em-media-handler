@@ -386,9 +386,9 @@ class Book(object):
         if not path.exists(new_folder):
             makedirs(new_folder)
         # Get file name
-        name_query = r"^{0}\/(.*)$".format(re.escape(path_root))
-        name_search = re.search(name_query, file_path)
-        file_name = name_search.group(1)
+        # name_query = r"^{0}\/(.*)$".format(re.escape(path_root))
+        # name_search = re.search(name_query, file_path)
+        file_name = path.basename(file_path)
         # Set new path
         new_path = path.join(new_folder, file_name)
         logging.debug("New path: %s", new_path)
@@ -459,9 +459,6 @@ class Book(object):
         # Parse string & get query
         refined = self._clean_string(raw)
         logging.debug("Cleaned search string: %s", refined)
-        # Deal with single files
-        if path.isfile(raw):
-            raw = self._single_file(raw, refined)
         # Use custom search string, if defined
         if 'custom_search' in self.settings.keys():
             refined = self.settings['custom_search']
@@ -469,6 +466,9 @@ class Book(object):
         # Get book info from Google
         self.book_info = self.ask_google(refined)
         logging.debug(self.book_info)
+        # Deal with single files
+        if path.isfile(raw):
+            raw = self._single_file(raw, self.book_info['short_title'])
         # Save cover image to file
         cover_file = self._save_cover(raw, self.book_info['cover'])
         logging.debug("Cover image: %s", cover_file)
@@ -480,8 +480,8 @@ class Book(object):
         if not is_chapterized:
             self.push.failure("Unable to chapterize book: {0}".format(raw))
         # Move & rename files
-        (move_files, skipped) = self._move_files(book_files,
-                                               self.settings['make_chapters'])
+        (move_files, skipped) = self._move_files(
+            book_files, self.settings['make_chapters'])
         logging.debug("Move was successful: %s", move_files)
         # Verify success
         if move_files is None:

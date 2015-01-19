@@ -31,6 +31,10 @@ items:
             -
                 name: pass
                 type: string
+            -
+                name: remove
+                type: bool
+                default: yes
     -
         section: Logging
         options:
@@ -76,6 +80,10 @@ items:
                 type: bool
                 default: yes
             -
+                name: format
+                type: string
+                default: "{n}/Season {s}/{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}"
+            -
                 name: log_file
                 type: file
     - 
@@ -92,6 +100,10 @@ items:
                 name: ignore_subs
                 type: bool
                 default: yes
+            -
+                name: format
+                type: string
+                default: "{n} ({y})"
             -
                 name: log_file
                 type: file

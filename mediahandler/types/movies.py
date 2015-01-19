@@ -36,7 +36,8 @@ class Movie(mediahandler.types.Media):
         super(Movie, self).__init__(settings, push)
         # Filebot
         self.filebot['db'] = "themoviedb"
-        self.filebot['format'] = os.path.join(self.dst_path, "{n} ({y})")
+        self.filebot['format'] = os.path.join(
+            self.dst_path, self.settings['format'])
 
     # ======== MOVIE OUTOUT PROCESSING ======== #
 
