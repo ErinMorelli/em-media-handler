@@ -44,6 +44,7 @@ class Book(object):
         '''Init book class'''
         logging.info("Starting audiobook handler class")
         # Set globals
+        self.type = 'book'
         self.book_info = {}
         self.push = push
         # Set up book settings
@@ -368,13 +369,8 @@ class Book(object):
                 copy(start_path, new_path)
                 # Add to moved file list
                 moved_files.append(new_name)
-        skips = False
-        if len(skipped_files) > 0:
-            skips = True
-        if len(moved_files) == 0 and not skips:
-            return None, skips
-        # return success and list of moved files
-        return moved_files, skips
+        # Return moved & skipped files
+        return moved_files, skipped_files
 
     # ======== DEAL WITH SINGLE FILES ======== #
 
@@ -484,7 +480,7 @@ class Book(object):
         if not is_chapterized:
             self.push.failure("Unable to chapterize book: {0}".format(raw))
         # Move & rename files
-        (move_files, skips) = self._move_files(book_files,
+        (move_files, skipped) = self._move_files(book_files,
                                                self.settings['make_chapters'])
         logging.debug("Move was successful: %s", move_files)
         # Verify success
@@ -496,4 +492,4 @@ class Book(object):
                                            self.book_info['author'])
         logging.info("Book title: %s", book_title)
         # return new book title
-        return book_title, skips
+        return [book_title], skipped
