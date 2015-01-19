@@ -156,7 +156,7 @@ class Media(object):
         # Look for bad files and remove them
         for item in os.listdir(file_path):
             # Skip if this is a folder
-            if os.isdir(item):
+            if os.path.isdir(item):
                 continue
             # Otherwise check for non-video files
             regex = r'\.{}$'.format(self.query['file_types'])
