@@ -20,6 +20,7 @@
 
 import os
 import logging
+from shutil import rmtree
 from re import findall, search
 from subprocess import Popen, PIPE
 
@@ -153,15 +154,15 @@ class Media(object):
         # Skip if this is not a folder
         if os.path.isfile(file_path):
             return
+        regex = r'\.{}$'.format(self.query['file_types'])
         # Look for bad files and remove them
         for item in os.listdir(file_path):
-            # Skip if this is a folder
-            if os.path.isdir(item):
-                continue
+            item_path = os.path.join(file_path, item)
+            # If it's a folder, automatically delete
+            if os.path.isdir(item_path):
+                rmtree(item_path)
             # Otherwise check for non-video files
-            regex = r'\.{}$'.format(self.query['file_types'])
-            if not search(regex, item):
-                item_path = os.path.join(file_path, item)
+            elif not search(regex, item):
                 os.unlink(item_path)
         return
 
