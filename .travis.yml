@@ -17,6 +17,7 @@ before_install:
 # Commands to install dependencies
 install:
   - pip install mutagen
+  - pip install twisted
   - pip install beets
   - pip install google-api-python-client
   - pip install coveralls
