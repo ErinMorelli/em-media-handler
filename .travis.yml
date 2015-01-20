@@ -20,10 +20,9 @@ install:
   - sudo apt-get install -y build-essential -qq
   - sudo apt-get install -y python python-twisted python-openssl python-setuptools intltool python-xdg python-chardet geoip-database python-libtorrent python-notify python-pygame python-glade2 librsvg2-common xdg-utils python-mako -qq
   - sudo apt-get install -y deluge -qq
-  - sudo apt-get install -y beets -qq
   - sudo apt-get install -y gambas3 cdrdao flac mkcue cuetools shntool php5-cli vlc gstreamer-tools gstreamer0.10-fluendo-mp3 gpac -qq
   - pip install mutagen
-  # - pip install beets; cd /usr/bin; cp ~/virtualenv/python$TRAVIS_PYTHON_VERSION_with_system_site_packages/bin/beet .; cd
+  - pip install beets
   - pip install google-api-python-client
   - pip install coveralls
 # Commands to run before script

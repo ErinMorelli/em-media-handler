@@ -19,25 +19,22 @@ Audiobooks:
 
 Audiobooks:
     option: make_chapters
-    apps: 
-        name: ABC
-        paths: 
-            - /usr/bin/abc.php
-            - /usr/local/bin/abc.php
+    apps:
+        - 
+            name: ABC
+            exec: abc.php
 
 TV:
     option: enabled
     apps: 
-        name: Filebot
-        paths: 
-            - /usr/bin/filebot
-            - /usr/local/bin/filebot
+        - 
+            name: Filebot
+            exec: filebot
 
 Movies:
     option: enabled
     apps: 
-        name: Filebot
-        paths: 
-            - /usr/bin/filebot
-            - /usr/local/bin/filebot
+        - 
+            name: Filebot
+            exec: filebot
 
