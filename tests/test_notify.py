@@ -27,7 +27,7 @@ class PushObjectTests(unittest.TestCase):
 
     def setUp(self):
         # Testing name
-        self.name = "push-{}".format(_common.get_test_id())
+        self.name = "push-{0}".format(_common.get_test_id())
         # Settings
         args = _common.get_test_api()
         args['enabled'] = True
@@ -95,7 +95,7 @@ class PushObjectTests(unittest.TestCase):
         skipped = []
         # Run test
         result = self.push.success(file_array, skipped)
-        regex = r'Media was successfully added to your server:\n\+ {}'.format(self.name)
+        regex = r'Media was successfully added to your server:\n\+ {0}'.format(self.name)
         self.assertRegexpMatches(result, regex)
 
     def test_success_empty_files(self):
@@ -104,7 +104,7 @@ class PushObjectTests(unittest.TestCase):
         skipped = [self.name]
         # Run test
         result = self.push.success(file_array, skipped)
-        regex = r'Some files were skipped:\n\- {}'.format(self.name)
+        regex = r'Some files were skipped:\n\- {0}'.format(self.name)
         self.assertRegexpMatches(result, regex)
 
     def test_success_all(self):
@@ -112,15 +112,15 @@ class PushObjectTests(unittest.TestCase):
         self.push.disable = False
         self.push.settings['notify_name'] = 'test'
         # Generate a 2nd name
-        skips = "skip-{}".format(_common.get_test_id())
+        skips = "skip-{0}".format(_common.get_test_id())
         # Set up test
         file_array = [self.name]
         skipped = [skips]
         # Run test
         result = self.push.success(file_array, skipped)
-        regex1 = r'Media was successfully added to your server:\n\+ {}'.format(self.name)
-        regex2 = r'Some files were skipped:\n\- {}'.format(skips)
-        regex = r'{}\n\n{}'.format(regex1, regex2)
+        regex1 = r'Media was successfully added to your server:\n\+ {0}'.format(self.name)
+        regex2 = r'Some files were skipped:\n\- {0}'.format(skips)
+        regex = r'{0}\n\n{1}'.format(regex1, regex2)
         self.assertRegexpMatches(result, regex)
 
     def test_failure_normal(self):

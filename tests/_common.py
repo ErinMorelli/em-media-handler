@@ -85,7 +85,7 @@ def random_string(size=5):
 
 def temp_file(name=None):
     if name is None:
-        name = "{}.tmp".format(random_string(6))
+        name = "{0}.tmp".format(random_string(6))
     return os.path.join(tempfile.gettempdir(), name)
 
 

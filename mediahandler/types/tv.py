@@ -50,7 +50,7 @@ class Episode(mediahandler.types.Media):
             return info
         # Set search query
         epath = escape(self.dst_path)
-        tv_find = r"{}\/(.*)\/(.*)\/.*\.S\d{{2,4}}E(\d{{2,3}})".format(epath)
+        tv_find = r"{0}\/(.*)\/(.*)\/.*\.S\d{{2,4}}E(\d{{2,3}})".format(epath)
         logging.debug("Search query: %s", tv_find)
         # See what TV files were added
         new_added_files = []
@@ -64,7 +64,7 @@ class Episode(mediahandler.types.Media):
             ep_num_fix = sub('^0', '', ep_num)
             episode = "Episode %s" % ep_num_fix
             # Set title
-            ep_title = "{} ({}, {})".format(
+            ep_title = "{0} ({1}, {2})".format(
                 ep_info.group(1), ep_info.group(2), episode)
             # Append to new array
             new_added_files.append(ep_title)

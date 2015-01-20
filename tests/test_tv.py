@@ -43,7 +43,7 @@ class TVMediaObjectTests(MediaObjectTests):
         output = '''Rename episodes using [TheTVDB]
 Auto-detected query: [Greys Anatomy]
 Fetching episode data for [Grey's Anatomy]
-[COPY] Rename [/Downloaded/TV/Greys.Anatomy.S10E24.720p.HDTV.X264.mkv] to [{}]
+[COPY] Rename [/Downloaded/TV/Greys.Anatomy.S10E24.720p.HDTV.X264.mkv] to [{0}]
 Processed 1 files
 Done ?(?????)?
 '''.format(os.path.join(

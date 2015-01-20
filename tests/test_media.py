@@ -93,7 +93,7 @@ class BaseMediaObjectTests(MediaObjectTests):
         # Dummy folder path
         self.settings['folder'] = os.path.join('path', 'to', 'fake')
         # Run test 1
-        regex1 = r'Folder for Media not found: {}'.format(self.settings['folder'])
+        regex1 = r'Folder for Media not found: {0}'.format(self.settings['folder'])
         self.assertRaisesRegexp(
             SystemExit, regex1, Types.Media, self.settings, self.push)
         # Run test 2
@@ -102,13 +102,13 @@ class BaseMediaObjectTests(MediaObjectTests):
             SystemExit, regex2, Types.Media, {}, self.push)
 
     def test_media_add(self):
-        regex = r'Unable to match media: {}'.format(self.tmp_file)
+        regex = r'Unable to match media: {0}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.media.add, self.tmp_file)
 
     def test_media_add_logging(self):
         self.settings['log_file'] = os.path.join(self.folder, 'media.log')
-        regex = r'Unable to match media: {}'.format(self.tmp_file)
+        regex = r'Unable to match media: {0}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.media.add, self.tmp_file)
 

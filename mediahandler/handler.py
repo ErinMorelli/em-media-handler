@@ -85,9 +85,9 @@ class Handler(object):
             self.settings['Audiobooks']['custom_search'] = query
         # Check that type is enabled
         if not self.settings[stype]['enabled']:
-            self.push.failure("{} type is not enabled".format(stype))
+            self.push.failure("{0} type is not enabled".format(stype))
         # Set module
-        module = "mediahandler.types.{}".format(stype.lower())
+        module = "mediahandler.types.{0}".format(stype.lower())
         logging.debug("Importing module: %s", module)
         # Import module
         __import__(module)
@@ -113,14 +113,14 @@ class Handler(object):
         elif 'has_filebot' in self.settings['Movies'].keys():
             filebot = self.settings['Movies']['has_filebot']
         else:
-            self.push.failure("Filebot required to extract: {}".format(
+            self.push.failure("Filebot required to extract: {0}".format(
                 self.args['name']))
         # Import extract module
         import mediahandler.util.extract as Extract
         # Send to handler
         extracted = Extract.get_files(filebot, raw)
         if extracted is None:
-            self.push.failure("Unable to extract files: {}".format(
+            self.push.failure("Unable to extract files: {0}".format(
                 self.args['name']))
         # Send files back to handler
         return extracted
@@ -184,7 +184,7 @@ class Handler(object):
             self.settings['single_file'] = True
         # Make sure folders have files
         elif len(listdir(files)) == 0:
-            self.push.failure("No {} files found for: {}".format(
+            self.push.failure("No {0} files found for: {1}".format(
                 self.args['stype'], self.args['name']))
         # Add files
         results = self.add_media_files(files)
@@ -201,7 +201,7 @@ class Handler(object):
         (added_files, skipped_files) = results
         # Make sure files were added
         if len(added_files) == 0 and len(skipped_files) == 0:
-            self.push.failure("No {} files found for: {}".format(
+            self.push.failure("No {0} files found for: {1}".format(
                 self.args['stype'], self.args['name']))
         if len(skipped_files) > 0:
             skip = True
@@ -253,14 +253,14 @@ class Handler(object):
             if 'type' not in self.args.keys():
                 self.args['type'] = parse_path.group(3)
                 if self.args['type'].lower() not in mh.__mediatypes__:
-                    self.push.failure('Media type {} not recognized'.format(
+                    self.push.failure('Media type {0} not recognized'.format(
                         self.args['type']))
             logging.debug("Type detected: %s", self.args['type'])
         else:
             logging.debug("No type detected")
             # Notify about failure
             self.push.failure(
-                "No type or name specified for media: {}".format(
+                "No type or name specified for media: {0}".format(
                     self.args['name']))
         # Convert type to number
         self._convert_type()
@@ -280,10 +280,10 @@ class Handler(object):
             new_files = self._file_handler(file_path)
             # Check that files were returned
             if new_files is None:
-                self.push.failure("No media files found: {}".format(
+                self.push.failure("No media files found: {0}".format(
                     self.args['name']))
         else:
             # There was a problem, no files found
-            self.push.failure("No media files found: {}".format(
+            self.push.failure("No media files found: {0}".format(
                 self.args['name']))
         return new_files

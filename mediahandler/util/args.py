@@ -32,49 +32,42 @@ def show_usage(code, msg=None):
     types = []
     # Get list of types
     for mtype in sorted(mtypes):
-        types.append("{} : {}".format(mtype, mtypes[mtype]))
+        types.append("{0} -- {1}".format(mtype, mtypes[mtype]))
     # Generate usage text
     usage_text = '''
-EM Media Handler v{} / by {}
+EM Media Handler v{0} / by {1}
 
-Usage:
-        addmedia --files /path/to/files --type [TYPE] [OPTIONS]
+Usage:    
+  addmedia --files /path/to/files --type [TYPE] [OPTIONS]
 
 Options:
-        --files / -f
-            Required. Set path to media files.
-            Assumes structure: /path/to/<media type>/<media>
+  -f, --files     Required. Set path to media files.
+                  Assumes structure: /path/to/<media type>/<media>
 
-        --type / -t
-            Force a specific media type for processing.
-            e.g. --type 1 for a TV Show
-            Default: <media type> derived from --files path
+  -t, --types     Force a specific media type for processing.
+                  e.g. --type 1 for a TV Show
+                  Default: <media type> derived from --files path
 
-        --config / -c
-            Set a custom config file path.
-            Default: ~/.config/mediahandler/settings.conf
+  -c, --config    Set a custom config file path.
+                  Default: ~/.config/mediahandler/settings.conf
 
-        --query / -q
-            Set a custom query string for audiobooks.
-            Useful for fixing "Unable to match" errors.
+  -q, --query     Set a custom query string for audiobooks.
+                  Useful for fixing "Unable to match" errors.
 
-        --single / -s
-            Force beet to import music as a single track.
-            Useful for fixing "items were skipped" errors.
+  -s, --single    Force beet to import music as a single track.
+                  Useful for fixing "items were skipped" errors.
 
-        --nopush / -n
-            Disable push notifications.
-            Overrides the "enabled" config file setting.
+  -n, --nopush    Disable push notifications.
+                  Overrides the "enabled" config file setting.
 
-        --help / -h
-            Displays this usage message.
+  -h, --help      Displays this usage message.
 
 Types:
-        {}
-'''.format(mh.__version__, mh.__author__, '\n\t'.join(types))
+   {2}
+'''.format(mh.__version__, mh.__author__, '\n   '.join(types))
     # Print error, if it exists
     if msg is not None:
-        print "\nERROR: {}\n".format(msg)
+        print "\nERROR: {0}\n".format(msg)
     # Output text
     print usage_text
     # Exit program
@@ -134,7 +127,7 @@ def parse_arguments(optlist):
             new_args['no_push'] = True
         elif opt in ("-t", "--type"):
             if arg not in mh.__mediakeys__:
-                show_usage(2, "Media type not valid: {}".format(arg))
+                show_usage(2, "Media type not valid: {0}".format(arg))
             new_args['type'] = mh.__mediakeys__[arg]
     # Check for failure
     if not success:
