@@ -22,13 +22,13 @@ before_install:
 # Commands to install dependencies
 install:
   - pip install mutagen
-  - pip install beets; sudo cp ~/virtualenv/python$TRAVIS_PYTHON_VERSION_with_system_site_packages/bin/beet /usr/bin
+  - pip install beets; which beet; 
   - pip install google-api-python-client
   - pip install coveralls
 # Commands to run before script
 before_script:
   - wget http://cznic.dl.sourceforge.net/project/filebot/filebot/FileBot_4.5.3/filebot_4.5.3_amd64.deb
-  - sudo dpkg -i filebot_4.5.3_amd64.deb
+  - sudo dpkg -i filebot_4.5.3_amd64.deb; which filebot
   - mkdir aac; cd aac; wget http://ftp6.nero.com/tools/NeroAACCodec-1.5.1.zip
   - unzip -j NeroAACCodec-1.5.1.zip; sudo install -m 0755 neroAacEnc /usr/local/bin/; cd ..
   - mkdir mp4v2; cd mp4v2/; wget http://mp4v2.googlecode.com/files/mp4v2-1.9.1.tar.bz2
