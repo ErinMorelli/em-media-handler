@@ -88,20 +88,21 @@ class Book(object):
         '''Clean up path string'''
         logging.info("Cleaning up path string")
         # Get query from folder path
-        find_book = re.search(r"^((.*)?\/(.*))$", str_path)
-        string = find_book.group(3)
+        find_book = str_path.rsplit('/')[1:]
+        string = find_book[-1]
         logging.debug("Initial string: %s", string)
         # Save original path for later
-        self.settings['orig_path'] = find_book.group(2)
+        self.settings['orig_path'] = path.dirname(str_path)
         # Get blacklist items from file
         blacklist_file = path.join(mh.__mediaextras__, 'blacklist.txt')
         blacklist = [line.strip() for line in open(blacklist_file)]
         # Convert blacklist array to regex string
         blacklist = "|".join(blacklist)
+        blacklist_regex = re.compile(blacklist, re.I)
         # Remove blacklist words
         count = 1
         while count > 0:
-            (string, count) = re.subn(blacklist, " ", string, 0, re.I)
+            (string, count) = re.subn(blacklist_regex, " ", string, 0)
         # setup order of regexes
         regexes = [
             r"[\(\[\{].*[\)\]\}]",
@@ -323,8 +324,8 @@ class Book(object):
         if self.book_info['subtitle'] is None:
             folder_title = self.book_info['short_title']
         else:
-            folder_title = '{0}_ {1}'.format(self.book_info['short_title'],
-                                           self.book_info['subtitle'])
+            folder_title = '{0}_ {1}'.format(
+                self.book_info['short_title'], self.book_info['subtitle'])
         # Set new book directory path
         book_dir = path.join(self.settings['folder'],
                              self.book_info['author'], folder_title)
@@ -431,7 +432,7 @@ class Book(object):
             subtitle = None
             if 'subtitle' in book['volumeInfo']:
                 long_title = '{0}: {1}'.format(book['volumeInfo']['title'],
-                                             book['volumeInfo']['subtitle'])
+                                               book['volumeInfo']['subtitle'])
                 subtitle = book['volumeInfo']['subtitle']
             # Set book information file structure
             logging.info("Google Book ID: %s", book['id'])
@@ -487,7 +488,7 @@ class Book(object):
                 "Unable to move book files: {0}".format(raw))
         # format book title
         book_title = '"{0}" by {1}'.format(self.book_info['long_title'],
-                                         self.book_info['author'])
+                                           self.book_info['author'])
         logging.info("Book title: %s", book_title)
         # return new book title
         return [book_title], skipped

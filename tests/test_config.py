@@ -233,7 +233,7 @@ class FileValidationConfigTests(unittest.TestCase):
         self.assertEqual(file_good, self.tmp_file)
         # Invalid case
         log_file = os.path.join('path', 'to', 'log.log')
-        regex = "Path to file provided for 'Logging: log_file' does not exist:"
+        regex = "File path provided for 'Logging: log_file' does not exist:"
         self.assertRaisesRegexp(ValueError, regex,
                                 Config._get_valid_file, 'Logging', 'log_file', log_file)
 

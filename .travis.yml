@@ -22,7 +22,7 @@ before_install:
 # Commands to install dependencies
 install:
   - pip install mutagen
-  - pip install beets; sudo cp ~/virtualenv/python$TRAVIS_PYTHON_VERSION_with_system_site_packages/bin/beet /usr/bin/beet
+  - pip install beets; sudo cp ~/virtualenv/python$TRAVIS_PYTHON_VERSION_with_system_site_packages/bin/beet /usr/bin
   - pip install google-api-python-client
   - pip install coveralls
 # Commands to run before script

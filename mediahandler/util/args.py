@@ -37,8 +37,8 @@ def show_usage(code, msg=None):
     usage_text = '''
 EM Media Handler v{0} / by {1}
 
-Usage:    
-  addmedia --files /path/to/files --type [TYPE] [OPTIONS]
+Usage:
+  addmedia --files [/PATH/TO/FILES] --type [TYPE] [OPTIONS]
 
 Options:
   -f, --files     Required. Set path to media files.

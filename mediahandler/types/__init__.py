@@ -76,8 +76,9 @@ class Media(object):
             'reason': '{0} already exists in {1}'.format(
                 self.type, self.dst_path)
         }
-        self.query['added'] = r'\[{0}\] Rename \[(.*)\] to \[(.*)\.{1}\]'.format(
+        added_regex = r'\[{0}\] Rename \[(.*)\] to \[(.*)\.{1}\]'.format(
             action, self.query['file_types'])
+        self.query['added'] = added_regex
 
     # ======== GET VIDEO ======== #
 

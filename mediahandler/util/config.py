@@ -201,7 +201,7 @@ def _get_valid_file(section, option, provided):
         return None
     folder = os.path.dirname(provided)
     if not os.path.exists(folder):
-        error = "Path to file provided for '{0}: {1}' does not exist: {2}".format(
+        error = "File path provided for '{0}: {1}' does not exist: {2}".format(
             section, option, folder)
         raise ValueError(error)
     return provided

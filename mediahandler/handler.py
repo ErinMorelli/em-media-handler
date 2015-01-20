@@ -242,16 +242,16 @@ class Handler(object):
         '''Parse input directory structure'''
         logging.info("Extracing info from path: %s", rawpath)
         # Extract info from path
-        parse_path = re.search(r"^((.*)?\/(.*))?\/(.*)$",
-                               rawpath, re.I)
-        if parse_path:
-            self.args['path'] = parse_path.group(1)
+        parse_path = rawpath.rsplit('/')[1:]
+        # Check for results
+        if len(parse_path) > 1:
+            self.args['path'] = path.dirname(rawpath)
             # Don't override a defined name
             if 'name' not in self.args.keys():
-                self.args['name'] = parse_path.group(4)
+                self.args['name'] = parse_path[-1]
             # Look for custom type
             if 'type' not in self.args.keys():
-                self.args['type'] = parse_path.group(3)
+                self.args['type'] = parse_path[-2]
                 if self.args['type'].lower() not in mh.__mediatypes__:
                     self.push.failure('Media type {0} not recognized'.format(
                         self.args['type']))
