@@ -50,7 +50,7 @@ class MediaObjectTests(unittest.TestCase):
         # Build base settings
         self.settings = _common.get_settings()['TV']
         self.settings['folder'] = self.folder
-       
+
     def tearDown(self):
         if os.path.exists(self.folder):
             shutil.rmtree(self.folder)
@@ -93,7 +93,8 @@ class BaseMediaObjectTests(MediaObjectTests):
         # Dummy folder path
         self.settings['folder'] = os.path.join('path', 'to', 'fake')
         # Run test 1
-        regex1 = r'Folder for Media not found: {0}'.format(self.settings['folder'])
+        regex1 = r'Folder for Media not found: {0}'.format(
+            self.settings['folder'])
         self.assertRaisesRegexp(
             SystemExit, regex1, Types.Media, self.settings, self.push)
         # Run test 2

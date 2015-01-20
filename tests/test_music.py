@@ -48,7 +48,7 @@ class MusicMediaObjectTests(MediaObjectTests):
         self.settings['single_track'] = True
         self.tracks = Music.Tracks(self.settings, self.push)
         # Check results
-        expected = r"(Tagging track)\:\s(.*)\nURL\:\n\s{1,4}(.*)\n" 
+        expected = r"(Tagging track)\:\s(.*)\nURL\:\n\s{1,4}(.*)\n"
         self.assertEqual(self.tracks.query['tags'], '-sql')
         self.assertEqual(self.tracks.query['added'], expected)
 
@@ -67,7 +67,7 @@ class MusicMediaObjectTests(MediaObjectTests):
         shutil.rmtree(folder)
 
     def test_music_output_good(self):
-        output = ''' 
+        output = '''
 /Downloaded/Music/Alt-J - This Is All Yours (2014) CD RIP [MP3 @ 320 KBPS] (13 items)
 Correcting tags from:
     Alt-J - This Is All Yours

@@ -19,7 +19,6 @@ import os
 import re
 import sys
 import shutil
-import logging
 from pwd import getpwuid
 
 import _common
@@ -54,17 +53,17 @@ class CheckModulesTests(unittest.TestCase):
         del self.settings['Movies']['has_filebot']
         if 'has_abc' in self.settings['Audiobooks'].keys():
             del self.settings['Audiobooks']['has_abc']
-    
+
     def test_check_logging(self):
         # Modify settings
-        self.settings['Logging']['enabled'] = True 
+        self.settings['Logging']['enabled'] = True
         # Run
         result = Config._check_modules(self.settings)
         self.assertIsNone(result)
 
     def test_check_deluge(self):
         # Modify settings
-        self.settings['Deluge']['enabled'] = True 
+        self.settings['Deluge']['enabled'] = True
         # Run
         result = Config._check_modules(self.settings)
         self.assertIsNone(result)
@@ -104,7 +103,8 @@ class CheckModulesTests(unittest.TestCase):
         self.assertIsNone(result)
         self.assertIn('has_abc', self.settings['Audiobooks'].keys())
 
-    @unittest.skipUnless(not sys.platform.startswith("linux"), "requires not Ubuntu")
+    @unittest.skipUnless(
+        not sys.platform.startswith("linux"), "requires not Ubuntu")
     def test_audiobook_bad_abc_(self):
         # Modify settings
         self.settings['Audiobooks']['enabled'] = True
@@ -169,9 +169,10 @@ class SimpleValidationConfigTests(unittest.TestCase):
         bool_reg = Config._get_valid_bool('TV', 'enabled', True)
         self.assertTrue(bool_reg)
         # Bad case
-        regex = regex = r'Value provided for \'Sect: opt\' is not a valid boolean'
+        regex = r'Value provided for \'Sect: opt\' is not a valid boolean'
         self.assertRaisesRegexp(
-            ValueError, regex, Config._get_valid_bool, 'Sect', 'opt', 'astring')
+            ValueError, regex,
+            Config._get_valid_bool, 'Sect', 'opt', 'astring')
 
     def test_valid_string(self):
         # Empty string case
@@ -183,7 +184,7 @@ class SimpleValidationConfigTests(unittest.TestCase):
         self.assertIs(type(string_reg), str)
         self.assertEqual(string_reg, '127.0.0.1')
         # Bad case
-        regex = regex = r'Value provided for \'Sect: opt\' is not a valid string'
+        regex = r'Value provided for \'Sect: opt\' is not a valid string'
         self.assertRaisesRegexp(
             ValueError, regex, Config._get_valid_string, 'Sect', 'opt', 6789)
 
@@ -199,7 +200,8 @@ class SimpleValidationConfigTests(unittest.TestCase):
         # Bad case
         regex = r'Value provided for \'Sect: opt\' is not a valid number'
         self.assertRaisesRegexp(
-            ValueError, regex, Config._get_valid_number, 'Sect', 'opt', 'astring')
+            ValueError, regex,
+            Config._get_valid_number, 'Sect', 'opt', 'astring')
 
 
 class FileValidationConfigTests(unittest.TestCase):
@@ -234,8 +236,9 @@ class FileValidationConfigTests(unittest.TestCase):
         # Invalid case
         log_file = os.path.join('path', 'to', 'log.log')
         regex = "File path provided for 'Logging: log_file' does not exist:"
-        self.assertRaisesRegexp(ValueError, regex,
-                                Config._get_valid_file, 'Logging', 'log_file', log_file)
+        self.assertRaisesRegexp(
+            ValueError, regex,
+            Config._get_valid_file, 'Logging', 'log_file', log_file)
 
     def test_valid_folder(self):
         self.dir = self.dir = tempfile.mkdtemp(
@@ -249,8 +252,9 @@ class FileValidationConfigTests(unittest.TestCase):
         # Invalid case
         mov_folder = os.path.join('path', 'to', 'movies')
         regex = r"Path provided for 'Movies: folder' does not exist: .*"
-        self.assertRaisesRegexp(ValueError, regex,
-                                Config._get_valid_folder, 'Movies', 'folder', mov_folder)
+        self.assertRaisesRegexp(
+            ValueError, regex,
+            Config._get_valid_folder, 'Movies', 'folder', mov_folder)
 
 
 class MissingSectionConfigTest(unittest.TestCase):
@@ -328,8 +332,8 @@ class MakeConfigTests(unittest.TestCase):
 
     def setUp(self):
         # Conf
-        self.conf = os.path.join(os.path.expanduser("~"),
-            '.config', 'mediahandler', 'config.yml')
+        self.conf = os.path.join(
+            os.path.expanduser("~"), '.config', 'mediahandler', 'config.yml')
         self.name = _common.get_test_id()
         # New conf
         self.tmp_file = ''
@@ -356,14 +360,15 @@ class MakeConfigTests(unittest.TestCase):
 
     @unittest.skipUnless('SUDO_UID' in os.environ.keys(), 'for sudoers only')
     def test_conf_permissions(self):
-        self.tmp_file = os.path.join(os.path.dirname(self.conf), '{0}.yml'.format(self.name))
+        self.tmp_file = os.path.join(
+            os.path.dirname(self.conf), '{0}.yml'.format(self.name))
         file_path = Config.make_config(self.tmp_file)
         self.assertEqual(
             int(os.environ['SUDO_UID']), self.get_owner(file_path))
 
     def test_custom_conf(self):
         name = 'test-{0}.conf'.format(_common.get_test_id())
-        self.tmp_file =  os.path.join(os.path.dirname(self.conf), 'tmp', name)
+        self.tmp_file = os.path.join(os.path.dirname(self.conf), 'tmp', name)
         results = Config.make_config(self.tmp_file)
         self.assertEqual(self.tmp_file, results)
         # Check formatting

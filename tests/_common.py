@@ -35,17 +35,17 @@ class MHTestSuite(unittest.TestSuite):
         # Back up current config
         curr_config = get_conf_file()
         backup = os.path.join(
-            os.path.dirname(curr_config), 'config.yml.orig') 
+            os.path.dirname(curr_config), 'config.yml.orig')
         if not os.path.exists(backup):
             shutil.move(curr_config, backup)
         # Make new config for testing
-        new_config = Config.make_config()
+        Config.make_config()
 
     def tearDownSuite(self):
         # Restore original config
         curr_config = get_conf_file()
         backup = os.path.join(
-            os.path.dirname(curr_config), 'config.yml.orig') 
+            os.path.dirname(curr_config), 'config.yml.orig')
         if os.path.exists(backup):
             shutil.move(backup, curr_config)
 
@@ -64,7 +64,8 @@ def skipUnlessHasMod(module, submodule):
     try:
         Config._find_module(module, submodule)
     except ImportError:
-        return unittest.skip("requires module {0}.{1}".format(module, submodule))
+        return unittest.skip("requires module {0}.{1}".format(
+            module, submodule))
     else:
         return lambda func: func
 
@@ -95,9 +96,9 @@ def make_tmp_file(text=None, tdir=None):
     if text is None:
         text = '.tmp'
     get_file = tempfile.NamedTemporaryFile(
-            dir=tdir,
-            suffix=text,
-            delete=False)
+        dir=tdir,
+        suffix=text,
+        delete=False)
     return get_file.name
 
 
@@ -139,7 +140,6 @@ def get_types_by_id():
 
 def get_pushover_api():
     apis = {}
-    
     # Get API Key
     if 'PUSHOVER_API_KEY' in os.environ.keys():
         apis['api_key'] = os.environ['PUSHOVER_API_KEY']

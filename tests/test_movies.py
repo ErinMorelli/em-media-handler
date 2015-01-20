@@ -15,7 +15,7 @@
 # included in all copies or substantial portions of the Software.
 '''Initialize module'''
 
-import os 
+import os
 
 import _common
 from _common import unittest
@@ -62,7 +62,8 @@ Done ?(?????)?
 '''.format(self.folder)
         (new_file, skipped) = self.movies.process_output(output, self.tmp_file)
         self.assertEqual(new_file, [])
-        self.assertEqual(skipped,
+        self.assertEqual(
+            skipped,
             ['/Downloaded/Movies/Snowpiercer.2013.1080p.BluRay.x264.mp4'])
 
     def test_movie_output_multi(self):
@@ -79,7 +80,8 @@ Stripping invalid characters from new path: {0}/Star Wars: Episode IV - A New Ho
 Processed 3 files
 Done ?(?????)?
 '''.format(self.folder)
-        (new_files, skipped) = self.movies.process_output(output, self.tmp_file)
+        (new_files, skipped) = self.movies.process_output(
+            output, self.tmp_file)
         expected = [
             'Star Wars Episode V - The Empire Strikes Back (1980)',
             'Star Wars Episode VI - Return of the Jedi (1983)',
@@ -96,9 +98,11 @@ Auto-detect movie from context: [/Downloaded/Movies/Fake.Movie.avi]
 Processed 1 files
 Done ?(?????)?
 '''
-        regex = r'Unable to match movie: /Movies/Fake Movie, /Movies/Another.Fake.Movie'
+        regex = r'Unable to match movie: {0}. {1}'.format(
+            '/Movies/Fake Movie', '/Movies/Another.Fake.Movie')
         self.assertRaisesRegexp(
-            SystemExit, regex, self.movies.process_output, output, self.tmp_file)
+            SystemExit, regex,
+            self.movies.process_output, output, self.tmp_file)
 
     def test_movie_output_skips(self):
         output = '''Rename movies using [TheMovieDB]
@@ -123,7 +127,8 @@ Skipped [/Downloaded/Star Wars/star.wars.a.new.hope.1977.avi] because [{0}/Star 
 Processed 6 files
 Done ?(?????)?
 '''.format(self.folder)
-        (new_files, skipped) = self.movies.process_output(output, self.tmp_file)
+        (new_files, skipped) = self.movies.process_output(
+            output, self.tmp_file)
         new_expected = [
             'Star Wars Episode I - The Phantom Menace (1999)',
             'Star Wars Episode II - Attack of the Clones (2002)',

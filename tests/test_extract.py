@@ -16,7 +16,6 @@
 '''Initialize module'''
 
 import os
-import sys
 import shutil
 import zipfile
 
@@ -36,8 +35,8 @@ class ExtractBadZipTests(unittest.TestCase):
         self.conf = _common.get_conf_file()
         # Tmp name
         self.name = "test-{0}".format(_common.get_test_id())
-         # Tmp args
-        args = { 'name': self.name }
+        # Tmp args
+        args = {'name': self.name}
         # Make handler
         self.handler = MH.Handler(args)
         self.filebot = self.handler.settings['TV']['has_filebot']
@@ -64,7 +63,7 @@ class ExtractBadZipTests(unittest.TestCase):
 
     def test_bad_zip(self):
         self.assertIsNone(Extract.get_files(self.filebot, self.bad_zip))
-    
+
     def test_bad_non_zip(self):
         self.assertIsNone(Extract.get_files(self.filebot, self.bad_non_zip))
 
@@ -114,7 +113,7 @@ class ExtractGoodZipTests(unittest.TestCase):
         get_good_zip1.close()
         get_good_zip2.close()
         # Make zip file
-        self.zip_name =  os.path.join(os.path.dirname(self.conf), 'test_ET.zip')
+        self.zip_name = os.path.join(os.path.dirname(self.conf), 'test_ET.zip')
         with zipfile.ZipFile(self.zip_name, "w") as good_zip:
             good_zip.write(self.good_zip1, 'one.tmp')
             good_zip.write(self.good_zip2, 'two.tmp')

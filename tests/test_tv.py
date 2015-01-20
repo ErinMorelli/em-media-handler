@@ -16,7 +16,7 @@
 '''Initialize module'''
 
 import os
-import _common
+
 from _common import unittest
 from _common import MHTestSuite
 
@@ -34,7 +34,8 @@ class TVMediaObjectTests(MediaObjectTests):
         self.episode = TV.Episode(self.settings, self.push)
 
     def test_new_tv_object(self):
-        form = os.path.join("{n}", "Season {s}", "{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}")
+        form = os.path.join(
+            "{n}", "Season {s}", "{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}")
         expected = os.path.join(self.folder, form)
         self.assertEqual(self.episode.filebot['db'], 'thetvdb')
         self.assertEqual(self.episode.filebot['format'], expected)
@@ -46,9 +47,12 @@ Fetching episode data for [Grey's Anatomy]
 [COPY] Rename [/Downloaded/TV/Greys.Anatomy.S10E24.720p.HDTV.X264.mkv] to [{0}]
 Processed 1 files
 Done ?(?????)?
-'''.format(os.path.join(
-        self.folder, "Grey's Anatomy", "Season 10", "Grey's.Anatomy.S10E24.mkv"))
-        (new_file, skipped) = self.episode.process_output(output, self.tmp_file)
+'''.format(
+            os.path.join(
+                self.folder, "Grey's Anatomy",
+                "Season 10", "Grey's.Anatomy.S10E24.mkv"))
+        (new_file, skipped) = self.episode.process_output(
+            output, self.tmp_file)
         expected = ["Grey's Anatomy (Season 10, Episode 24)"]
         self.assertEqual(new_file, expected)
         self.assertEqual(skipped, [])
@@ -66,7 +70,8 @@ Skipped [/Downloaded/Grey's Anatomy Season 1/greys.anatomy.s01e03.avi] because [
 Processed 6 files
 Done ?(?????)?
 '''.format(self.folder)
-        (new_files, skipped) = self.episode.process_output(output, self.tmp_file)
+        (new_files, skipped) = self.episode.process_output(
+            output, self.tmp_file)
         new_expected = [
             "Grey's Anatomy (Season 1, Episode 4)",
             "Grey's Anatomy (Season 1, Episode 5)",
@@ -89,9 +94,11 @@ Fetching episode data for [Fake Show]
 Processed 1 files
 Done ?(?????)?
 '''
-        regex = r'Unable to match episode: /TV/Fake Show/Fake.Show.S01E01, /TV/Fake Show/Fake.Show.S01E02'
+        regex = r'Unable to match episode: {0}, {1}'.format(
+            '/TV/Fake Show/Fake.Show.S01E01', '/TV/Fake Show/Fake.Show.S01E02')
         self.assertRaisesRegexp(
-            SystemExit, regex, self.episode.process_output, output, self.tmp_file)
+            SystemExit, regex,
+            self.episode.process_output, output, self.tmp_file)
 
     def test_tv_output_skipped(self):
         output = '''Rename episodes using [TheTVDB]
@@ -104,7 +111,8 @@ Skipped [/Downloaded/Archer Season 3/Archer.s03e03.avi] because [{0}/Archer/Seas
 Processed 3 files
 Done ?(?????)?
 '''.format(self.folder)
-        (new_files, skipped) = self.episode.process_output(output, self.tmp_file)
+        (new_files, skipped) = self.episode.process_output(
+            output, self.tmp_file)
         expected = [
             "/Downloaded/Archer Season 3/Archer.s03e01.avi",
             "/Downloaded/Archer Season 3/Archer.s03e02.avi",

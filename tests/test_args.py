@@ -21,7 +21,6 @@ from _common import unittest
 from _common import MHTestSuite
 
 import mediahandler.util.args as Args
-import mediahandler.util.torrent as Torrent
 
 
 class ArgsTests(unittest.TestCase):

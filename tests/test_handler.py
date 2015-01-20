@@ -16,10 +16,7 @@
 '''Initialize module'''
 
 import os
-import sys
 import shutil
-from re import match
-from twisted.internet import error
 
 import _common
 from _common import unittest
@@ -91,7 +88,7 @@ class ConvertTypeTests(unittest.TestCase):
 
     def setUp(self):
         # Temp args
-        args = { 'no_push': False }
+        args = {'no_push': False}
         # Make handler
         self.handler = MH.Handler(args)
         self.types_hash = _common.get_types_by_string()
@@ -203,7 +200,7 @@ class ParseDirTests(unittest.TestCase):
         # Test name
         self.name = 'test-{0}'.format(_common.get_test_id())
         # Temp args
-        args = { 'no_push': False }
+        args = {'no_push': False}
         # Make handler
         self.handler = MH.Handler(args)
         self.types_hash = _common.get_types_by_string()
@@ -223,7 +220,7 @@ class ParseDirTests(unittest.TestCase):
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler._parse_dir, path)
 
-    def run_good_type_path(self, stype): 
+    def run_good_type_path(self, stype):
         itype = self.types_hash[stype]
         # Build expected values
         filename = '{0}-{1}'.format(stype, _common.get_test_id())
@@ -250,7 +247,7 @@ class ParseDirTests(unittest.TestCase):
 
     def test_good_parse_book_path(self):
         self.run_good_type_path('Audiobooks')
-        
+
 
 class HandlerTestClass(unittest.TestCase):
 
@@ -429,18 +426,20 @@ class CheckSuccessTests(HandlerTestClass):
     def test_results_good(self):
         self.handler.settings['single_file'] = False
         results = ([self.dir], [])
-        regex = r'Media was successfully added to your server:\n\+ {0}'.format(self.dir)
+        reg = r'Media was successfully added to your server:\n\+ {0}'.format(
+            self.dir)
         added = self.handler._check_success(self.dir, results)
-        self.assertRegexpMatches(added, regex)
+        self.assertRegexpMatches(added, reg)
         self.assertFalse(os.path.exists(self.dir))
 
     def test_results_both(self):
         self.handler.settings['single_file'] = True
         self.tmp_file = _common.make_tmp_file()
         results = ([self.tmp_file], [self.dir])
-        regex1 = r'Media was successfully added to your server:\n\+ {0}'.format(self.tmp_file)
-        regex2 = r'Some files were skipped:\n- {0}'.format(self.dir)
-        regex = r'{0}\n\n{1}'.format(regex1, regex2)
+        reg1 = r'Media was successfully added to your server:\n\+ {0}'.format(
+            self.tmp_file)
+        reg2 = r'Some files were skipped:\n- {0}'.format(self.dir)
+        regex = r'{0}\n\n{1}'.format(reg1, reg2)
         added = self.handler._check_success(self.dir, results)
         self.assertRegexpMatches(added, regex)
         self.assertTrue(os.path.exists(self.dir))
@@ -543,7 +542,7 @@ class AddMediaFilesTests(HandlerTestClass):
     def setUp(self):
         # Call super
         super(AddMediaFilesTests, self).setUp()
-        # Get types hash 
+        # Get types hash
         self.types_hash = _common.get_types_by_string()
         # Set up beets path
         _find_app(
@@ -584,11 +583,11 @@ class AddMediaFilesTests(HandlerTestClass):
 
     def test_custom_book_search(self):
         # Search string
-        search_string = _common.random_string(10)
+        search_str = _common.random_string(10)
         # Modify args & settings for books
         self.handler.args['type'] = 4
         self.handler.args['stype'] = 'Audiobooks'
-        self.handler.args['search'] = search_string
+        self.handler.args['search'] = search_str
         self.handler.settings['single_file'] = False
         self.handler.settings['Audiobooks']['enabled'] = True
         # Make a dummy file
@@ -601,7 +600,7 @@ class AddMediaFilesTests(HandlerTestClass):
             SystemExit, regex, self.handler.add_media_files, self.tmp_file)
         # Check settings
         self.assertIs(
-            self.handler.settings['Audiobooks']['custom_search'], search_string)
+            self.handler.settings['Audiobooks']['custom_search'], search_str)
 
     def run_add_type_test(self, stype, enabled=True):
         # Modify args & settings for books
@@ -670,4 +669,3 @@ def suite():
 
 if __name__ == '__main__':
     unittest.main(defaultTest='suite', verbosity=2, buffer=True)
-    

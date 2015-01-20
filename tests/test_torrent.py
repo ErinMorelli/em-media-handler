@@ -49,7 +49,8 @@ class DelugeTests(unittest.TestCase):
         self.assertRaisesRegexp(
             SystemExit, '2', Torrent.get_deluge_arguments)
         # Test 2
-        sys.argv = ['', 'hash', 'name', os.path.join('path', 'to', 'file'), 'extra']
+        sys.argv = [
+            '', 'hash', 'name', os.path.join('path', 'to', 'file'), 'extra']
         self.assertRaisesRegexp(
             SystemExit, '2', Torrent.get_deluge_arguments)
 

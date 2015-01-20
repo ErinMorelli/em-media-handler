@@ -18,7 +18,6 @@
 import os
 import sys
 import shutil
-from mutagen.mp3 import MP3
 
 import _common
 from _common import unittest
@@ -69,12 +68,14 @@ class BaseBookObjectTests(BookMediaObjectTests):
 class BookCleanStringTests(BookMediaObjectTests):
 
     def test_blacklist_string(self):
-        string = os.path.join(self.folder, 'Yes Please iTunes Audiobook Unabridged')
+        string = os.path.join(
+            self.folder, 'Yes Please iTunes Audiobook Unabridged')
         expected = 'Yes Please'
         self.assertEqual(self.book._clean_string(string), expected)
 
     def test_bracket_string(self):
-        string = os.path.join(self.folder, 'The Lovely Bones [A Novel] (Mp3) {TKP}')
+        string = os.path.join(
+            self.folder, 'The Lovely Bones [A Novel] (Mp3) {TKP}')
         expected = 'The Lovely Bones'
         self.assertEqual(self.book._clean_string(string), expected)
 
@@ -221,7 +222,7 @@ class GetChaptersTests(BookMediaObjectTests):
 
 @unittest.skipUnless(sys.platform.startswith("linux"), "requires Ubuntu")
 class AddBookTest(BookMediaObjectTests):
-    
+
     def test_add_book(self):
         # Set up abc & php paths
         _find_app(self.book.settings, {'name': 'ABC', 'exec': 'abc.php'})
@@ -241,7 +242,8 @@ class AddBookTest(BookMediaObjectTests):
         self.assertListEqual(expected, added)
         self.assertListEqual([], skipped)
         # Check that file was made
-        created = os.path.join(self.folder, 'Paul Doiron',
+        created = os.path.join(
+            self.folder, 'Paul Doiron',
             'The Bone Orchard_ A Novel', 'The Bone Orchard.m4b')
         self.assertTrue(os.path.exists(created))
 
@@ -252,7 +254,7 @@ class GetFilesTests(BookMediaObjectTests):
         # Set up folder
         book_file1 = _common.make_tmp_file('.m4b', self.folder)
         book_file2 = _common.make_tmp_file('.m4b', self.folder)
-        book_file3 = _common.make_tmp_file('.mp3', self.folder)
+        _common.make_tmp_file('.mp3', self.folder)
         # Set up test
         expected = [book_file1, book_file2]
         # Run test
@@ -292,19 +294,20 @@ class GetFilesTests(BookMediaObjectTests):
     @_common.skipUnlessHasMod('mutagen', 'mp3')
     def test_get_files_bad_chaptered(self):
         # Set up folder
-        book_file1 = _common.make_tmp_file('.mp3', self.folder)
-        book_file2 = _common.make_tmp_file('.mp3', self.folder)
+        _common.make_tmp_file('.mp3', self.folder)
+        _common.make_tmp_file('.mp3', self.folder)
         # Set up test
         import mutagen.mp3
         # Run test
         regex = r''
-        self.assertRaisesRegexp(mutagen.mp3.HeaderNotFoundError,
+        self.assertRaisesRegexp(
+            mutagen.mp3.HeaderNotFoundError,
             regex, self.book._get_files, self.folder, True)
 
     def test_get_files_none(self):
         # Set up folder
-        book_file1 = _common.make_tmp_file('.m4a', self.folder)
-        book_file2 = _common.make_tmp_file('.m4a', self.folder)
+        _common.make_tmp_file('.m4a', self.folder)
+        _common.make_tmp_file('.m4a', self.folder)
         # Set up test
         expected = []
         # Run test
@@ -327,7 +330,7 @@ class MoveFilesBookTests(BookMediaObjectTests):
     def test_move_no_subtitle(self):
         new_book_info = self.book.ask_google('The Lovely Bones Alice Sebold')
         self.book.book_info = new_book_info
-         # Make dummy file
+        # Make dummy file
         book_file = _common.make_tmp_file('.m4b', self.folder)
         # Set up file array
         file_array = [book_file]
@@ -335,8 +338,9 @@ class MoveFilesBookTests(BookMediaObjectTests):
         (added, skipped) = self.book._move_files(file_array, True)
         # Check results
         expected = ['The Lovely Bones']
-        new_file = os.path.join(self.folder,
-            'Alice Sebold','The Lovely Bones', 'The Lovely Bones.m4b')
+        new_file = os.path.join(
+            self.folder, 'Alice Sebold',
+            'The Lovely Bones', 'The Lovely Bones.m4b')
         self.assertListEqual(skipped, [])
         self.assertListEqual(expected, added)
         self.assertTrue(os.path.exists(new_file))
@@ -344,8 +348,8 @@ class MoveFilesBookTests(BookMediaObjectTests):
     def test_move_no_chapters(self):
         self.book.settings['file_type'] = 'mp3'
         # Make dummy files
-        book_file1 = _common.make_tmp_file('.mp3', self.folder)
-        book_file2 = _common.make_tmp_file('.mp3', self.folder)
+        _common.make_tmp_file('.mp3', self.folder)
+        _common.make_tmp_file('.mp3', self.folder)
         # Set up file array
         file_array = sorted(os.listdir(self.folder))
         # Run test
@@ -360,12 +364,13 @@ class MoveFilesBookTests(BookMediaObjectTests):
         book_file1 = _common.make_tmp_file('.m4b', self.folder)
         book_file2 = _common.make_tmp_file('.m4b', self.folder)
         # Set up file array
-        file_array =[book_file1, book_file2]
+        file_array = [book_file1, book_file2]
         # Run test
         (added, skipped) = self.book._move_files(file_array, True)
         # Set expected values
         expected = ['Outrage, Part 1', 'Outrage, Part 2']
-        new_path = os.path.join(self.folder, 'Arnaldur Indridason',
+        new_path = os.path.join(
+            self.folder, 'Arnaldur Indridason',
             'Outrage_ An Inspector Erlendur Novel')
         new_file1 = os.path.join(new_path, 'Outrage, Part 1.m4b')
         new_file2 = os.path.join(new_path, 'Outrage, Part 2.m4b')
@@ -377,7 +382,8 @@ class MoveFilesBookTests(BookMediaObjectTests):
 
     def test_move_duplicates(self):
         # Make existing files
-        new_path = os.path.join(self.folder, 'Arnaldur Indridason',
+        new_path = os.path.join(
+            self.folder, 'Arnaldur Indridason',
             'Outrage_ An Inspector Erlendur Novel')
         new_file1 = os.path.join(new_path, 'Outrage, Part 1.m4b')
         new_file2 = os.path.join(new_path, 'Outrage, Part 2.m4b')
@@ -390,7 +396,7 @@ class MoveFilesBookTests(BookMediaObjectTests):
         book_file1 = _common.make_tmp_file('.m4b', self.folder)
         book_file2 = _common.make_tmp_file('.m4b', self.folder)
         # Set up file array
-        file_array =[book_file1, book_file2]
+        file_array = [book_file1, book_file2]
         # Run test
         (added, skipped) = self.book._move_files(file_array, True)
         # Set expected values
@@ -410,7 +416,8 @@ class SingleFileBookTests(BookMediaObjectTests):
         result = self.book._single_file(book_file, 'The Lovely Bones')
         # Check results
         expected_path = os.path.join(self.folder, 'The Lovely Bones')
-        expected_file = os.path.join(expected_path, os.path.basename(book_file))
+        expected_file = os.path.join(
+            expected_path, os.path.basename(book_file))
         self.assertEqual(expected_path, result)
         self.assertTrue(os.path.exists(expected_file))
 
@@ -429,7 +436,6 @@ class SingleFileBookTests(BookMediaObjectTests):
             'year': '2008'
         }
         self.assertDictEqual(expected, result)
-
 
 
 def suite():
