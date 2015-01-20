@@ -2,7 +2,7 @@
 EM Media Handler
 ================
 :Author: `Erin Morelli <mailto:erin@erinmorelli.com>`_
-:Version: 0.6.2
+:Version: 0.6.3
 
 .. image:: https://api.travis-ci.org/ErinMorelli/em-media-handler.svg?branch=master
   :target: https://travis-ci.org//ErinMorelli/em-media-handler
@@ -10,7 +10,7 @@ EM Media Handler
 .. image:: https://coveralls.io/repos/ErinMorelli/em-media-handler/badge.png?branch=master
   :target: https://coveralls.io/r/ErinMorelli/em-media-handler?branch=master
 
-A comprehensive media handler for use with Deluge to manage TV Shows, Movies, Music, and Audiobooks. Integrates with push notifications via Pushover.
+A comprehensive media handling app for use via command line or with a torrenting program. Handles TV shows, movies, music, and audiobooks. Integrates with push notifications via Pushover.
 
 **Packages & Apps Used:**
 

@@ -17,7 +17,7 @@
 
 from os.path import join, dirname
 
-__version__ = '0.6.2'
+__version__ = '0.6.3'
 __author__ = 'Erin Morelli <erin@erinmorelli.com>'
 
 
