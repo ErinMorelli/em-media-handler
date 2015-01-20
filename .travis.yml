@@ -31,6 +31,7 @@ before_script:
   - sudo ln -s /usr/local/lib/libmp4v2.so.1.9.1 /usr/lib/libmp4v2.so.1
   - wget http://www.ausge.de/component/jdownloads/finish/1-linux-software/29-abc-audio-book-creator/0?Itemid=699 -O abc_0.0.5-0ubuntu1_all.deb
   - sudo dpkg -i abc_0.0.5-0ubuntu1_all.deb
+  - sudo apt-get -f install
 # Command to install & run tests
 script:
   - python ./setup.py install
