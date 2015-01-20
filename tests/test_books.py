@@ -235,11 +235,11 @@ class AddBookTest(BookMediaObjectTests):
             dst = os.path.join(self.folder, '0{}-track.mp3'.format(str(x+1)))
             shutil.copy(self.audio_file, dst)
         # Run test
-        (result, skips) = self.book.add(self.folder)
+        (added, skipped) = self.book.add(self.folder)
         # Check results
-        regex = r'"The Bone Orchard: A Novel" by Paul Doiron'
-        self.assertRegexpMatches(result, regex)
-        self.assertFalse(skips)
+        expected = ['"The Bone Orchard: A Novel" by Paul Doiron']
+        self.assertListEqual(expected, added)
+        self.assertListEqual([], skipped)
         # Check that file was made
         created = os.path.join(self.folder, 'Paul Doiron',
             'The Bone Orchard_ A Novel', 'The Bone Orchard.m4b')

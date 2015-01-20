@@ -482,7 +482,7 @@ class Book(object):
             book_files, self.settings['make_chapters'])
         logging.debug("Move was successful: %s", move_files)
         # Verify success
-        if move_files is None:
+        if len(move_files) == 0 and len(skipped) == 0:
             return self.push.failure(
                 "Unable to move book files: {}".format(raw))
         # format book title
