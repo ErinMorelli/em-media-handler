@@ -224,8 +224,8 @@ class AddBookTest(BookMediaObjectTests):
     
     def test_add_book(self):
         # Set up abc & php paths
-        _find_app(self.settings, {'name': 'ABC', 'exec': 'abc.php'})
-        _find_app(self.settings, {'name': 'PHP', 'exec': 'php'})
+        _find_app(self.book.settings, {'name': 'ABC', 'exec': 'abc.php'})
+        _find_app(self.book.settings, {'name': 'PHP', 'exec': 'php'})
         # Set max length to 30 mins
         self.book.settings['max_length'] = 1800
         self.book.settings['make_chapters'] = True

@@ -29,7 +29,7 @@ class PushObjectTests(unittest.TestCase):
         # Testing name
         self.name = "push-{0}".format(_common.get_test_id())
         # Settings
-        args = _common.get_test_api()
+        args = _common.get_pushover_api()
         args['enabled'] = True
         args['notify_name'] = ''
         # Push object

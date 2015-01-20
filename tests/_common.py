@@ -105,6 +105,14 @@ def get_conf_file():
     return Config.make_config()
 
 
+def get_orig_settings():
+    conf_dir = os.path.dirname(get_conf_file())
+    old_config = os.path.join(conf_dir, 'config.yml.orig')
+    if not os.path.exists(old_config):
+        old_config = os.path.join(conf_dir, 'config.yml')
+    return get_settings(old_config)
+
+
 def get_settings(conf=None):
     if conf is None:
         conf = get_conf_file()
@@ -129,12 +137,24 @@ def get_types_by_id():
     }
 
 
-def get_test_api():
-    return {
-        'api_key': 'aHyetWak8sdc4nq1bWdyBKrCqwfon7',
-        'user_key': 'uvdttD8roFNXYMpJuhfyKDmiwwsaUb',
-    }
+def get_pushover_api():
+    apis = {}
+    
+    # Get API Key
+    if 'PUSHOVER_API_KEY' in os.environ.keys():
+        apis['api_key'] = os.environ['PUSHOVER_API_KEY']
+    else:
+        apis['api_key'] = get_orig_settings()['Pushover']['api_key']
+    # Get User Key
+    if 'PUSHOVER_USER_KEY' in os.environ.keys():
+        apis['user_key'] = os.environ['PUSHOVER_USER_KEY']
+    else:
+        apis['user_key'] = get_orig_settings()['Pushover']['user_key']
+    return apis
 
 
 def get_google_api():
-    return 'AIzaSyDqmgZeetYvIq6kTXZu7ZRIYDautQ7HRq4'
+    if 'GOOGLE_API_KEY' in os.environ.keys():
+        return os.environ['GOOGLE_API_KEY']
+    else:
+        return get_orig_settings()['Audiobooks']['api_key']
