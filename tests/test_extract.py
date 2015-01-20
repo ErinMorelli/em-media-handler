@@ -124,7 +124,8 @@ class ExtractGoodZipTests(unittest.TestCase):
         os.unlink(self.good_zip2)
         os.unlink(self.zip_name)
         # Remove extracted files
-        shutil.rmtree(self.folder)
+        if os.path.exists(self.folder)
+            shutil.rmtree(self.folder)
 
     def test_good_extract(self):
         files = Extract.get_files(self.filebot, self.zip_name)
