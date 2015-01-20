@@ -9,7 +9,7 @@ python:
 # Pre-install commands
 before_install:
   - SITE_PKG_DIR=$VIRTUAL_ENV/lib/python$TRAVIS_PYTHON_VERSION/site-packages
-rm -f $VIRTUAL_ENV/lib/python$TRAVIS_PYTHON_VERSION/no-global-site-packages.txt  
+  - rm -f $VIRTUAL_ENV/lib/python$TRAVIS_PYTHON_VERSION/no-global-site-packages.txt  
   - sudo add-apt-repository ppa:gambas-team/gambas3 -y
   - sudo add-apt-repository ppa:webupd8team/java -y
   - sudo add-apt-repository ppa:deluge-team/ppa -y
