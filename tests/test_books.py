@@ -38,6 +38,8 @@ class BookMediaObjectTests(MediaObjectTests):
         self.audio_file = os.path.join(
             os.path.dirname(__file__), 'extra', 'test_mp3_file.mp3')
         # Book-specific settings
+        self.settings = _common.get_settings()['Audiobooks']
+        self.settings['folder'] = self.folder
         self.settings['api_key'] = _common.get_google_api()
         self.settings['chapter_length'] = None
         self.settings['make_chapters'] = False

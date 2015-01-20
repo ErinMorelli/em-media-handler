@@ -68,7 +68,7 @@ class Book(object):
             self.push.failure("Folder for Audiobooks not found: {0}".format(
                 self.settings['folder']))
         # Look for Google api key
-        if settings['api_key'] is None:
+        if self.settings['api_key'] is None:
             logging.warning("Google Books API key not found")
             raise Warning("Google Books API key not found")
         # Default chapter length

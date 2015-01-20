@@ -38,9 +38,22 @@ class FindModulesTests(unittest.TestCase):
     def test_find_module_failure(self):
         module = _common.random_string(8)
         submod = _common.random_string(5)
-        regex = "Module {0}.{1} is not installed".format(module, submod)
+        regex = r'Module {0}.{1} is not installed'.format(module, submod)
         self.assertRaisesRegexp(ImportError, regex,
                                 Config._find_module, module, submod)
+
+    def test_find_app_success(self):
+        settings = _common.get_settings()['TV']
+        app = {'name': 'Filebot', 'exec': 'filebot'}
+        Config._find_app(settings, app)
+        self.assertIn('has_filebot', settings.keys())
+
+    def test_find_app_failure(self):
+        settings = _common.get_settings()['Movies']
+        app = {'name': 'NotReal', 'exec': 'notreal.php'}
+        regex = r'NotReal application not found'
+        self.assertRaisesRegexp(
+            ImportError, regex, Config._find_app, settings, app)
 
 
 class CheckModulesTests(unittest.TestCase):

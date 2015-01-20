@@ -142,15 +142,17 @@ Done ?(?????)?
 
     def test_remove_bad_files(self):
         # Add files to folder
+        bad_folder = tempfile.mkdtemp(dir=self.folder)
         file1 = _common.make_tmp_file('.nfo', self.folder)
         file2 = _common.make_tmp_file('.srt', self.folder)
-        file3 = _common.make_tmp_file('.txt', self.folder)
+        file3 = _common.make_tmp_file('.txt', bad_folder)
         # Run test
         self.media._remove_bad_files(self.folder)
         # Check results
         self.assertFalse(os.path.exists(file1))
         self.assertFalse(os.path.exists(file2))
         self.assertFalse(os.path.exists(file3))
+        self.assertFalse(os.path.exists(bad_folder))
         self.assertTrue(os.path.exists(self.tmp_file))
 
 

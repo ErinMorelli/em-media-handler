@@ -141,20 +141,18 @@ def get_types_by_id():
 def get_pushover_api():
     apis = {}
     # Get API Key
-    if 'PUSHOVER_API_KEY' in os.environ.keys():
-        apis['api_key'] = os.environ['PUSHOVER_API_KEY']
-    else:
+    apis['api_key'] = os.getenv('PUSHOVER_API_KEY')
+    if apis['api_key'] is None:
         apis['api_key'] = get_orig_settings()['Pushover']['api_key']
     # Get User Key
-    if 'PUSHOVER_USER_KEY' in os.environ.keys():
-        apis['user_key'] = os.environ['PUSHOVER_USER_KEY']
-    else:
+    apis['user_key'] = os.getenv('PUSHOVER_USER_KEY')
+    if apis['user_key'] is None:
         apis['user_key'] = get_orig_settings()['Pushover']['user_key']
     return apis
 
 
 def get_google_api():
-    if 'GOOGLE_API_KEY' in os.environ.keys():
-        return os.environ['GOOGLE_API_KEY']
-    else:
-        return get_orig_settings()['Audiobooks']['api_key']
+    key = os.getenv('GOOGLE_API_KEY')
+    if key is None:
+        key = get_orig_settings()['Audiobooks']['api_key']
+    return key
