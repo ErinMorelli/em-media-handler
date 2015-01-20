@@ -234,7 +234,7 @@ class Book(object):
         for i, file_part in enumerate(file_parts):
             part_path = path.join(file_path, 'Part {0}'.format(str(i+1)))
             # Define chapter query
-            b_cmd = ['/usr/bin/php', '-f', self.settings['has_abc'],
+            b_cmd = [self.settings['has_php'], '-f', self.settings['has_abc'],
                      file_part,  # Path to book files
                      self.book_info['author'].encode("utf8"),  # artist
                      self.book_info['long_title'].encode("utf8"),  # album

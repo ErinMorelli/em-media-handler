@@ -28,6 +28,7 @@ from _common import MHTestSuite
 
 import mediahandler.handler as MH
 import mediahandler.util.notify as Notify
+from mediahandler.util.config import _find_app
 
 
 class NewHandlerTests(unittest.TestCase):
@@ -366,6 +367,9 @@ class FileHandlerTests(HandlerTestClass):
             SystemExit, regex, self.handler._file_handler, self.tmp_file)
 
     def test_process_files_single_music(self):
+        # Set up beets path
+        _find_app(
+            self.handler.settings['Music'], {'name': 'Beets', 'exec': 'beet'})
         # Modify args & settings for single music
         self.handler.args['type'] = 3
         self.handler.args['stype'] = 'Music'
@@ -391,6 +395,9 @@ class FileHandlerTests(HandlerTestClass):
             SystemExit, regex, self.handler._file_handler, self.dir)
 
     def test_process_files_folder_music(self):
+        # Set up beets path
+        _find_app(
+            self.handler.settings['Music'], {'name': 'Beets', 'exec': 'beet'})
         # Modify args & settings for single video
         self.handler.args['type'] = 3
         self.handler.args['stype'] = 'Music'
@@ -538,6 +545,9 @@ class AddMediaFilesTests(HandlerTestClass):
         super(AddMediaFilesTests, self).setUp()
         # Get types hash 
         self.types_hash = _common.get_types_by_string()
+        # Set up beets path
+        _find_app(
+            self.handler.settings['Music'], {'name': 'Beets', 'exec': 'beet'})
 
     def test_forced_single_track(self):
         # Modify args & settings for single track

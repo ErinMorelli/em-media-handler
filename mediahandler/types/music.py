@@ -34,7 +34,6 @@ class Tracks(mediahandler.types.Media):
         self.ptype = None
         super(Tracks, self).__init__(settings, push)
         # Beet
-        self.beet = path.join('/', 'usr', 'local', 'bin', 'beet')
         self.beetslog = path.join(path.expanduser("~"), 'logs', 'beets.log')
         # Query info
         self.query = {
@@ -65,7 +64,7 @@ class Tracks(mediahandler.types.Media):
         if not path.exists(beetslog_dir):
             makedirs(beetslog_dir)
         # Set up query
-        m_cmd = [self.beet,
+        m_cmd = [self.settings['has_beets'],
                  "import", file_path,
                  self.query['tags'], self.beetslog]
         # Get info

@@ -32,7 +32,7 @@ def show_deluge_usage(code, msg=None):
 EM Media Handler v{0} / by {1}
 
 Usage:
-  addmedia-deluge [Torrent ID] [Torrent Name] [Torrent Path]
+  addmedia-deluge [TORRENT ID] [TORRENT NAME] [TORRENT PATH]
 
 '''.format(mh.__version__, mh.__author__)
     # Print error, if it exists

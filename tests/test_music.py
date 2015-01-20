@@ -24,6 +24,7 @@ from _common import MHTestSuite
 
 from test_media import MediaObjectTests
 
+from mediahandler.util.config import _find_app
 import mediahandler.types.music as Music
 
 
@@ -35,11 +36,11 @@ class MusicMediaObjectTests(MediaObjectTests):
         # Make an object
         self.settings['single_track'] = False
         self.tracks = Music.Tracks(self.settings, self.push)
+        # Set up beets path
+        _find_app(self.settings, {'name': 'Beets', 'exec': 'beet'})
 
     def test_new_music_object(self):
         expected = r"(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n"
-        beet_path = os.path.join('/', 'usr', 'local', 'bin', 'beet')
-        self.assertEqual(self.tracks.beet, beet_path)
         self.assertEqual(self.tracks.query['tags'], '-ql')
         self.assertEqual(self.tracks.query['added'], expected)
 

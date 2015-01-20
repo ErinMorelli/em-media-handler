@@ -91,22 +91,28 @@ def _check_modules(settings):
                 for module in item['modules']:
                     _find_module(module[0], module[1])
             # Check applications
-            if 'apps' in item.keys():
+            if 'apps' in item.keys():                
                 for app in item['apps']:
-                    # Save in settings
-                    name = 'has_{0}'.format(app['name'].lower())
-                    settings[section][name] = None
-                    # Look for app in local paths
-                    local_paths = os.environ['PATH'].rsplit(':')
-                    for local_path in local_paths:
-                        path = os.path.join(local_path, app['exec'])
-                        if os.path.isfile(path):
-                            settings[section][name] = path
-                            break
-                    if settings[section][name] is None:
-                        error = '{0} application not found'.format(
-                            app['name'])
-                        raise ImportError(error)
+                    _find_app(settings[section], app)
+    return
+
+
+# ======== CHECK IF APP IS INSTALLED ======== #
+
+def _find_app(settings, app):
+    # Save in settings
+    name = 'has_{0}'.format(app['name'].lower())
+    settings[name] = None
+    # Look for app in local paths
+    local_paths = os.environ['PATH'].rsplit(':')
+    for local_path in local_paths:
+        path = os.path.join(local_path, app['exec'])
+        if os.path.isfile(path):
+            settings[name] = path
+            break
+    if settings[name] is None:
+        error = '{0} application not found'.format(app['name'])
+        raise ImportError(error)
     return
 
 

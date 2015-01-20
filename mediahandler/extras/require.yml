@@ -9,6 +9,10 @@ Music:
     option: enabled
     modules: 
         - [beets, util]
+    apps:
+        - 
+            name: Beets
+            exec: beet
 
 Audiobooks:
     option: enabled
@@ -23,6 +27,9 @@ Audiobooks:
         - 
             name: ABC
             exec: abc.php
+        - 
+            name: PHP
+            exec: php
 
 TV:
     option: enabled
