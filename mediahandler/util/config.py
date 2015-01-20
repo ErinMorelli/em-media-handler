@@ -67,8 +67,8 @@ def init_logging(settings):
     )
     # Enable deluge logging
     if settings['Deluge']['enabled']:
-        from deluge.log import setupLogger
-        setupLogger()
+        from deluge import log
+        log.setupLogger()
     return
 
 
