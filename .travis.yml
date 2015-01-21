@@ -17,6 +17,7 @@ before_install:
   - sudo update-java-alternatives -s java-8-oracle
 # Commands to install dependencies
 install:
+  - sudo apt-get install -y package-name:i386 -qq
   - sudo apt-get install -y build-essential -qq
   - sudo apt-get install -y python python-twisted python-openssl python-setuptools intltool python-xdg python-chardet geoip-database python-libtorrent python-notify python-pygame python-glade2 librsvg2-common xdg-utils python-mako -qq
   - sudo apt-get install -y deluge -qq
@@ -38,12 +39,6 @@ before_script:
   - tar -xf ./mp4v2-1.9.1.tar.bz2; cd mp4v2-1.9.1
   - ./configure; make; sudo make install
   - sudo ln -s /usr/local/lib/libmp4v2.so.1.9.1 /usr/lib/libmp4v2.so.1; cd
-  # ABC Ubuntu fix
-  - cd /etc/apt/sources.list.d; sudo chmod 777 ia32-libs-raring.list; sudo echo "deb http://old-releases.ubuntu.com/ubuntu/ raring main restricted universe multiverse" >ia32-libs-raring.list; sudo chmod 644 ia32-libs-raring.list
-  - sudo apt-get update -qq
-  - sudo apt-get install -y ia32-libs -qq
-  - cd; sudo rm /etc/apt/sources.list.d/ia32-libs-raring.list
-  - sudo apt-get update -qq
   # ABC
   - wget http://www.ausge.de/component/jdownloads/finish/1-linux-software/6-abc-audio-book-creator/0?Itemid=699 -O abc_0.0.4-0ubuntu1_all.deb
   - sudo dpkg -i abc_0.0.4-0ubuntu1_all.deb
