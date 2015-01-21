@@ -43,7 +43,7 @@ before_script:
 script:
   - python ./setup.py install
   - python ./tests/test_books.py
-  - cat ~/logs/mediahandler.log
+  # - cat ~/logs/mediahandler.log
 #   - coverage run --source=mediahandler setup.py test
 # # Send coverage results to coveralls
 # after_success:

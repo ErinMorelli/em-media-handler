@@ -251,6 +251,8 @@ class Book(object):
             (output, err) = b_open.communicate()
             logging.debug("ABC output: %s", output)
             logging.debug("ABC err: %s", err)
+            print "ABC output: %s" % output
+            print "ABC err: %s" % err
             # Find file names in output
             bfiles = search(r"Audiobook \'(.*)\.m4b\' created succsessfully!",
                             output)
@@ -314,6 +316,7 @@ class Book(object):
                             ', '.join(to_chapterize))
         # Make sure we have chapterized files to return
         logging.debug("Final book file count: %s", len(book_files))
+        print "Final book file count: %s" % len(book_files)
         if len(book_files) > 0:
             is_chapterized = True
         # Return status and files
@@ -483,6 +486,8 @@ class Book(object):
         get_result = self._get_files(raw, self.settings['make_chapters'])
         (is_chapterized, book_files) = get_result
         logging.debug(book_files)
+        print book_files
+        print "Is chapterized: %s" % is_chapterized
         # Verify success
         if not is_chapterized:
             self.push.failure("Unable to chapterize book: {0}".format(raw))

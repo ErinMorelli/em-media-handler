@@ -234,6 +234,7 @@ class AddBookTest(BookMediaObjectTests):
         self.book.settings['max_length'] = 1800
         self.book.settings['make_chapters'] = True
         self.book.settings['custom_search'] = 'Paul Doiron Bone Orchard'
+        print _common.get_settings()['Logging']
         print self.book.settings
         # Copy files into folder
         for x in range(0, 2):
