@@ -35,8 +35,8 @@ before_script:
   - tar -xf ./mp4v2-1.9.1.tar.bz2; cd mp4v2-1.9.1
   - ./configure; make; sudo make install
   - sudo ln -s /usr/local/lib/libmp4v2.so.1.9.1 /usr/lib/libmp4v2.so.1; cd ../../
-  - wget http://www.ausge.de/component/jdownloads/finish/1-linux-software/29-abc-audio-book-creator/0?Itemid=699 -O abc_0.0.5-0ubuntu1_all.deb
-  - sudo dpkg -i abc_0.0.5-0ubuntu1_all.deb
+  - wget http://www.ausge.de/component/jdownloads/finish/1-linux-software/3-abc-audio-book-creator/0?Itemid=699 -O abc_0.0.3-0ubuntu1_all.deb
+  - sudo dpkg -i abc_0.0.3-0ubuntu1_all.deb
   - sudo apt-get -f install
   - cd ~/build/ErinMorelli/em-media-handler
 # Command to install & run tests
