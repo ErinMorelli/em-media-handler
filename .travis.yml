@@ -46,7 +46,7 @@ before_script:
   - sudo dpkg -i filebot_4.5.3_amd64.deb;
   # NeroACC - ABC dependency
   - mkdir aac; cd aac; wget http://ftp6.nero.com/tools/NeroAACCodec-1.5.1.zip
-  - unzip -j NeroAACCodec-1.5.1.zip; sudo install -m 0755 neroAacEnc /usr/local/bin/; cd
+  - unzip -j NeroAACCodec-1.5.1.zip; sudo install -D -m755 neroAacEnc /usr/bin/; cd #local/bin/; cd
   # mp4v2 - ABC dependency
   - mkdir mp4v2; cd mp4v2/; wget http://mp4v2.googlecode.com/files/mp4v2-1.9.1.tar.bz2
   - tar -xf ./mp4v2-1.9.1.tar.bz2; cd mp4v2-1.9.1
