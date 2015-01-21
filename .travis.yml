@@ -8,7 +8,6 @@ python:
 #  - 3.3
 # Pre-install commands
 before_install:
-  - export DISPLAY=:0
   # Add needed repositories
   - sudo add-apt-repository ppa:gambas-team/gambas3 -y
   - sudo add-apt-repository ppa:webupd8team/java -y
@@ -19,13 +18,18 @@ before_install:
   - sudo apt-get install -y oracle-java8-installer oracle-java8-set-default -qq
   - echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
   - sudo update-java-alternatives -s java-8-oracle
+  # DBUS fixes for ABC
+  - sudo apt-get install -y dbus* -qq
+  - export DISPLAY=:0
+  - eval $(dbus-launch --sh-syntax)
+  - export DBUS_SESSION_BUS_ADDRESS
+  - export DBUS_SESSION_BUS_PID
 # Commands to install dependencies
 install:
   # Deluge dependencies
   - sudo apt-get install -y python python-twisted python-openssl python-setuptools intltool python-xdg python-chardet geoip-database python-libtorrent python-notify python-pygame python-glade2 librsvg2-common xdg-utils python-mako -qq
   - sudo apt-get install -y deluge -qq
   # ABC dependencies
-  # - sudo apt-get install -y dbus-x11 -qq
   - sudo apt-get install -y gstreamer0.10* -qq
   - sudo apt-get install -y build-essential -qq
   - sudo apt-get install -y gambas3 cdrdao flac mkcue cuetools shntool php5-cli vlc gstreamer-tools gstreamer0.10-fluendo-mp3 gpac -qq
