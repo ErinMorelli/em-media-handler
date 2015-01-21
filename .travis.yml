@@ -24,7 +24,7 @@ install:
   - sudo apt-get install -y python python-twisted python-openssl python-setuptools intltool python-xdg python-chardet geoip-database python-libtorrent python-notify python-pygame python-glade2 librsvg2-common xdg-utils python-mako -qq
   - sudo apt-get install -y deluge -qq
   # ABC dependencies
-  - sudo apt-get install gstreamer1.0*
+  - sudo apt-get install gstreamer1.0* -qq
   - sudo apt-get install -y build-essential -qq
   - sudo apt-get install -y gambas3 cdrdao flac mkcue cuetools shntool php5-cli vlc gstreamer-tools gpac -qq
   # Media handler dependencies
