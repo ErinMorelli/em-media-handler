@@ -228,8 +228,9 @@ class Book(object):
         logging.info("Chapterizing audiobook files")
         new_files = []
         # Get chapter parts
-        file_parts = self._get_chapters(file_path, file_array,
-                                        self.settings['file_type'])
+        file_parts = self._get_chapters(
+            file_path, file_array, self.settings['file_type'])
+        print file_parts
         # Create m4b for each file part
         for i, file_part in enumerate(file_parts):
             part_path = path.join(file_path, 'Part {0}'.format(str(i+1)))
@@ -243,6 +244,7 @@ class Book(object):
                      self.book_info['year'].encode("utf8"),  # year
                      self.settings['file_type']]  # file type
             logging.debug("ABC query:\n%s", b_cmd)
+            print "ABC query:\n%s" % b_cmd
             # Process query
             b_open = Popen(b_cmd, stdout=PIPE, stderr=PIPE)
             # Get output
@@ -294,7 +296,9 @@ class Book(object):
         # See if any files need chapterizing
         if make_chapters:
             logging.debug("Already chaptered file count: %s", len(book_files))
+            print "Already chaptered file count: %s" % len(book_files)
             logging.debug("To chapter file count: %s", len(to_chapterize))
+            print "To chapter file count: %s" % len(to_chapterize)
             if len(to_chapterize) > 0 and len(book_files) == 0:
                 (chapter_success, new_files) = self._chapterize_files(
                     file_dir, to_chapterize)
@@ -458,19 +462,23 @@ class Book(object):
         # Parse string & get query
         refined = self._clean_string(raw)
         logging.debug("Cleaned search string: %s", refined)
+        print "Cleaned search string: %s" % refined
         # Use custom search string, if defined
         if 'custom_search' in self.settings.keys():
             refined = self.settings['custom_search']
             logging.debug("Custom search query: %s", refined)
+            print "Custom search query: %s" % refined
         # Get book info from Google
         self.book_info = self.ask_google(refined)
         logging.debug(self.book_info)
+        print self.book_info
         # Deal with single files
         if path.isfile(raw):
             raw = self._single_file(raw, self.book_info['short_title'])
         # Save cover image to file
         cover_file = self._save_cover(raw, self.book_info['cover'])
         logging.debug("Cover image: %s", cover_file)
+        print "Cover image: %s" % cover_file
         # Get files and chapterize files, if enabled
         get_result = self._get_files(raw, self.settings['make_chapters'])
         (is_chapterized, book_files) = get_result
