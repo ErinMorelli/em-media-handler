@@ -2,7 +2,7 @@ language: python
 virtualenv:
   system_site_packages: true
 python:
-  # - 2.6
+  - 2.6
   - 2.7
 #  - 3.2
 #  - 3.3
@@ -38,7 +38,8 @@ install:
   - pip install mutagen
   - pip install beets
   - pip install google-api-python-client
-  # Test coverage
+  # Testing dependencies
+  - pip install unittest2
   - pip install coveralls
 # Commands to run before script
 before_script:

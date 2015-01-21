@@ -17,7 +17,8 @@
 
 import os
 import shutil
-import zipfile
+import zipfile as zf
+import contextlib
 
 import _common
 from _common import unittest
@@ -114,7 +115,7 @@ class ExtractGoodZipTests(unittest.TestCase):
         get_good_zip2.close()
         # Make zip file
         self.zip_name = os.path.join(os.path.dirname(self.conf), 'test_ET.zip')
-        with zipfile.ZipFile(self.zip_name, "w") as good_zip:
+        with contextlib.closing(zf.ZipFile(self.zip_name, "w")) as good_zip:
             good_zip.write(self.good_zip1, 'one.tmp')
             good_zip.write(self.good_zip2, 'two.tmp')
 

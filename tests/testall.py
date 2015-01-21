@@ -37,4 +37,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite', verbosity=2, buffer=True)
+    unittest.main(defaultTest='suite', verbosity=2)

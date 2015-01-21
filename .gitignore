@@ -3,20 +3,15 @@
 *.svn
 *.tmp
 *._*
-
 .coverage
-htmlcov/
-
+.python-version
 mediaHandler.sublime-project
 mediaHandler.sublime-workspace
-
 *.sublime-project
 *.sublime-workspace
-
 TO DOs
-
 test.py
-
 EM_Media_Handler.egg-info/
 build/
 dist/
+htmlcov/
