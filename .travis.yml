@@ -26,7 +26,7 @@ install:
   # ABC dependencies
   - sudo apt-get install -y gstreamer0.10* -qq
   - sudo apt-get install -y build-essential -qq
-  - sudo apt-get install -y gambas3 cdrdao flac mkcue cuetools shntool php5-cli vlc gstreamer0.10-tools gstreamer0.10-fluendo-mp3 gpac -qq
+  - sudo apt-get install -y gambas3 cdrdao flac mkcue cuetools shntool php5-cli vlc gstreamer-tools gstreamer0.10-fluendo-mp3 gpac -qq
   # Media handler dependencies
   - pip install mutagen
   - pip install beets
