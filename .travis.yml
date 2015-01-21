@@ -1,15 +1,15 @@
 language: python
+
 python:
   - 2.6
   - 2.7
 #  - 3.2
 #  - 3.3
-# Pre-install commands
+
 before_install:
   # Add needed repositories
   - sudo add-apt-repository ppa:gambas-team/gambas3 -y
   - sudo add-apt-repository ppa:webupd8team/java -y
-  - sudo add-apt-repository ppa:deluge-team/ppa -y
   - sudo add-apt-repository ppa:gstreamer-developers/ppa -y
   - sudo apt-get update -qq
   # Install and upgrade java to v8 (for Filebot)
@@ -22,25 +22,25 @@ before_install:
   - eval $(dbus-launch --sh-syntax)
   - export DBUS_SESSION_BUS_ADDRESS
   - export DBUS_SESSION_BUS_PID
-# Commands to install dependencies
+
 install:
-  # Deluge dependencies
-  - sudo apt-get install -y python python-twisted python-openssl python-setuptools intltool python-xdg python-chardet geoip-database python-libtorrent python-notify python-pygame python-glade2 librsvg2-common xdg-utils python-mako -qq
-  - sudo apt-get install -y deluge -qq
   # ABC dependencies
-  - sudo apt-get install -y ia32-libs -qq
-  - sudo apt-get install -y gstreamer0.10* -qq
-  - sudo apt-get install -y build-essential -qq
+  - sudo apt-get install -y ia32-libs gstreamer0.10* build-essential -qq
   - sudo apt-get install -y gambas3 cdrdao flac mkcue cuetools shntool php5-cli vlc gstreamer-tools gstreamer0.10-fluendo-mp3 gpac -qq
-  # Media handler dependencies
-  - pip install mutagen
-  - pip install beets
+  # Music handler dependencies
+  - pip install pylast requests mutagen beets
+  # Book handler dependencies
   - pip install google-api-python-client
+  # Deluge dependencies
+  - pip install twisted pyopenssl chardet pyxdg
   # Testing dependencies
   - pip install unittest2
   - pip install coveralls
-# Commands to run before script
+
 before_script:
+  # Deluge
+  - git clone git://deluge-torrent.org/deluge.git; cd deluge; git checkout -b 1.3-stable origin/1.3-stable
+  - python setup.py build; sudo python setup.py install --install-layout=deb; sudo python setup.py install_data
   # Fitebot
   - wget http://cznic.dl.sourceforge.net/project/filebot/filebot/FileBot_4.5.3/filebot_4.5.3_amd64.deb
   - sudo dpkg -i filebot_4.5.3_amd64.deb;
@@ -58,10 +58,13 @@ before_script:
   # Clean Up
   - sudo apt-get -f install
   - cd ~/build/ErinMorelli/em-media-handler
-# Command to install & run tests
+
 script:
+  # Install mediahandler
   - python ./setup.py install
+  # Run test suite
   - coverage run --source=mediahandler setup.py test
-# Send coverage results to coveralls
+
 after_success:
+  # Send test results to coverage
   coveralls
