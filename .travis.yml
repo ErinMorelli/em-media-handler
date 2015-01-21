@@ -27,18 +27,29 @@ install:
   - pip install coveralls
 # Commands to run before script
 before_script:
+  # Fitebot
   - wget http://cznic.dl.sourceforge.net/project/filebot/filebot/FileBot_4.5.3/filebot_4.5.3_amd64.deb
   - sudo dpkg -i filebot_4.5.3_amd64.deb;
+  # NeroACC - ABC dependency
   - mkdir aac; cd aac; wget http://ftp6.nero.com/tools/NeroAACCodec-1.5.1.zip
   - unzip -j NeroAACCodec-1.5.1.zip; sudo install -m 0755 neroAacEnc /usr/local/bin/; cd
+  # mp4v2 - ABC dependency
   - mkdir mp4v2; cd mp4v2/; wget http://mp4v2.googlecode.com/files/mp4v2-1.9.1.tar.bz2
   - tar -xf ./mp4v2-1.9.1.tar.bz2; cd mp4v2-1.9.1
   - ./configure; make; sudo make install
   - sudo ln -s /usr/local/lib/libmp4v2.so.1.9.1 /usr/lib/libmp4v2.so.1; cd
-  - sudo -i; cd /etc/apt/sources.list.d; echo "deb http://old-releases.ubuntu.com/ubuntu/ raring main restricted universe multiverse" >ia32-libs-raring.list; apt-get update -qq; apt-get install -y ia32-libs -qq; exit;
-  - sudo rm /etc/apt/sources.list.d/ia32-libs-raring.list; sudo apt-get update; cd
+  # ABC Ubuntu fix
+  - sudo -i
+  - cd /etc/apt/sources.list.d
+  - echo "deb http://old-releases.ubuntu.com/ubuntu/ raring main restricted universe multiverse" >ia32-libs-raring.list
+  - apt-get update -qq
+  - apt-get install -y ia32-libs -qq
+  - exit
+  - cd; sudo rm /etc/apt/sources.list.d/ia32-libs-raring.list; sudo apt-get update; cd
+  # ABC
   - wget http://www.ausge.de/component/jdownloads/finish/1-linux-software/6-abc-audio-book-creator/0?Itemid=699 -O abc_0.0.4-0ubuntu1_all.deb
   - sudo dpkg -i abc_0.0.4-0ubuntu1_all.deb
+  # Clean Up
   - sudo apt-get -f install
   - cd ~/build/ErinMorelli/em-media-handler
 # Command to install & run tests
