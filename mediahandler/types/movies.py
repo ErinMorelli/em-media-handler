@@ -25,7 +25,7 @@ from re import escape, search
 
 # ======== MOVIE CLASS DECLARTION ======== #
 
-class Movie(mediahandler.types.Media):
+class MHMovie(mediahandler.types.MHType):
     '''Movie handler class'''
 
     # ======== MOVIE CONSTRUCTOR ======== #
@@ -33,11 +33,10 @@ class Movie(mediahandler.types.Media):
     def __init__(self, settings, push):
         '''Movie class constuctor'''
         self.ptype = 'Movies'
-        super(Movie, self).__init__(settings, push)
+        super(MHMovie, self).__init__(settings, push)
+        self._video_settings()
         # Filebot
-        self.filebot['db'] = "themoviedb"
-        self.filebot['format'] = os.path.join(
-            self.dst_path, self.settings['format'])
+        self.cmd.db = "themoviedb"
 
     # ======== MOVIE OUTOUT PROCESSING ======== #
 

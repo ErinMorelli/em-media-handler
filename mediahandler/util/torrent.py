@@ -17,50 +17,55 @@
 
 import sys
 import logging
+import argparse
 from os import path
 
 import mediahandler as mh
+import mediahandler.util.args as Args
 import mediahandler.util.config as Config
 
 
-# ======== COMMAND LINE USAGE ======== #
+# ======== GET DELUGE PARSER ======== #
 
-def show_deluge_usage(code, msg=None):
-    '''Show command line usage'''
-    # Generate usage text
-    usage_text = '''
-EM Media Handler v{0} / by {1}
-
-Usage:
-  addmedia-deluge [TORRENT ID] [TORRENT NAME] [TORRENT PATH]
-
-'''.format(mh.__version__, mh.__author__)
-    # Print error, if it exists
-    if msg is not None:
-        print "\nERROR: {0}\n".format(msg)
-    # Output text
-    print usage_text
-    # Exit program
-    sys.exit(int(code))
+def get_deluge_parser():
+    parser = Args.MHParser(
+        prog='addmedia-deluge',
+        formatter_class=argparse.RawTextHelpFormatter,
+        add_help=False,
+        usage='%(prog)s [TORRENT ID] [TORRENT NAME] [TORRENT PATH]',
+        description=('For use with the "Torrent Complete" event ' +
+            'in the Deluge "Execute" plugin.\nMore info: ' +
+            'http://dev.deluge-torrent.org/wiki/Plugins/Execute'),
+    )
+    parser.add_argument('hash', metavar='TORRENT ID')
+    parser.add_argument('name', metavar='TORRENT NAME')
+    parser.add_argument(
+        'path', metavar='TORRENT PATH', action=Args.MHFilesAction)
+    return parser
 
 
 # ======== GET DELUGE ARGUMENTS ======== #
 
-def get_deluge_arguments():
-    '''Get arguments from deluge'''
-    # Parse args
-    get_args = sys.argv[1:]
-    # Check for failure condition
-    if len(get_args) != 3:
-        show_deluge_usage(2, "Deluge script requires 3 args")
-    # Set args
-    new_args = {
-        'hash': get_args[0],
-        'name': get_args[1],
-        'path': get_args[2]
-    }
-    # Return processed args
-    return _process_deluge(new_args)
+def get_deluge_arguments(): 
+    parser = get_deluge_parser()
+    # If no args, show help
+    if len(sys.argv)==1:
+        parser.print_help()
+        sys.exit(1)
+    # Get and return args
+    get_args = parser.parse_args()
+    new_args = vars(get_args)
+    # Use main parser
+    get_all_args = Args.get_parser().parse_args(
+        args=['-f', path.join(new_args['path'], new_args['name'])],
+    )
+    all_args = vars(get_all_args)
+    # Remove torrent
+    settings = Config.parse_config(all_args['config'])['Deluge']
+    if settings['enabled'] and settings['remove']:
+        _remove_torrent(settings, new_args['hash'])
+    # Return args
+    return all_args
 
 
 # ======== REMOVE TORRENT ======== #
@@ -127,27 +132,3 @@ def _remove_torrent(settings, torrent_hash):
     deluge.addErrback(on_connect_fail)
     # Run the twisted main loop to make everything go
     reactor.run()
-
-
-# ======== PROCESS DELUGE ARGS ======== #
-
-def _process_deluge(args):
-    '''Process deluge inputs for main handler'''
-    # Get settings
-    config_file = Config.make_config()
-    settings = Config.parse_config(config_file)
-    # Set file path based on args
-    logging.info("Processing from deluge")
-    file_path = path.join(args['path'], args['name'])
-    # Remove torrent
-    if settings['Deluge']['enabled'] and settings['Deluge']['remove']:
-        _remove_torrent(settings['Deluge'], args['hash'])
-    # Set modified args
-    new_args = {
-        'media': file_path,
-        'name': args['name'],
-        'no_push': False,
-        'single_track': False,
-    }
-    # Return handler-ready
-    return new_args

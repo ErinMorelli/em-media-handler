@@ -23,10 +23,10 @@ __author__ = 'Erin Morelli <erin@erinmorelli.com>'
 
 # Globally acceptable media types & their CLI keys
 __mediakeys__ = {
-    "1": "TV",
-    "2": "Movies",
-    "3": "Music",
-    "4": "Audiobooks"
+    1: "TV",
+    2: "Movies",
+    3: "Music",
+    4: "Audiobooks"
 }
 
 # Globally acceptable media type names
@@ -40,4 +40,32 @@ __mediatypes__ = [
     'audiobooks'
 ]
 
+# Set relative path to extras folder
 __mediaextras__ = join(dirname(__file__), 'extras')
+
+
+class MHObject(object):
+    '''Base object for all MH modules'''
+
+    def __init__(self, *kwargs):
+        for kwarg in kwargs:
+            if type(kwarg) is dict:
+                self._set_settings(kwarg)
+            if type(kwarg) is self.MHSettings:
+                self.__dict__.update(kwarg.__dict__)
+
+    class MHSettings(object):
+        '''Object to make data manipulation easier'''
+
+        def __init__(self, adict):
+            '''Converts a dict to object'''
+            self.__dict__.update(adict)
+
+    def _set_settings(self, adict):
+            new_dict = {}
+            for key, value in adict.items():
+                if type(value) is dict:
+                    new_dict[key.lower()] = self.MHSettings(value)
+                else:
+                    new_dict[key.lower()] = value
+            self.__dict__.update(new_dict)

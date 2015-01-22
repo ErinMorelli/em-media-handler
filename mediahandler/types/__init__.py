@@ -21,64 +21,67 @@
 import os
 import logging
 from shutil import rmtree
-from re import findall, search
+from re import findall, search, sub
 from subprocess import Popen, PIPE
+
+import mediahandler as mh
 
 
 # ======== VIDEO CLASS ======== #
 
-class Media(object):
+class MHType(mh.MHObject):
     '''Media handler parent class'''
 
     # ======== SET GLOBAL CLASS OPTIONS ======== #
 
     def __init__(self, settings, push):
         '''Init media class'''
-        self.type = type(self).__name__.lower()
-        if not hasattr(self, 'ptype'):
-            self.ptype = 'Media'
-        # Input
-        self.settings = settings
+        super(MHType, self).__init__(settings, push)
+        # Set up class
         self.push = push
         self.dst_path = ''
-        # Filebot
-        self.filebot = {
-            'action': 'copy',
-            'db': '',
-            'format': '',
-            'flags': '-non-strict',
-        }
-        # Check for filebot
-        if 'has_filebot' in self.settings.keys():
-            self.filebot['bin'] = self.settings['has_filebot']
+        self.type = sub(r'^mh', '', type(self).__name__.lower())
+        if not hasattr(self, 'ptype'):
+            self.ptype = 'Media'
         # Type specific
         if self.ptype is not None:
             # Set destination path
             self.dst_path = os.path.join(
                 os.path.expanduser("~"), 'Media', self.ptype)
             # Check for custom path in settings
-            if 'folder' in self.settings.keys():
-                if self.settings['folder'] is not None:
-                    self.dst_path = self.settings['folder']
+            if hasattr(self, 'folder'):
+                if self.folder is not None:
+                    self.dst_path = self.folder
                     logging.debug("Using custom path: %s", self.dst_path)
             # Check destination exists
             if not os.path.exists(self.dst_path):
                 self.push.failure("Folder for {0} not found: {1}".format(
                     self.ptype, self.dst_path))
-        # Set up Query info
-        action = self.filebot['action'].upper()
+
+    # ======== SET VIDEO SETTINGS ======== #
+
+    def _video_settings(self):
+        '''Set object settings for video types'''
+        # Filebot
+        cmd_info = self.MHSettings({
+            'action': 'copy',
+            'db': '',
+            'format': os.path.join(self.dst_path, self.format),
+            'flags': '-non-strict',
+        })
+        self.__dict__.update({'cmd': cmd_info})
         # Object defaults
-        self.query = {
+        query = self.MHSettings({
             'file_types': r'(mkv|avi|m4v|mp4)',
             'skip': r'Skipped \[(.*)\] because \[(.*)\] already exists',
             'added_i': 1,
             'skip_i': 0,
             'reason': '{0} already exists in {1}'.format(
                 self.type, self.dst_path)
-        }
-        added_regex = r'\[{0}\] Rename \[(.*)\] to \[(.*)\.{1}\]'.format(
-            action, self.query['file_types'])
-        self.query['added'] = added_regex
+        })
+        query.added = r'\[{0}\] Rename \[(.*)\] to \[(.*)\.{1}\]'.format(
+            self.cmd.action.upper(), query.file_types)
+        self.__dict__.update({'query': query})
 
     # ======== GET VIDEO ======== #
 
@@ -86,20 +89,20 @@ class Media(object):
         '''A new media file'''
         logging.info("Starting %s handler", self.type)
         # Set up query
-        m_cmd = [self.filebot['bin'],
+        m_cmd = [self.filebot,
                  '-rename', file_path,
-                 '--db', self.filebot['db'],
-                 '--format', self.filebot['format'],
-                 '--action', self.filebot['action'],
-                 self.filebot['flags']]
+                 '--db', self.cmd.db,
+                 '--format', self.cmd.format,
+                 '--action', self.cmd.action,
+                 self.cmd.flags]
         # Check for logfile
-        if self.settings['log_file'] is not None:
+        if self.log_file is not None:
             loginfo = [
                 '--log', 'all',
-                '--log-file', self.settings['log_file']]
+                '--log-file', self.log_file]
             m_cmd.extend(loginfo)
         # If we are ignoring subs, remove all non-video files
-        if self.settings['ignore_subs']:
+        if self.ignore_subs:
             logging.debug("Ignoring subtitle files")
             self._remove_bad_files(file_path)
         # Get info
@@ -126,8 +129,8 @@ class Media(object):
         '''Check for good response or skipped content'''
         logging.info("Processing query output")
         # Look for content
-        added_data = findall(self.query['added'], output)
-        skip_data = findall(self.query['skip'], output)
+        added_data = findall(self.query.added, output)
+        skip_data = findall(self.query.skip, output)
         # Check return
         results = []
         if len(added_data) > 0:
@@ -137,10 +140,10 @@ class Media(object):
         skipped = []
         if len(skip_data) > 0:
             for skip_item in skip_data:
-                skipped.append(skip_item[self.query['skip_i']])
+                skipped.append(skip_item[self.query.skip_i])
                 logging.warning("File was skipped: %s (%s)",
-                                skip_item[self.query['skip_i']],
-                                self.query['reason'])
+                                skip_item[self.query.skip_i],
+                                self.query.reason)
         # Return error if nothing found
         if len(skipped) == 0 and len(results) == 0:
             return self.match_error(file_path)
@@ -155,7 +158,7 @@ class Media(object):
         # Skip if this is not a folder
         if os.path.isfile(file_path):
             return
-        regex = r'\.{0}$'.format(self.query['file_types'])
+        regex = r'\.{0}$'.format(self.query.file_types)
         # Look for bad files and remove them
         for item in os.listdir(file_path):
             item_path = os.path.join(file_path, item)

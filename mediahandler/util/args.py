@@ -19,117 +19,175 @@
 # ======== IMPORT MODULES ======== #
 
 import sys
-import mediahandler as mh
+import argparse
 from os import path
-from getopt import getopt, GetoptError
+from re import match, I
+import mediahandler as mh
+import mediahandler.util.config as Config
 
 
-# ======== COMMAND LINE USAGE ======== #
+# ======== CUSTOM ARGPARSE ACTIONS ======== #
 
-def show_usage(code, msg=None):
-    '''Show command line usage'''
+class MHMediaAction(argparse.Action):
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        '''Parse input directory structure'''
+        rawpath = path.abspath(values)
+        # Check for files existence
+        if not path.exists(rawpath):
+            error = "File or directory provided for {0} {1} {2}".format(
+                option_string, 'does not exist:', values)
+            parser.error(error)
+        # Extract info from path
+        parse_name = path.basename(rawpath)
+        parse_path = path.dirname(rawpath)
+        # Set name
+        setattr(namespace, 'name', parse_name)
+        # Look for custom type
+        if not [i for i in ['-t', '--type'] if i in sys.argv[1:]]:
+            tmp_type = path.basename(parse_path)
+            if tmp_type.lower() not in mh.__mediatypes__:
+                err = "Detected media type '{0}' not recognized: {1}".format(
+                    tmp_type, values)
+                parser.error(err)
+            # Convert type & set values
+            self.convert_type(namespace, tmp_type)
+            # Check for success
+            if 'stype' not in namespace:
+                error = 'Unable to detect media type from path: {0}'.format(values)
+                parser.error(error)
+        # Set path value
+        setattr(namespace, self.dest, values)
+
+    def convert_type(self, namespace, raw_type):
+        '''Convert string type to int'''
+        # Make lowercase for comparison
+        stype = ''
+        xtype = raw_type.lower()
+        # Convert values
+        if xtype in ['tv shows', 'television']:
+            xtype = 'tv'
+        elif xtype == 'books':
+            xtype = 'audiobooks'
+        # Look for int
+        for key, value in mh.__mediakeys__.items():
+            if match(value, xtype, I):
+                stype = value
+                xtype = int(key)
+                break
+        # Store string & int values
+        setattr(namespace, 'type', xtype)
+        setattr(namespace, 'stype', stype)
+
+
+class MHFilesAction(argparse.Action):
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        '''Check that file/folder provided exists'''
+        file_path = path.abspath(values)
+        if not path.exists(file_path):
+            error = "File or directory provided for {0} {1} {2}".format(
+                option_string, 'does not exist:', values)
+            parser.error(error)
+        setattr(namespace, self.dest, values)
+
+
+class MHTypeAction(argparse.Action):
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        '''Check that type provided is good and set string value'''
+        if values not in mh.__mediakeys__:
+            parser.error("Media type not valid: {0}".format(values))
+        setattr(namespace, self.dest, values)
+        setattr(namespace, 'stype', mh.__mediakeys__[values])
+
+
+class MHParser(argparse.ArgumentParser):
+
+    def error(self, message):
+        '''Show help with error messages'''
+        sys.stderr.write('addmedia: error: %s\n' % message)
+        sys.stdout.write('Use `addmedia --help` to view more options\n')
+        sys.exit(2)
+
+    def print_help(self):
+        sys.stdout.write('\nEM Media Handler v{0} / by {1}\n\n'.format(
+            mh.__version__, mh.__author__))
+        super(MHParser, self).print_help()
+        sys.stdout.write('\n')
+
+
+# ======== GET ARGPARSER ======== #
+
+def get_parser():
     mtypes = mh.__mediakeys__
     types = []
     # Get list of types
     for mtype in sorted(mtypes):
         types.append("{0} -- {1}".format(mtype, mtypes[mtype]))
-    # Generate usage text
-    usage_text = '''
-EM Media Handler v{0} / by {1}
-
-Usage:
-  addmedia --files [/PATH/TO/FILES] --type [TYPE] [OPTIONS]
-
-Options:
-  -f, --files     Required. Set path to media files.
-                  Assumes structure: /path/to/<media type>/<media>
-
-  -t, --types     Force a specific media type for processing.
-                  e.g. --type 1 for a TV Show
-                  Default: <media type> derived from --files path
-
-  -c, --config    Set a custom config file path.
-                  Default: ~/.config/mediahandler/settings.conf
-
-  -q, --query     Set a custom query string for audiobooks.
-                  Useful for fixing "Unable to match" errors.
-
-  -s, --single    Force beet to import music as a single track.
-                  Useful for fixing "items were skipped" errors.
-
-  -n, --nopush    Disable push notifications.
-                  Overrides the "enabled" config file setting.
-
-  -h, --help      Displays this usage message.
-
-Types:
-   {2}
-'''.format(mh.__version__, mh.__author__, '\n   '.join(types))
-    # Print error, if it exists
-    if msg is not None:
-        print "\nERROR: {0}\n".format(msg)
-    # Output text
-    print usage_text
-    # Exit program
-    sys.exit(int(code))
+    # Initialize parser
+    parser = MHParser(
+        prog='addmedia',
+        formatter_class=argparse.RawTextHelpFormatter,
+        epilog='type options:\n   {0}'.format('\n   '.join(types)),
+        add_help=False,
+        usage='%(prog)s MEDIA [--type TYPE] [OPTIONS]',
+    )
+    # Add options
+    options = parser.add_argument_group('options')
+    options.add_argument(
+        'media',
+        help=('REQUIRED. Set path to media files.\n' +
+            'Assumes structure: /path/to/<media type>/<media>\n '),
+        action=MHMediaAction,
+    )
+    options.add_argument(
+        '-t', '--type',
+        help=('Force a specific media type (see below).\n' +
+            'Default: <media type> derived from --files path\n '),
+        type=int, choices=[1, 2, 3, 4],
+        action=MHTypeAction
+    )
+    options.add_argument(
+        '-c', '--config', default=Config.make_config(),
+        help=('Set a custom config file path.\n' +
+            'Default: ~/.config/mediahandler/config.yml\n '),
+        action=MHFilesAction,
+    )
+    options.add_argument(
+        '-q', '--query',
+        help=('Set a custom query string for audiobooks.\n' +
+            'Useful for fixing "Unable to match" errors.\n '),
+    )
+    options.add_argument(
+        '-s', '--single', default=False,
+        help=('Force beets to import music as a single track.\n' +
+            'Useful for fixing "items were skipped" errors.\n '),
+        dest='single_track', action='store_true',
+    )
+    options.add_argument(
+        '-n', '--nopush', default=False,
+        help=('Disable push notifications.\n' +
+            'Overrides the "enabled" config file setting.\n '),
+        dest='no_push', action='store_true',
+    )
+    options.add_argument(
+        '-h', '--help',
+        help='Show this help message and exit\n ',
+        action='help'
+    )
+    return parser
 
 
 # ======== GET ARGUMENTS ======== #
 
 def get_arguments():
     '''Get arguments'''
-    # Parse args
-    try:
-        (optlist, get_args) = getopt(
-            sys.argv[1:],
-            'hf:c:t:q:sn',
-            ["help",
-             "files=",
-             "config=",
-             "type=",
-             "query=",
-             "single",
-             "nopush"]
-        )
-    except GetoptError as err:
-        show_usage(2, str(err))
-    # Check for failure conditions
-    if len(optlist) == 0 and len(get_args) == 0:
-        show_usage(2)
-    # Send to parser
-    return parse_arguments(optlist)
-
-
-# ======== PARSE ARGUMENTS ======== #
-
-def parse_arguments(optlist):
-    '''Parse arguments'''
-    # Set up base args
-    new_args = {}
-    new_args['no_push'] = False
-    new_args['single_track'] = False
-    # Parse args
-    success = False
-    for opt, arg in optlist:
-        if opt in ("-h", "--help"):
-            show_usage(1)
-        # Then look for normal args
-        elif opt in ("-f", "--files"):
-            success = True
-            new_args['media'] = path.abspath(arg)
-        elif opt in ("-c", "--config"):
-            new_args['config'] = arg
-        elif opt in ("-q", "--query"):
-            new_args['search'] = arg
-        elif opt in ("-s", "--single"):
-            new_args['single_track'] = True
-        elif opt in ("-n", "--nopush"):
-            new_args['no_push'] = True
-        elif opt in ("-t", "--type"):
-            if arg not in mh.__mediakeys__:
-                show_usage(2, "Media type not valid: {0}".format(arg))
-            new_args['type'] = mh.__mediakeys__[arg]
-    # Check for failure
-    if not success:
-        show_usage(2, "Files not specified")
-    return new_args
+    parser = get_parser()
+    # If no args, show help
+    if len(sys.argv)==1:
+        parser.print_help()
+        sys.exit(1)
+    # Get and return args
+    new_args = parser.parse_args()
+    return vars(new_args)

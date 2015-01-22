@@ -22,20 +22,23 @@ import logging
 import sys
 from urllib import urlencode
 from httplib import HTTPSConnection
+
+import mediahandler as mh
 import mediahandler.util.args as Args
 
 
 # ======== PUSH CLASS DECLARTION ======== #
 
-class Push(object):
+class MHPush(mh.MHObject):
     '''Push notification class'''
     # ======== INIT NOTIFY CLASS ======== #
 
     def __init__(self, settings, disable=False):
         '''Initialize push notifications'''
         logging.info("Initializing notification class")
-        self.settings = settings
+        super(MHPush, self).__init__(settings, disable)
         self.disable = disable
+        self.parser = Args.get_parser()
 
     # ======== SEND MESSAGE VIA PUSHOVER ======== #
 
@@ -47,12 +50,12 @@ class Push(object):
         # Set default title
         conn_title = "EM Media Handler"
         # Look for custom notify name
-        if self.settings['notify_name'] != '':
-            conn_title = self.settings['notify_name']
+        if self.notify_name is not None:
+            conn_title = self.notify_name
         # Encode request URL
         conn_url = urlencode({
-            "token": self.settings['api_key'],
-            "user": self.settings['user_key'],
+            "token": self.api_key,
+            "user": self.user_key,
             "title": conn_title,
             "message": conn_msg,
         })
@@ -102,7 +105,7 @@ class Push(object):
             logging.warning("No files or skips found to notify about")
             sys.exit("No files or skips found to notify about")
         # If push notifications enabled
-        if self.settings['enabled'] and not self.disable:
+        if self.enabled and not self.disable:
             # Send message
             self.send_message(conn_text)
         # Exit
@@ -111,19 +114,16 @@ class Push(object):
 
     # ======== SET ERROR INFO & EXIT ======== #
 
-    def failure(self, error_details, usage=False):
+    def failure(self, error_details):
         '''Failure notification'''
         logging.info("Starting failure notifications")
         # Set error message
         conn_text = '''There was an error reported:
 {0}'''.format(error_details)
         # If push notifications enabled
-        if self.settings['enabled'] and not self.disable:
+        if self.enabled and not self.disable:
             # Send message
             self.send_message(conn_text)
         # Raise python warning
         logging.warning(error_details)
-        if usage:
-            Args.show_usage(2, error_details)
-        else:
-            sys.exit(error_details)
+        self.parser.error(error_details)

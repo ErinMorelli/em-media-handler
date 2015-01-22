@@ -25,7 +25,7 @@ from re import escape, search, sub
 
 # ======== EPISODE CLASS DECLARTION ======== #
 
-class Episode(mediahandler.types.Media):
+class MHTv(mediahandler.types.MHType):
     '''Episode handler class'''
 
     # ======== EPISODE CONSTRUCTOR ======== #
@@ -33,11 +33,10 @@ class Episode(mediahandler.types.Media):
     def __init__(self, settings, push):
         '''Episode class constuctor'''
         self.ptype = 'TV'
-        super(Episode, self).__init__(settings, push)
+        super(MHTv, self).__init__(settings, push)
+        self._video_settings()
         # Filebot
-        self.filebot['db'] = "thetvdb"
-        self.filebot['format'] = os.path.join(
-            self.dst_path, self.settings['format'])
+        self.cmd.db = "thetvdb"
 
     # ======== EPISODE OUTOUT PROCESSING ======== #
 

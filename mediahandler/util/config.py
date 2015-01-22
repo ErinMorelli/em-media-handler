@@ -28,20 +28,6 @@ import mediahandler as mh
 import mediahandler.util as Util
 
 
-# ======== LOOK FOR MODULE ======== #
-
-def _find_module(parent_mod, sub_mod):
-    '''Look to see if module is installed'''
-    try:
-        mod_info = imp.find_module(parent_mod)
-        mod = imp.load_module(parent_mod, *mod_info)
-        imp.find_module(sub_mod, mod.__path__)
-        return True
-    except ImportError:
-        err_msg = 'Module {0}.{1} is not installed'.format(parent_mod, sub_mod)
-        raise ImportError(err_msg)
-
-
 # ======== LOGGING ======== #
 
 def init_logging(settings):
@@ -97,11 +83,25 @@ def _check_modules(settings):
     return
 
 
+# ======== LOOK FOR MODULE ======== #
+
+def _find_module(parent_mod, sub_mod):
+    '''Look to see if module is installed'''
+    try:
+        mod_info = imp.find_module(parent_mod)
+        mod = imp.load_module(parent_mod, *mod_info)
+        imp.find_module(sub_mod, mod.__path__)
+        return True
+    except ImportError:
+        err_msg = 'Module {0}.{1} is not installed'.format(parent_mod, sub_mod)
+        raise ImportError(err_msg)
+        
+
 # ======== CHECK IF APP IS INSTALLED ======== #
 
 def _find_app(settings, app):
     # Save in settings
-    name = 'has_{0}'.format(app['name'].lower())
+    name = app['name'].lower()
     settings[name] = None
     # Look for app in local paths
     local_paths = os.environ['PATH'].rsplit(':')

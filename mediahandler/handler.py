@@ -25,78 +25,67 @@ from os import path, listdir, remove
 
 import mediahandler as mh
 import mediahandler.util.notify as Notify
-import mediahandler.util.config as Config
+from mediahandler.util.config import make_config, parse_config
 
 
 # ======== DEFINE HANDLER CLASS ======== #
 
-class Handler(object):
+class MHandler(mh.MHObject):
     '''Media handler class'''
 
     # ======== INIT CLASS ======== #
 
-    def __init__(self, args_input):
+    def __init__(self, args):
         '''Initialize handler class'''
-        # Set global variables
-        self.args = {}
-        self.settings = {}
-        if not args_input:
+        super(MHandler, self).__init__(args)
+        # Check args
+        if not args:
             raise ValueError("Missing input arguments for Handler class")
-        if type(args_input) is not dict:
-            raise TypeError("Handler class arguments should be type dict")
-        self.args = args_input
-        # User-provided path
-        __new_path = None
-        # Check for user-specified config
-        if 'config' in self.args.keys():
-            __new_path = self.args['config']
-        # Set paths
-        __config_file = Config.make_config(__new_path)
-        self.settings = Config.parse_config(__config_file)
+        # Extract settings from config
+        self.config = make_config(self.config)
+        self._set_settings(parse_config(self.config))
         # Set up notify instance
-        if 'no_push' not in self.args.keys():
-            self.args['no_push'] = False
-        self.push = Notify.Push(self.settings['Pushover'],
-                                self.args['no_push'])
-        # Media classes hash
-        self.media_classes = {
-            1: "Episode",
-            2: "Movie",
-            3: "Tracks",
-            4: "Book"
-        }
+        self.push = Notify.MHPush(self.pushover, self.no_push)
+        
+        # Placeholders
+        self.single_file = False
+        self.extracted = None
+
+    # ======== MOVE VIDEO FILES ======== #
+
+    def _get_object_name(self):
+        '''Return module name based on type'''
+        use_type = re.sub(r's$', '', self.stype)
+        return 'MH{0}'.format(use_type.capitalize())
 
     # ======== MOVE VIDEO FILES ======== #
 
     def add_media_files(self, files):
         '''Process media files'''
         logging.info("Getting media information")
-        # Set types
-        itype = self.args['type']
-        stype = self.args['stype']
+        use_type = self.stype.lower()
         # Check for forced single import (Music)
-        single = self.settings['single_file']
-        if 'single_track' in self.args.keys():
-            single = self.args['single_track']
-        self.settings['Music']['single_track'] = single
+        single = self.single_file
+        if self.single_track:
+            single = self.single_track
+        self.music.single_track = single
         # Check for custom search (Audiobooks)
-        if 'search' in self.args.keys():
-            query = self.args['search']
-            self.settings['Audiobooks']['custom_search'] = query
+        if self.query is not None:
+            self.audiobooks.custom_search = self.query
         # Check that type is enabled
-        if not self.settings[stype]['enabled']:
-            self.push.failure("{0} type is not enabled".format(stype))
+        if not getattr(self, use_type).enabled:
+            self.push.failure("{0} type is not enabled".format(self.stype))
         # Set module
-        module = "mediahandler.types.{0}".format(stype.lower())
+        module = "mediahandler.types.{0}".format(use_type)
         logging.debug("Importing module: %s", module)
         # Import module
         __import__(module)
         mod = sys.modules[module]
         # Get class from module
-        const = getattr(mod, self.media_classes[itype])
+        const = getattr(mod, self._get_object_name())
         logging.debug("Found class type: %s", const.__name__)
         # Initiate class
-        media = const(self.settings[stype], self.push)
+        media = const(getattr(self, use_type), self.push)
         logging.debug("Configured media type: %s", media.type)
         # Return
         return media.add(files)
@@ -106,22 +95,22 @@ class Handler(object):
     def extract_files(self, raw):
         '''Send files to be extracted'''
         logging.info("Extracting files from compressed file")
-        self.settings['extracted'] = raw
+        self.extracted = raw
         # Look for filebot
-        if 'has_filebot' in self.settings['TV'].keys():
-            filebot = self.settings['TV']['has_filebot']
-        elif 'has_filebot' in self.settings['Movies'].keys():
-            filebot = self.settings['Movies']['has_filebot']
+        if hasattr(self.tv, 'filebot'):
+            filebot = self.tv.filebot
+        elif hasattr(self.movies, 'filebot'):
+            filebot = self.movies.filebot
         else:
-            self.push.failure("Filebot required to extract: {0}".format(
-                self.args['name']))
+            self.push.failure(
+                "Filebot required to extract: {0}".format(self.name))
         # Import extract module
         import mediahandler.util.extract as Extract
         # Send to handler
         extracted = Extract.get_files(filebot, raw)
         if extracted is None:
-            self.push.failure("Unable to extract files: {0}".format(
-                self.args['name']))
+            self.push.failure(
+                "Unable to extract files: {0}".format(self.name))
         # Send files back to handler
         return extracted
 
@@ -150,8 +139,8 @@ class Handler(object):
 
     def _remove_files(self, files, skip):
         '''Remove original files'''
-        keep = self.settings['General']['keep_files']
-        keep_skips = self.settings['General']['keep_if_skips']
+        keep = self.general.keep_files
+        keep_skips = self.general.keep_if_skips
         # Exit if we're not deleting anything
         if keep:
             return
@@ -160,10 +149,10 @@ class Handler(object):
             return
         # Otherwise, remove
         if path.exists(files):
-            if 'extracted' in self.settings.keys():
+            if self.extracted is not None:
                 logging.debug("Removing extracted files folder")
-                rmtree(self.settings['extracted'])
-            if self.settings['single_file']:
+                rmtree(self.extracted)
+            if self.single_file:
                 logging.debug("Removing extra single file")
                 remove(files)
             else:
@@ -179,13 +168,12 @@ class Handler(object):
         # Look for zipped file first
         self._find_zipped(files)
         # Only set this flag for single files
-        self.settings['single_file'] = False
         if path.isfile(files):
-            self.settings['single_file'] = True
+            self.single_file = True
         # Make sure folders have files
         elif len(listdir(files)) == 0:
-            self.push.failure("No {0} files found for: {1}".format(
-                self.args['stype'], self.args['name']))
+            self.push.failure(
+                "No {0} files found for: {1}".format(self.stype, self.name))
         # Add files
         results = self.add_media_files(files)
         # Check results
@@ -201,8 +189,8 @@ class Handler(object):
         (added_files, skipped_files) = results
         # Make sure files were added
         if len(added_files) == 0 and len(skipped_files) == 0:
-            self.push.failure("No {0} files found for: {1}".format(
-                self.args['stype'], self.args['name']))
+            self.push.failure(
+                "No {0} files found for: {1}".format(self.stype, self.name))
         if len(skipped_files) > 0:
             skip = True
         # Remove old files
@@ -210,80 +198,21 @@ class Handler(object):
         # Finish & send success notification
         return self.push.success(added_files, skipped_files)
 
-    # ======== CONVERT TYPE ======== #
-
-    def _convert_type(self):
-        '''Convert string type to int'''
-        logging.info("Converting type")
-        stype = ''
-        # Make lowercase for comparison
-        xtype = self.args['type'].lower()
-        # Convert values
-        if xtype in ['tv shows', 'television']:
-            xtype = 'tv'
-        elif xtype == 'books':
-            xtype = 'audiobooks'
-        # Look for int
-        for key, value in mh.__mediakeys__.items():
-            if re.match(value, xtype, re.I):
-                stype = value
-                xtype = int(key)
-                break
-        # Store string & int values
-        self.args['stype'] = stype
-        self.args['type'] = xtype
-        # Return
-        logging.debug("Converted type: %s (%s)", stype, xtype)
-        return
-
-    # ======== PARSE DIRECTORY ======== #
-
-    def _parse_dir(self, rawpath):
-        '''Parse input directory structure'''
-        logging.info("Extracing info from path: %s", rawpath)
-        # Extract info from path
-        parse_path = rawpath.rsplit('/')[1:]
-        # Check for results
-        if len(parse_path) > 1:
-            self.args['path'] = path.dirname(rawpath)
-            # Don't override a defined name
-            if 'name' not in self.args.keys():
-                self.args['name'] = parse_path[-1]
-            # Look for custom type
-            if 'type' not in self.args.keys():
-                self.args['type'] = parse_path[-2]
-                if self.args['type'].lower() not in mh.__mediatypes__:
-                    self.push.failure('Media type {0} not recognized'.format(
-                        self.args['type']))
-            logging.debug("Type detected: %s", self.args['type'])
-        else:
-            logging.debug("No type detected")
-            # Notify about failure
-            self.push.failure(
-                "No type or name specified for media: {0}".format(
-                    self.args['name']))
-        # Convert type to number
-        self._convert_type()
-        return
-
     # ======== MAIN ADD MEDIA FUNCTION ======== #
 
     def add_media(self):
         '''Sort args based on input'''
-        logging.debug("Inputs: %s", self.args)
-        file_path = self.args['media']
-        # Parse directory structure
-        self._parse_dir(file_path)
+        logging.debug("Media: %s", self.media)
         # Check that file was downloaded
-        if path.exists(file_path):
+        if path.exists(self.media):
             # Send to handler
-            new_files = self._file_handler(file_path)
+            new_files = self._file_handler(self.media)
             # Check that files were returned
             if new_files is None:
-                self.push.failure("No media files found: {0}".format(
-                    self.args['name']))
+                self.push.failure(
+                    "No media files found: {0}".format(self.name))
         else:
             # There was a problem, no files found
-            self.push.failure("No media files found: {0}".format(
-                self.args['name']))
+            self.push.failure(
+                "No media files found: {0}".format(self.name))
         return new_files

@@ -24,7 +24,7 @@ from os import path, makedirs
 
 # ======== MUSIC CLASS DECLARTION ======== #
 
-class Tracks(mediahandler.types.Media):
+class MHMusic(mediahandler.types.MHType):
     '''Tracks handler class'''
 
     # ======== SET GLOBAL CLASS OPTIONS ======== #
@@ -32,23 +32,23 @@ class Tracks(mediahandler.types.Media):
     def __init__(self, settings, push):
         '''Tracks class constuctor'''
         self.ptype = None
-        super(Tracks, self).__init__(settings, push)
+        super(MHMusic, self).__init__(settings, push)
         # Beet
         self.beetslog = path.join(path.expanduser("~"), 'logs', 'beets.log')
         # Query info
-        self.query = {
+        self.query = self.MHSettings({
             'tags': '-ql',
             'added': r"(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n",
             'skip': r"(^|\n).*\/(.*) \(\d+ items\)\nSkipping.\n",
             'added_i': 1,
             'skip_i': 1,
             'reason': "see beets log",
-        }
+        })
         # Check for single track
-        if self.settings['single_track']:
-            self.query['tags'] = "-sql"
+        if self.single_track:
+            self.query.tags = "-sql"
             single_regex = r"(Tagging track)\:\s(.*)\nURL\:\n\s{1,4}(.*)\n"
-            self.query['added'] = single_regex
+            self.query.added = single_regex
 
     # ======== ADD MUSIC ======== #
 
@@ -56,16 +56,16 @@ class Tracks(mediahandler.types.Media):
         '''Add music to beets library'''
         logging.info("Starting %s information handler", self.type)
         # Check for custom path in settings
-        if self.settings['log_file'] is not None:
-            self.beetslog = self.settings['log_file']
+        if self.log_file is not None:
+            self.beetslog = self.log_file
             logging.debug("Using custom beets log: %s", self.beetslog)
         # Check that log file path exists
         beetslog_dir = path.dirname(self.beetslog)
         if not path.exists(beetslog_dir):
             makedirs(beetslog_dir)
         # Set up query
-        m_cmd = [self.settings['has_beets'],
+        m_cmd = [self.beets,
                  "import", file_path,
-                 self.query['tags'], self.beetslog]
+                 self.query.tags, self.beetslog]
         # Get info
         return self.media_info(m_cmd, file_path)
