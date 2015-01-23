@@ -36,7 +36,7 @@ class MHMediaAction(argparse.Action):
         # Check for files existence
         if not path.exists(rawpath):
             error = "File or directory provided for {0} {1} {2}".format(
-                option_string, 'does not exist:', values)
+                self.dest, 'does not exist:', values)
             parser.error(error)
         # Extract info from path
         parse_name = path.basename(rawpath)
@@ -106,9 +106,8 @@ class MHParser(argparse.ArgumentParser):
 
     def error(self, message):
         '''Show help with error messages'''
-        sys.stderr.write('addmedia: error: %s\n' % message)
         sys.stdout.write('Use `addmedia --help` to view more options\n')
-        sys.exit(2)
+        sys.exit('addmedia: error: %s' % message)
 
     def print_help(self):
         sys.stdout.write('\nEM Media Handler v{0} / by {1}\n\n'.format(

@@ -37,16 +37,21 @@ class MHandler(mh.MHObject):
 
     def __init__(self, args):
         '''Initialize handler class'''
-        super(MHandler, self).__init__(args)
         # Check args
         if not args:
             raise ValueError("Missing input arguments for Handler class")
+        elif type(args) is not dict:
+            raise TypeError("Arguments must be in the form of a dict")
+        # Set up args
+        super(MHandler, self).__init__(args)
         # Extract settings from config
         self.config = make_config(self.config)
         self._set_settings(parse_config(self.config))
         # Set up notify instance
-        self.push = Notify.MHPush(self.pushover, self.no_push)
-        
+        if hasattr(self, 'no_push'):
+            self.push = Notify.MHPush(self.pushover, self.no_push)
+        else:
+            self.push = Notify.MHPush(self.pushover)
         # Placeholders
         self.single_file = False
         self.extracted = None
@@ -66,11 +71,11 @@ class MHandler(mh.MHObject):
         use_type = self.stype.lower()
         # Check for forced single import (Music)
         single = self.single_file
-        if self.single_track:
+        if hasattr(self, 'single_track') and self.single_track:
             single = self.single_track
         self.music.single_track = single
         # Check for custom search (Audiobooks)
-        if self.query is not None:
+        if hasattr(self, 'query') and self.query is not None:
             self.audiobooks.custom_search = self.query
         # Check that type is enabled
         if not getattr(self, use_type).enabled:
@@ -101,7 +106,7 @@ class MHandler(mh.MHObject):
             filebot = self.tv.filebot
         elif hasattr(self.movies, 'filebot'):
             filebot = self.movies.filebot
-        else:
+        if not filebot:
             self.push.failure(
                 "Filebot required to extract: {0}".format(self.name))
         # Import extract module

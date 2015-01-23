@@ -41,10 +41,10 @@ class BookMediaObjectTests(MediaObjectTests):
         self.settings = _common.get_settings()['Audiobooks']
         self.settings['folder'] = self.folder
         self.settings['api_key'] = _common.get_google_api()
-        self.settings['chapter_length'] = None
+        self.settings['chapter_length'] = 8
         self.settings['make_chapters'] = False
         # Make an object
-        self.book = Books.Book(self.settings, self.push)
+        self.book = Books.MHAudiobook(self.settings, self.push)
 
 
 class BaseBookObjectTests(BookMediaObjectTests):
@@ -53,18 +53,18 @@ class BaseBookObjectTests(BookMediaObjectTests):
         self.settings['api_key'] = None
         regex = r'Google Books API key not found'
         self.assertRaisesRegexp(
-            Warning, regex, Books.Book, self.settings, self.push)
+            Warning, regex, Books.MHAudiobook, self.settings, self.push)
 
     def test_custom_chapter_length(self):
         self.settings['chapter_length'] = 10
-        self.book = Books.Book(self.settings, self.push)
-        self.assertEqual(self.book.settings['max_length'], 36000)
+        self.book = Books.MHAudiobook(self.settings, self.push)
+        self.assertEqual(self.book.max_length, 36000)
 
     def test_custom_search_string(self):
         search = 'Gone Girl Gillian Flynn'
         self.settings['custom_search'] = search
-        self.book = Books.Book(self.settings, self.push)
-        self.assertEqual(self.book.settings['custom_search'], search)
+        self.book = Books.MHAudiobook(self.settings, self.push)
+        self.assertEqual(self.book.custom_search, search)
 
 
 class BookCleanStringTests(BookMediaObjectTests):
@@ -99,13 +99,17 @@ class BookCleanStringTests(BookMediaObjectTests):
 
 class BookSaveCoverTests(BookMediaObjectTests):
 
+    def setUp(self):
+        super(BookSaveCoverTests, self).setUp()
+        self.book.book_info = self.book.MHSettings({})
+
     def test_save_cover_new(self):
         img_url = 'http://books.google.com/books/content?id=4lYZAwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api'
         expected = os.path.join(self.folder, 'cover.jpg')
         self.assertFalse(os.path.exists(expected))
         result = self.book._save_cover(self.folder, img_url)
         self.assertEqual(result, expected)
-        self.assertEqual(self.book.book_info['cover_image'], expected)
+        self.assertEqual(self.book.book_info.cover_image, expected)
         self.assertTrue(os.path.exists(expected))
 
     def test_save_cover_exists(self):
@@ -118,14 +122,14 @@ class BookSaveCoverTests(BookMediaObjectTests):
         self.assertTrue(os.path.exists(expected))
         result = self.book._save_cover(self.folder, img_url)
         self.assertEqual(result, expected)
-        self.assertNotIn('cover_image', self.book.book_info.keys())
+        self.assertFalse(hasattr(self.book.book_info, 'cover_image'))
 
 
 class BookCalculateChunkTests(BookMediaObjectTests):
 
     def test_chunks_mulipart(self):
         # Set max length to 30 mins
-        self.book.settings['max_length'] = 1800
+        self.book.max_length = 1800
         # Copy files into folder
         for x in range(0, 6):
             dst = os.path.join(self.folder, '0{0}-track.mp3'.format(str(x+1)))
@@ -145,7 +149,7 @@ class BookCalculateChunkTests(BookMediaObjectTests):
 
     def test_chunks_single(self):
         # Set max length to 15 mins
-        self.book.settings['max_length'] = 900
+        self.book.smax_length = 900
         # Copy file into folder
         dst = os.path.join(self.folder, '01-track.mp3')
         shutil.copy(self.audio_file, dst)
@@ -160,7 +164,7 @@ class BookCalculateChunkTests(BookMediaObjectTests):
 
     def test_chunks_single_parts(self):
         # Set max length to 10 mins
-        self.book.settings['max_length'] = 600
+        self.book.max_length = 600
         # Copy file into folder
         dst = os.path.join(self.folder, '01-track.mp3')
         shutil.copy(self.audio_file, dst)
@@ -184,7 +188,7 @@ class GetChaptersTests(BookMediaObjectTests):
 
     def test_chapters_mulipart(self):
         # Set max length to 30 mins
-        self.book.settings['max_length'] = 1800
+        self.book.max_length = 1800
         # Copy files into folder
         for x in range(0, 6):
             dst = os.path.join(self.folder, '0{0}-track.mp3'.format(str(x+1)))
@@ -206,7 +210,7 @@ class GetChaptersTests(BookMediaObjectTests):
 
     def test_chunks_single(self):
         # Set max length to 15 mins
-        self.book.settings['max_length'] = 900
+        self.book.max_length = 900
         # Copy file into folder
         dst = os.path.join(self.folder, '01-track.mp3')
         shutil.copy(self.audio_file, dst)
@@ -227,12 +231,12 @@ class AddBookTest(BookMediaObjectTests):
 
     def test_add_book(self):
         # Set up abc & php paths
-        _find_app(self.book.settings, {'name': 'ABC', 'exec': 'abc.php'})
-        _find_app(self.book.settings, {'name': 'PHP', 'exec': 'php'})
+        _find_app(self.book.__dict__, {'name': 'ABC', 'exec': 'abc.php'})
+        _find_app(self.book.__dict__, {'name': 'PHP', 'exec': 'php'})
         # Set max length to 30 mins
-        self.book.settings['max_length'] = 1800
-        self.book.settings['make_chapters'] = True
-        self.book.settings['custom_search'] = 'Paul Doiron Bone Orchard'
+        self.book.max_length = 1800
+        self.book.make_chapters = True
+        self.book.custom_search = 'Paul Doiron Bone Orchard'
         # Copy files into folder
         for x in range(0, 2):
             dst = os.path.join(self.folder, '0{0}-track.mp3'.format(str(x+1)))
@@ -291,7 +295,7 @@ class GetFilesTests(BookMediaObjectTests):
         # Check results
         self.assertTrue(success)
         self.assertListEqual(sorted(expected), sorted(result))
-        self.assertEqual(self.book.settings['file_type'], 'mp3')
+        self.assertEqual(self.book.file_type, 'mp3')
 
     @_common.skipUnlessHasMod('mutagen', 'mp3')
     def test_get_files_bad_chaptered(self):
@@ -324,14 +328,12 @@ class MoveFilesBookTests(BookMediaObjectTests):
     def setUp(self):
         super(MoveFilesBookTests, self).setUp()
         # Set up book info
-        new_book_info = self.book.ask_google('Outrage Arnaldur')
-        self.book.book_info = new_book_info
+        self.book.set_book_info('Outrage Arnaldur')
         # Settings
-        self.book.settings['orig_path'] = self.folder
+        self.book.orig_path = self.folder
 
     def test_move_no_subtitle(self):
-        new_book_info = self.book.ask_google('The Lovely Bones Alice Sebold')
-        self.book.book_info = new_book_info
+        self.book.set_book_info('The Lovely Bones Alice Sebold')
         # Make dummy file
         book_file = _common.make_tmp_file('.m4b', self.folder)
         # Set up file array
@@ -348,7 +350,7 @@ class MoveFilesBookTests(BookMediaObjectTests):
         self.assertTrue(os.path.exists(new_file))
 
     def test_move_no_chapters(self):
-        self.book.settings['file_type'] = 'mp3'
+        self.book.file_type = 'mp3'
         # Make dummy files
         _common.make_tmp_file('.mp3', self.folder)
         _common.make_tmp_file('.mp3', self.folder)
@@ -412,7 +414,7 @@ class SingleFileBookTests(BookMediaObjectTests):
 
     def test_single_file_good(self):
         # Set up test
-        self.book.settings['orig_path'] = self.folder
+        self.book.orig_path = self.folder
         book_file = _common.make_tmp_file('.m4b', self.folder)
         # Run test
         result = self.book._single_file(book_file, 'The Lovely Bones')
@@ -425,7 +427,7 @@ class SingleFileBookTests(BookMediaObjectTests):
 
     def test_ask_google_return(self):
         # Run test
-        result = self.book.ask_google('Voices Arnaldur')
+        result = Books.get_book_info(self.book.api_key, 'Voices Arnaldur')
         # Check result
         expected = {
             'author': 'Arnaldur Indridason',
@@ -448,4 +450,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite', verbosity=2, buffer=True)
+    unittest.main(defaultTest='suite')

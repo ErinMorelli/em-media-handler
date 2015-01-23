@@ -29,7 +29,7 @@ def main():
     # Get arguments
     args = get_deluge_arguments()
     # Run handler
-    handler = mh.Handler(args)
+    handler = mh.MHandler(args)
     # Add files
     return handler.add_media()
 

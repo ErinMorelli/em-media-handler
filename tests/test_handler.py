@@ -33,220 +33,58 @@ class NewHandlerTests(unittest.TestCase):
     def test_empty_args(self):
         regex = r'Handler class arguments should be type dict'
         self.assertRaises(
-            TypeError, regex, MH.Handler)
+            TypeError, regex, MH.MHandler)
 
     def test_none_args(self):
         regex = r'Missing input arguments for Handler class'
         self.assertRaisesRegexp(
-            ValueError, regex, MH.Handler, None)
+            ValueError, regex, MH.MHandler, None)
 
     def test_non_dict_args(self):
-        regex = r'Handler class arguments should be type dict'
-        self.assertRaisesRegexp(TypeError, regex, MH.Handler, 'string')
-        self.assertRaisesRegexp(TypeError, regex, MH.Handler, ['an', 'array'])
-        self.assertRaisesRegexp(TypeError, regex, MH.Handler, True)
-        self.assertRaisesRegexp(TypeError, regex, MH.Handler, 8)
+        regex = r'Missing input arguments for Handler class'
+        self.assertRaisesRegexp(ValueError, regex, MH.MHandler, None)
+        regex2 = r'Arguments must be in the form of a dict'
+        self.assertRaisesRegexp(TypeError, regex2, MH.MHandler, 'string')
+        self.assertRaisesRegexp(TypeError, regex2, MH.MHandler, ['an', 'array'])
+        self.assertRaisesRegexp(TypeError, regex2, MH.MHandler, True)
+        self.assertRaisesRegexp(TypeError, regex2, MH.MHandler, 8)
 
     def test_good_args(self):
         # Build arguments
         args = {
+            'config': _common.get_conf_file(),
             'media': os.path.join('path', 'to', 'files'),
-            'type': 'TV',
+            'type': 1,
+            'stype': 'TV',
+            'test': {
+                'something': 'here'
+            },
+            'no_push': False,
         }
         # Run handler
-        new_handler = MH.Handler(args)
+        new_handler = MH.MHandler(args)
         # Check object structure
-        self.assertIsNotNone(new_handler.args)
-        self.assertIsNotNone(new_handler.settings)
-        self.assertIsInstance(new_handler.push, Notify.Push)
-        self.assertIsInstance(new_handler, MH.Handler)
+        self.assertEqual(
+            new_handler.media, os.path.join('path', 'to', 'files'))
+        self.assertEqual(new_handler.type, 1)
+        self.assertEqual(new_handler.stype, 'TV')
+        self.assertEqual(new_handler.test.something, 'here')
+        self.assertIsInstance(new_handler.push, Notify.MHPush)
+        self.assertIsInstance(new_handler, MH.MHandler)
+        self.assertIsNone(new_handler.extracted)
+        self.assertFalse(new_handler.single_file)
 
-    def test_good_args_config(self):
-        # Get original conf file
-        old_conf = _common.get_conf_file()
-        # Setup temp conf path
-        conf_dir = os.path.dirname(old_conf)
-        new_conf = os.path.join(conf_dir, 'temp_NHT.conf')
-        # Copy into temp file
-        shutil.copy(old_conf, new_conf)
+    def test_missing_args(self):
         # Build arguments
         args = {
             'media': os.path.join('path', 'to', 'files'),
             'type': 'TV',
-            'config': new_conf,
+            'no_push': False
         }
-        # Run handler
-        handler = MH.Handler(args)
-        expected = _common.get_settings()
-        # Check that they match
-        self.assertDictEqual(handler.settings, expected)
-        # Check object structure
-        os.unlink(new_conf)
-
-
-class ConvertTypeTests(unittest.TestCase):
-
-    def setUp(self):
-        # Temp args
-        args = {'no_push': False}
-        # Make handler
-        self.handler = MH.Handler(args)
-        self.types_hash = _common.get_types_by_string()
-
-    def run_type_test(self, test, is_bad=False):
-        stype = test['type']
-        itype = self.types_hash[stype]
-        # Loop through tests
-        for test in test['tests']:
-            # Set args
-            self.handler.args['type'] = test
-            # Run test
-            self.handler._convert_type()
-            # Check results
-            if is_bad:
-                self.assertIsNot(
-                    self.handler.args['stype'], stype)
-                self.assertNotEqual(
-                    self.handler.args['type'], itype)
-            else:
-                self.assertIs(
-                    self.handler.args['stype'], stype)
-                self.assertEqual(
-                    self.handler.args['type'], itype)
-
-    def test_good_tv_types(self):
-        test = {
-            'tests': [
-                'tv',
-                'tv shows',
-                'TELEVISION',
-            ],
-            'type': 'TV',
-        }
-        self.run_type_test(test)
-
-    def test_bad_tv_types(self):
-        test = {
-            'tests': [
-                'shows',
-                'episode',
-                'season'
-            ],
-            'type': 'TV',
-        }
-        self.run_type_test(test, True)
-
-    def test_good_movie_types(self):
-        test = {
-            'tests': ['Movies'],
-            'type': 'Movies',
-        }
-        self.run_type_test(test)
-
-    def test_bad_movie_types(self):
-        test = {
-            'tests': [
-                'movie',
-                'film',
-                'cinema'
-            ],
-            'type': 'Movies',
-        }
-        self.run_type_test(test, True)
-
-    def test_good_music_types(self):
-        test = {
-            'tests': ['Music'],
-            'type': 'Music',
-        }
-        self.run_type_test(test)
-
-    def test_bad_music_types(self):
-        test = {
-            'tests': [
-                'song',
-                'album',
-                'artist',
-            ],
-            'type': 'Music',
-        }
-        self.run_type_test(test, True)
-
-    def test_good_book_types(self):
-        test = {
-            'tests': [
-                'books',
-                'audiobooks'
-            ],
-            'type': 'Audiobooks',
-        }
-        self.run_type_test(test)
-
-    def test_bad_book_types(self):
-        test = {
-            'tests': [
-                'book',
-                'audiobook',
-                'chapter',
-            ],
-            'type': 'Audiobooks',
-        }
-        self.run_type_test(test, True)
-
-
-class ParseDirTests(unittest.TestCase):
-
-    def setUp(self):
-        # Test name
-        self.name = 'test-{0}'.format(_common.get_test_id())
-        # Temp args
-        args = {'no_push': False}
-        # Make handler
-        self.handler = MH.Handler(args)
-        self.types_hash = _common.get_types_by_string()
-
-    def test_bad_parse_path(self):
-        path = os.path.join('path', 'to', 'media', 'filename')
-        regex = r'Media type media not recognized'
+        # Run Test 
+        regex = r"'MHandler' object has no attribute 'config'"
         self.assertRaisesRegexp(
-            SystemExit, regex, self.handler._parse_dir, path)
-
-    def test_bad_parse_path_stucture(self):
-        # Set up args
-        self.handler.args['name'] = self.name
-        # Test bad path structure
-        path = 'filename-only'
-        regex = r'No type or name specified for media: {0}'.format(self.name)
-        self.assertRaisesRegexp(
-            SystemExit, regex, self.handler._parse_dir, path)
-
-    def run_good_type_path(self, stype):
-        itype = self.types_hash[stype]
-        # Build expected values
-        filename = '{0}-{1}'.format(stype, _common.get_test_id())
-        path = os.path.join('path', 'to', stype)
-        full_path = os.path.join(path, filename)
-        expected = {
-            'path': path,
-            'type': itype,
-            'stype': stype,
-            'name': filename,
-            'no_push': False,
-        }
-        self.handler._parse_dir(full_path)
-        self.assertEqual(self.handler.args, expected)
-
-    def test_good_parse_tv_path(self):
-        self.run_good_type_path('TV')
-
-    def test_good_parse_movie_path(self):
-        self.run_good_type_path('Movies')
-
-    def test_good_parse_music_path(self):
-        self.run_good_type_path('Music')
-
-    def test_good_parse_book_path(self):
-        self.run_good_type_path('Audiobooks')
+            AttributeError, regex, MH.MHandler, args)
 
 
 class HandlerTestClass(unittest.TestCase):
@@ -257,12 +95,14 @@ class HandlerTestClass(unittest.TestCase):
         # Dummy args
         self.name = "test-{0}".format(_common.get_test_id())
         self.args = {
+            'config': self.conf,
             'name': self.name,
             'type': 1,
-            'stype': 'TV'
+            'stype': 'TV',
+            'single_track': False,
         }
         # Set up handler
-        self.handler = MH.Handler(self.args)
+        self.handler = MH.MHandler(self.args)
         # Make a dummy folder
         self.dir = tempfile.mkdtemp(
             dir=os.path.dirname(self.conf))
@@ -283,12 +123,12 @@ class RemoveFileTests(HandlerTestClass):
     def run_remove_tests(self, args, skips=False, sf=False):
         self.tmp_file = _common.make_tmp_file()
         # Adjust handler settings
-        self.handler.settings['single_file'] = sf
-        self.handler.settings['General'] = args
+        self.handler.single_file = sf
+        self.handler.general = self.handler.MHSettings(args)
         # Run handler
         self.handler._remove_files(self.tmp_file, skips)
         # Check that file exists
-        if self.handler.settings['single_file']:
+        if self.handler.single_file:
             self.assertFalse(os.path.exists(self.tmp_file))
         else:
             self.assertTrue(os.path.exists(self.tmp_file))
@@ -316,8 +156,8 @@ class RemoveFileTests(HandlerTestClass):
 
     def test_remove_folder(self):
         # Adjust handler settings
-        self.handler.settings['single_file'] = False
-        self.handler.settings['General']['keep_files'] = False
+        self.handler.single_file = False
+        self.handler.general.keep_files = False
         # Run handler
         self.handler._remove_files(self.dir, False)
         # Check that folder was deleted
@@ -326,9 +166,9 @@ class RemoveFileTests(HandlerTestClass):
     def test_remove_extracted(self):
         self.tmp_file = _common.make_tmp_file()
         # Adjust handler settings
-        self.handler.settings['extracted'] = self.dir
-        self.handler.settings['single_file'] = True
-        self.handler.settings['General']['keep_files'] = False
+        self.handler.extracted = self.dir
+        self.handler.single_file = True
+        self.handler.general.keep_files = False
         # Run handler
         self.handler._remove_files(self.tmp_file, False)
         # Check that file was deleted
@@ -340,10 +180,10 @@ class FileHandlerTests(HandlerTestClass):
 
     def test_process_files_books(self):
         # Modify args & settings for books
-        self.handler.args['type'] = 4
-        self.handler.args['stype'] = 'Audiobooks'
-        self.handler.settings['Audiobooks']['enabled'] = True
-        self.handler.settings['single_file'] = True
+        self.handler.type = 4
+        self.handler.stype = 'Audiobooks'
+        self.handler.audiobooks.enabled = True
+        self.handler.single_file = True
         # Make a dummy file
         self.tmp_file = _common.make_tmp_file('.m4b')
         # Run test
@@ -353,9 +193,9 @@ class FileHandlerTests(HandlerTestClass):
 
     def test_process_files_single_video(self):
         # Modify args & settings for single video
-        self.handler.args['type'] = 2
-        self.handler.args['stype'] = 'Movies'
-        self.handler.settings['single_file'] = True
+        self.handler.type = 2
+        self.handler.stype = 'Movies'
+        self.handler.single_file = True
         # Make a dummy file
         self.tmp_file = _common.make_tmp_file('.avi')
         # Run test
@@ -366,24 +206,24 @@ class FileHandlerTests(HandlerTestClass):
     def test_process_files_single_music(self):
         # Set up beets path
         _find_app(
-            self.handler.settings['Music'], {'name': 'Beets', 'exec': 'beet'})
+            self.handler.music.__dict__, {'name': 'Beets', 'exec': 'beet'})
         # Modify args & settings for single music
-        self.handler.args['type'] = 3
-        self.handler.args['stype'] = 'Music'
-        self.handler.settings['single_file'] = True
-        self.handler.settings['Music']['enabled'] = True
+        self.handler.type = 3
+        self.handler.stype = 'Music'
+        self.handler.single_file = True
+        self.handler.music.enabled = True
         # Make a dummy file
         self.tmp_file = _common.make_tmp_file('.mp3')
         # Run test
-        regex = r'Unable to match tracks: {0}'.format(self.tmp_file)
+        regex = r'Unable to match music: {0}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler._file_handler, self.tmp_file)
 
     def test_process_files_folder_video(self):
         # Modify args & settings for single video
-        self.handler.args['type'] = 2
-        self.handler.args['stype'] = 'Movies'
-        self.handler.settings['single_file'] = False
+        self.handler.type = 2
+        self.handler.stype = 'Movies'
+        self.handler.single_file = False
         # Make a dummy file in dummy folder
         self.tmp_file = _common.make_tmp_file('.mkv', self.dir)
         # Run test
@@ -394,16 +234,16 @@ class FileHandlerTests(HandlerTestClass):
     def test_process_files_folder_music(self):
         # Set up beets path
         _find_app(
-            self.handler.settings['Music'], {'name': 'Beets', 'exec': 'beet'})
+            self.handler.music.__dict__, {'name': 'Beets', 'exec': 'beet'})
         # Modify args & settings for single video
-        self.handler.args['type'] = 3
-        self.handler.args['stype'] = 'Music'
-        self.handler.settings['single_file'] = False
-        self.handler.settings['Music']['enabled'] = True
+        self.handler.type = 3
+        self.handler.stype = 'Music'
+        self.handler.single_file = False
+        self.handler.music.enabled = True
         # Make a dummy file in dummy folder
         self.tmp_file = _common.make_tmp_file('.mp3', self.dir)
         # Run test
-        regex = r'Unable to match tracks: {0}'.format(self.dir)
+        regex = r'Unable to match music: {0}'.format(self.dir)
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler._file_handler, self.dir)
 
@@ -424,7 +264,7 @@ class CheckSuccessTests(HandlerTestClass):
         self.assertTrue(os.path.exists(self.dir))
 
     def test_results_good(self):
-        self.handler.settings['single_file'] = False
+        self.handler.single_file = False
         results = ([self.dir], [])
         reg = r'Media was successfully added to your server:\n\+ {0}'.format(
             self.dir)
@@ -433,7 +273,7 @@ class CheckSuccessTests(HandlerTestClass):
         self.assertFalse(os.path.exists(self.dir))
 
     def test_results_both(self):
-        self.handler.settings['single_file'] = True
+        self.handler.single_file = True
         self.tmp_file = _common.make_tmp_file()
         results = ([self.tmp_file], [self.dir])
         reg1 = r'Media was successfully added to your server:\n\+ {0}'.format(
@@ -450,8 +290,8 @@ class FindZippedTests(HandlerTestClass):
     def run_process_folder_test(self, ext, filebot=False):
         # Set filebot
         if not filebot:
-            del self.handler.settings['TV']['has_filebot']
-            del self.handler.settings['Movies']['has_filebot']
+            delattr(self.handler.tv, 'filebot')
+            self.handler.movies.filebot = None
         # Make a dummy file in dummy folder
         self.tmp_file = _common.make_tmp_file(ext, self.dir)
         # Run test
@@ -464,8 +304,8 @@ class FindZippedTests(HandlerTestClass):
     def run_single_file_test(self, ext, filebot=False):
         # Set filebot
         if not filebot:
-            del self.handler.settings['TV']['has_filebot']
-            del self.handler.settings['Movies']['has_filebot']
+            self.handler.tv.filebot = None
+            delattr(self.handler.movies, 'filebot')
         # Make a dummy file
         self.tmp_file = _common.make_tmp_file(ext)
         # Run test
@@ -502,36 +342,16 @@ class FindZippedTests(HandlerTestClass):
 
 class AddMediaTests(HandlerTestClass):
 
-    def setUp(self):
-        # Call super
-        super(AddMediaTests, self).setUp()
-        # Overrides
-        self.args = {
-            'name': self.name,
-            'type': 'TV'
-        }
-        self.handler = MH.Handler(self.args)
-
     def test_handle_good_path(self):
         # Modify args
-        self.handler.args['media'] = self.dir
+        self.handler.media = self.dir
         # Run test
         regex = r'No TV files found for: {0}'.format(self.name)
         self.assertRaisesRegexp(SystemExit, regex, self.handler.add_media)
 
-    def test_handle_bad_path(self):
-        # Modify args
-        self.handler.args = {
-            'media': self.dir,
-            'name': self.name,
-        }
-        # Run test
-        regex = r'Media type .* not recognized'
-        self.assertRaisesRegexp(SystemExit, regex, self.handler.add_media)
-
     def test_handle_fake_path(self):
         # Modify args
-        self.handler.args['media'] = os.path.join('path', 'to', 'fake')
+        self.handler.media = os.path.join('path', 'to', 'fake')
         # Run test
         regex = r'No media files found: {0}'.format(self.name)
         self.assertRaisesRegexp(SystemExit, regex, self.handler.add_media)
@@ -546,68 +366,67 @@ class AddMediaFilesTests(HandlerTestClass):
         self.types_hash = _common.get_types_by_string()
         # Set up beets path
         _find_app(
-            self.handler.settings['Music'], {'name': 'Beets', 'exec': 'beet'})
+            self.handler.music.__dict__, {'name': 'Beets', 'exec': 'beet'})
 
     def test_forced_single_track(self):
         # Modify args & settings for single track
-        self.handler.args['type'] = 3
-        self.handler.args['stype'] = 'Music'
-        self.handler.args['single_track'] = True
-        self.handler.settings['single_file'] = False
-        self.handler.settings['Music']['enabled'] = True
+        self.handler.type = 3
+        self.handler.stype = 'Music'
+        self.handler.single_track = True
+        self.handler.single_file = False
+        self.handler.music.enabled = True
         # Make a dummy file
         self.tmp_file = _common.make_tmp_file('.mp3')
         # Run test
-        self.assertNotIn('single_track', self.handler.settings['Music'].keys())
-        regex = r'Unable to match tracks: {0}'.format(self.tmp_file)
+        self.assertFalse(hasattr(self.handler.music, 'single_track'))
+        regex = r'Unable to match music: {0}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler.add_media_files, self.tmp_file)
         # Check settings
-        self.assertTrue(self.handler.settings['Music']['single_track'])
+        self.assertTrue(hasattr(self.handler.music, 'single_track'))
 
     def test_detected_single_track(self):
         # Modify args & settings for single track
-        self.handler.args['type'] = 3
-        self.handler.args['stype'] = 'Music'
-        self.handler.settings['single_file'] = True
-        self.handler.settings['Music']['enabled'] = True
+        self.handler.type = 3
+        self.handler.stype = 'Music'
+        self.handler.single_file = True
+        self.handler.music.enabled = True
         # Make a dummy file
         self.tmp_file = _common.make_tmp_file('.mp3')
         # Run test
-        self.assertNotIn('single_track', self.handler.settings['Music'].keys())
-        regex = r'Unable to match tracks: {0}'.format(self.tmp_file)
+        self.assertFalse(hasattr(self.handler.music, 'single_track'))
+        regex = r'Unable to match music: {0}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler.add_media_files, self.tmp_file)
         # Check settings
-        self.assertTrue(self.handler.settings['Music']['single_track'])
+        self.assertTrue(hasattr(self.handler.music, 'single_track'))
 
     def test_custom_book_search(self):
         # Search string
         search_str = _common.random_string(10)
         # Modify args & settings for books
-        self.handler.args['type'] = 4
-        self.handler.args['stype'] = 'Audiobooks'
-        self.handler.args['search'] = search_str
-        self.handler.settings['single_file'] = False
-        self.handler.settings['Audiobooks']['enabled'] = True
+        self.handler.type = 4
+        self.handler.stype = 'Audiobooks'
+        self.handler.query = search_str
+        self.handler.single_file = False
+        self.handler.audiobooks.enabled = True
         # Make a dummy file
         self.tmp_file = _common.make_tmp_file('.m4b')
         # Run test
-        self.assertNotIn(
-            'custom_search', self.handler.settings['Audiobooks'].keys())
+        self.assertFalse(hasattr(self.handler.audiobooks, 'custom_search'))
         regex = r'Folder for Audiobooks not found: .*Audiobooks'
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler.add_media_files, self.tmp_file)
         # Check settings
         self.assertIs(
-            self.handler.settings['Audiobooks']['custom_search'], search_str)
+            self.handler.audiobooks.custom_search, search_str)
 
     def run_add_type_test(self, stype, enabled=True):
         # Modify args & settings for books
-        self.handler.args['type'] = self.types_hash[stype]
-        self.handler.args['stype'] = stype
-        self.handler.settings['single_file'] = True
-        self.handler.settings[stype]['enabled'] = enabled
+        self.handler.type = self.types_hash[stype]
+        self.handler.stype = stype
+        self.handler.single_file = True
+        getattr(self.handler, stype.lower()).enabled = enabled
         # Make a dummy file
         self.tmp_file = _common.make_tmp_file()
         # Run test
@@ -615,7 +434,7 @@ class AddMediaFilesTests(HandlerTestClass):
         if enabled:
             regex = r'Folder for {0} not found: .*{1}'.format(stype, stype)
             if stype is 'Music':
-                regex = r'Unable to match tracks: .*'
+                regex = r'Unable to match music: .*'
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler.add_media_files, self.tmp_file)
 
@@ -645,19 +464,21 @@ class AddMediaFilesTests(HandlerTestClass):
 
     def test_bad_module_name(self):
         # Modify args & settings for books
-        self.handler.args['stype'] = 'Fake'
-        self.handler.settings['single_file'] = True
+        delattr(self.handler.tv, 'enabled')
+        self.handler.single_file = True
         # Make a dummy file
         self.tmp_file = _common.make_tmp_file()
         # Run first test
-        self.assertRaises(
-            KeyError, self.handler.add_media_files, self.tmp_file)
+        regex1 = r"'MHSettings' object has no attribute 'enabled'"
+        self.assertRaisesRegexp(
+            AttributeError, regex1,
+            self.handler.add_media_files, self.tmp_file)
         # Second test
-        self.handler.settings['Fake'] = {
-            'enabled': True
-        }
-        self.assertRaises(
-            ImportError, self.handler.add_media_files, self.tmp_file)
+        self.handler.stype = 'Fake'
+        regex2 = r"'MHandler' object has no attribute 'fake'"
+        self.assertRaisesRegexp(
+            AttributeError, regex2,
+            self.handler.add_media_files, self.tmp_file)
 
 
 def suite():

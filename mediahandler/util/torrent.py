@@ -33,14 +33,20 @@ def get_deluge_parser():
         formatter_class=argparse.RawTextHelpFormatter,
         add_help=False,
         usage='%(prog)s [TORRENT ID] [TORRENT NAME] [TORRENT PATH]',
-        description=('For use with the "Torrent Complete" event ' +
-            'in the Deluge "Execute" plugin.\nMore info: ' +
+        epilog=('For use with the "Torrent Complete" event ' +
+            'in Deluge\'s "Execute" plugin.\nMore info: ' +
             'http://dev.deluge-torrent.org/wiki/Plugins/Execute'),
     )
-    parser.add_argument('hash', metavar='TORRENT ID')
-    parser.add_argument('name', metavar='TORRENT NAME')
-    parser.add_argument(
-        'path', metavar='TORRENT PATH', action=Args.MHFilesAction)
+    deluge_args = parser.add_argument_group('deluge options')
+    deluge_args.add_argument(
+        'hash', metavar='TORRENT ID',
+        help="The torrent's unique, identifying hash.")
+    deluge_args.add_argument(
+        'name', metavar='TORRENT NAME',
+        help='Name of the file or folder downloaded.')
+    deluge_args.add_argument(
+        'path', metavar='TORRENT PATH', action=Args.MHFilesAction,
+        help='Path to where file or folder was downloaded to.')
     return parser
 
 

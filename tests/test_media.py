@@ -33,7 +33,7 @@ class MediaObjectTests(unittest.TestCase):
         # Conf
         self.conf = _common.get_conf_file()
         # Set up push object
-        self.push = Notify.Push({
+        self.push = Notify.MHPush({
             'enabled': True,
             'notify_name': '',
             'api_key': _common.random_string(),

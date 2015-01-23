@@ -160,7 +160,7 @@ class MHAudiobook(mh.MHObject):
         # Sum all the file durations
         for get_file in file_array:
             full_path = path.join(file_path, get_file)
-            audio_track = self.audio[file_type](full_path)
+            audio_track = getattr(self.audio, file_type)(full_path)
             total_length += audio_track.info.length
             logging.debug("%s:  %s", get_file, audio_track.info.length)
         logging.debug("Total book length: %s seconds", total_length)
@@ -390,59 +390,12 @@ class MHAudiobook(mh.MHObject):
         # Return new file folder
         return new_folder
 
-    # ======== GET BOOK INFO FROM GOOGLE ======== #
+    # ======== SET BOOK INFO ======== #
 
-    def ask_google(self, query):
-        '''Get metadata from google books api '''
-        logging.info("Querying Google Books")
-        # Connect to Google Books API
-        service = build('books', 'v1', developerKey=self.api_key)
-        # Make API request
-        request = service.volumes().list(
-            q=query,
-            orderBy="relevance",
-            printType="books",
-            maxResults=5
-        )
-        # Get response
-        response = request.execute()
-        logging.debug("Google response:\n%s", response)
-        # Get the top response
-        for book in response.get('items', []):
-            # Get publication date
-            published = book['volumeInfo']['publishedDate']
-            logging.debug("Published date: %s", published)
-            # Extract just the year
-            find_year = re.match(r"(\d{4})", published)
-            year = ''
-            if find_year is not None:
-                year = find_year.group(1)
-            # Check for categories
-            category = "Audiobook"
-            if 'categories' in book['volumeInfo']:
-                category = book['volumeInfo']['categories'][0]
-            # look for titles
-            long_title = book['volumeInfo']['title']
-            subtitle = None
-            if 'subtitle' in book['volumeInfo']:
-                long_title = '{0}: {1}'.format(book['volumeInfo']['title'],
-                                               book['volumeInfo']['subtitle'])
-                subtitle = book['volumeInfo']['subtitle']
-            # Set book information file structure
-            logging.info("Google Book ID: %s", book['id'])
-            new_book_info = {
-                'id': book['id'],
-                'short_title': book['volumeInfo']['title'],
-                'long_title': long_title,
-                'subtitle': subtitle,
-                'year': year,
-                'genre': category,
-                'author': ", ".join(book['volumeInfo']['authors']),
-                'cover': book['volumeInfo']['imageLinks']['thumbnail'],
-            }
-            break
-        # Return info
-        return new_book_info
+    def set_book_info(self, query):
+        '''Set book info from returned google hash'''
+        result = get_book_info(self.api_key, query)
+        self.book_info = self.MHSettings(result)
 
     # ======== MAIN BOOK FUNCTION (public) ======== #
 
@@ -457,7 +410,7 @@ class MHAudiobook(mh.MHObject):
             refined = self.custom_search
             logging.debug("Custom search query: %s", refined)
         # Get book info from Google
-        self.book_info = self.MHSettings(self.ask_google(refined))
+        self.set_book_info(refined)
         logging.debug(self.book_info.__dict__)
         # Deal with single files
         if path.isfile(raw):
@@ -486,3 +439,58 @@ class MHAudiobook(mh.MHObject):
         logging.info("Book title: %s", book_title)
         # return new book title
         return [book_title], skipped
+
+
+# ======== GET BOOK INFO FROM GOOGLE ======== #
+
+def get_book_info(api_key, query):
+    '''Get metadata from google books api '''
+    logging.info("Querying Google Books")
+    # Connect to Google Books API
+    service = build('books', 'v1', developerKey=api_key)
+    # Make API request
+    request = service.volumes().list(
+        q=query,
+        orderBy="relevance",
+        printType="books",
+        maxResults=5
+    )
+    # Get response
+    response = request.execute()
+    logging.debug("Google response:\n%s", response)
+    # Get the top response
+    for book in response.get('items', []):
+        # Get publication date
+        published = book['volumeInfo']['publishedDate']
+        logging.debug("Published date: %s", published)
+        # Extract just the year
+        find_year = re.match(r"(\d{4})", published)
+        year = ''
+        if find_year is not None:
+            year = find_year.group(1)
+        # Check for categories
+        category = "Audiobook"
+        if 'categories' in book['volumeInfo']:
+            category = book['volumeInfo']['categories'][0]
+        # look for titles
+        long_title = book['volumeInfo']['title']
+        subtitle = None
+        if 'subtitle' in book['volumeInfo']:
+            long_title = '{0}: {1}'.format(book['volumeInfo']['title'],
+                                           book['volumeInfo']['subtitle'])
+            subtitle = book['volumeInfo']['subtitle']
+        # Set book information file structure
+        logging.info("Google Book ID: %s", book['id'])
+        new_book_info = {
+            'id': book['id'],
+            'short_title': book['volumeInfo']['title'],
+            'long_title': long_title,
+            'subtitle': subtitle,
+            'year': year,
+            'genre': category,
+            'author': ", ".join(book['volumeInfo']['authors']),
+            'cover': book['volumeInfo']['imageLinks']['thumbnail'],
+        }
+        break
+    # Return info
+    return new_book_info

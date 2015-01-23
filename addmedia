@@ -18,6 +18,7 @@
 
 # ======== IMPORT MODULES ======== #
 
+import sys
 import mediahandler.handler as mh
 from mediahandler.util.args import get_arguments
 
@@ -29,11 +30,11 @@ def main():
     # Get arguments
     args = get_arguments()
     # Run handler
-    handler = mh.Handler(args)
+    handler = mh.MHandler(args)
     # Add files
     added = handler.add_media()
     # Print for CLI
-    print added
+    sys.stdout.write(added)
     # Finish
     return added
 

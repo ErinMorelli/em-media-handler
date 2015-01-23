@@ -62,6 +62,10 @@ class MHType(mh.MHObject):
 
     def _video_settings(self):
         '''Set object settings for video types'''
+        # Check for filebot
+        if not self.filebot:
+            self.push.failure(
+                "Filebot required to process {0} files".format(self.ptype))
         # Filebot
         cmd_info = self.MHSettings({
             'action': 'copy',
