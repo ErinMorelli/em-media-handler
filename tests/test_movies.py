@@ -35,12 +35,12 @@ class MoviesMediaObjectTests(MediaObjectTests):
         self.settings = _common.get_settings()['Movies']
         self.settings['folder'] = self.folder
         # Make an object
-        self.movies = Movies.Movie(self.settings, self.push)
+        self.movies = Movies.MHMovie(self.settings, self.push)
 
     def test_new_movie_object(self):
         expected = os.path.join(self.folder, '{n} ({y})')
-        self.assertEqual(self.movies.filebot['db'], 'themoviedb')
-        self.assertEqual(self.movies.filebot['format'], expected)
+        self.assertEqual(self.movies.cmd.db, 'themoviedb')
+        self.assertEqual(self.movies.cmd.format, expected)
 
     def test_movie_output_good(self):
         output = '''Rename movies using [TheMovieDB]
@@ -98,7 +98,7 @@ Auto-detect movie from context: [/Downloaded/Movies/Fake.Movie.avi]
 Processed 1 files
 Done ?(?????)?
 '''
-        regex = r'Unable to match movie: {0}. {1}'.format(
+        regex = r'Unable to match movie files: {0}. {1}'.format(
             '/Movies/Fake Movie', '/Movies/Another.Fake.Movie')
         self.assertRaisesRegexp(
             SystemExit, regex,
@@ -151,4 +151,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite', verbosity=2, buffer=True)
+    unittest.main(defaultTest='suite', verbosity=2)

@@ -50,21 +50,25 @@ items:
                 name: log_file
                 type: file
     - 
-        section: Pushover
+        section: Push
         options:
             -
                 name: enabled
                 type: bool
                 default: no
             -
-                name: api_key
-                type: string
-            -
-                name: user_key
-                type: string
-            -
                 name: notify_name
                 type: string
+            -
+                name: pushover
+                type: section
+                options: 
+                    -
+                        name: api_key
+                        type: string
+                    -
+                        name: user_key
+                        type: string
     - 
         section: TV
         options:

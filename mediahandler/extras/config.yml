@@ -15,11 +15,12 @@ Logging:
     level: 30
     log_file: 
 
-Pushover:
+Push:
     enabled: no
-    api_key: 
-    user_key: 
     notify_name: 
+    pushover:
+        api_key: 
+        user_key: 
 
 TV:
     enabled: yes

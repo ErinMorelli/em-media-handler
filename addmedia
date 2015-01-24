@@ -16,30 +16,11 @@
 '''Command line & scripting interface'''
 
 
-# ======== IMPORT MODULES ======== #
+# ======== IMPORT MODULE ======== #
 
-import sys
-import mediahandler.handler as mh
-from mediahandler.util.args import get_arguments
-
+import mediahandler.handler
 
 # ======== MAIN FUNCTION ======== #
 
-def main():
-    '''Main CLI function'''
-    # Get arguments
-    args = get_arguments()
-    # Run handler
-    handler = mh.MHandler(args)
-    # Add files
-    added = handler.add_media()
-    # Print for CLI
-    sys.stdout.write(added)
-    # Finish
-    return added
-
-
-# ======== COMMAND LINE ======== #
-
 if __name__ == '__main__':
-    main()
+    mediahandler.handler.main()

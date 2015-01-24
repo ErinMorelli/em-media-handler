@@ -48,6 +48,7 @@ class MHAudiobook(mh.MHObject):
         self.book_info = {}
         self.push = push
         self.orig_path = None
+        self.file_type = None
         # Set up book settings
         self._set_settings({
             'regex': {
@@ -73,7 +74,7 @@ class MHAudiobook(mh.MHObject):
             logging.warning("Google Books API key not found")
             raise Warning("Google Books API key not found")
         # Convert hours to seconds for chapter length
-        self.max_length  = self.chapter_length * 3600
+        self.max_length = self.chapter_length * 3600
         logging.debug("Using chapter length: %s", self.max_length)
 
     # ======== CLEAN UP SEARCH STRING ======== #
@@ -406,7 +407,7 @@ class MHAudiobook(mh.MHObject):
         refined = self._clean_string(raw)
         logging.debug("Cleaned search string: %s", refined)
         # Use custom search string, if defined
-        if has.attr(self, 'custom_search'):
+        if hasattr(self, 'custom_search'):
             refined = self.custom_search
             logging.debug("Custom search query: %s", refined)
         # Get book info from Google

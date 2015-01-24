@@ -31,14 +31,14 @@ class TVMediaObjectTests(MediaObjectTests):
         # Call Super
         super(TVMediaObjectTests, self).setUp()
         # Make an object
-        self.episode = TV.Episode(self.settings, self.push)
+        self.episode = TV.MHTv(self.settings, self.push)
 
     def test_new_tv_object(self):
         form = os.path.join(
             "{n}", "Season {s}", "{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}")
         expected = os.path.join(self.folder, form)
-        self.assertEqual(self.episode.filebot['db'], 'thetvdb')
-        self.assertEqual(self.episode.filebot['format'], expected)
+        self.assertEqual(self.episode.cmd.db, 'thetvdb')
+        self.assertEqual(self.episode.cmd.format, expected)
 
     def test_tv_output_good(self):
         output = '''Rename episodes using [TheTVDB]
@@ -94,7 +94,7 @@ Fetching episode data for [Fake Show]
 Processed 1 files
 Done ?(?????)?
 '''
-        regex = r'Unable to match episode: {0}, {1}'.format(
+        regex = r'Unable to match tv files: {0}, {1}'.format(
             '/TV/Fake Show/Fake.Show.S01E01', '/TV/Fake Show/Fake.Show.S01E02')
         self.assertRaisesRegexp(
             SystemExit, regex,
@@ -130,4 +130,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite', verbosity=2, buffer=True)
+    unittest.main(defaultTest='suite', verbosity=2)

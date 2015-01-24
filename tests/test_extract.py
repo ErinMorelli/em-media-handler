@@ -36,11 +36,10 @@ class ExtractBadZipTests(unittest.TestCase):
         self.conf = _common.get_conf_file()
         # Tmp name
         self.name = "test-{0}".format(_common.get_test_id())
-        # Tmp args
-        args = {'name': self.name}
         # Make handler
-        self.handler = MH.Handler(args)
-        self.filebot = self.handler.settings['TV']['has_filebot']
+        self.handler = MH.MHandler(self.conf)
+        self.handler.set_settings({'name': self.name})
+        self.filebot = self.handler.tv.filebot
         # Bad zip non without extension
         get_bad_non_zip = tempfile.NamedTemporaryFile(
             dir=os.path.dirname(self.conf),
@@ -98,8 +97,9 @@ class ExtractGoodZipTests(unittest.TestCase):
             'stype': 'TV'
         }
         # Make handler
-        self.handler = MH.Handler(args)
-        self.filebot = self.handler.settings['Movies']['has_filebot']
+        self.handler = MH.MHandler(self.conf)
+        self.handler.set_settings(args)
+        self.filebot = self.handler.movies.filebot
         # Make a good zip file contents
         get_good_zip1 = tempfile.NamedTemporaryFile(
             suffix='.tmp',
@@ -137,15 +137,15 @@ class ExtractGoodZipTests(unittest.TestCase):
         files = self.handler.extract_files(self.zip_name)
         self.assertEqual(files, self.folder)
         self.assertTrue(os.path.exists(files))
-        self.assertEqual(self.handler.settings['extracted'], self.zip_name)
+        self.assertEqual(self.handler.extracted, self.zip_name)
 
     def test_good_handler_zip_movies(self):
-        del self.handler.settings['TV']['has_filebot']
+        delattr(self.handler.tv, 'filebot')
         # Run handler
         files = self.handler.extract_files(self.zip_name)
         self.assertEqual(files, self.folder)
         self.assertTrue(os.path.exists(files))
-        self.assertEqual(self.handler.settings['extracted'], self.zip_name)
+        self.assertEqual(self.handler.extracted, self.zip_name)
 
     def test_good_handler_zip_found(self):
         # Run handler
@@ -163,4 +163,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite', verbosity=2, buffer=True)
+    unittest.main(defaultTest='suite', verbosity=2)

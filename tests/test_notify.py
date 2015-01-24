@@ -29,53 +29,68 @@ class PushObjectTests(unittest.TestCase):
         # Testing name
         self.name = "push-{0}".format(_common.get_test_id())
         # Settings
-        args = _common.get_pushover_api()
-        args['enabled'] = True
-        args['notify_name'] = ''
+        args = {
+            'enabled': True,
+            'notify_name': '',
+            'pushover': _common.get_pushover_api(),
+        }
         # Push object
-        self.push = Notify.Push(args)
+        self.push = Notify.MHPush(args)
         # Disable push
         self.push.disable = True
 
+    def test_bad_po_credentials(self):
+        args = {
+            'enabled': True,
+            'notify_name': '',
+            'pushover': {
+                'api_key': _common.random_string(30),
+                'user_key': _common.random_string(30),
+            },
+        }
+        # Run test
+        regex = r'Pushover: application token is invalid'
+        self.assertRaisesRegexp(SystemExit, regex, Notify.MHPush, args)
+
     def test_new_push_object(self):
         # Dummy settings
-        args = {'name': self.name}
+        args = {
+            'enabled': False,
+            'name': self.name
+        }
         # Make object
-        new_obj = Notify.Push(args)
+        new_obj = Notify.MHPush(args, True)
         # Check setup
-        self.assertDictEqual(new_obj.settings, args)
-        self.assertFalse(new_obj.disable)
-
-    def test_new_push_options(self):
-        # Dummy settings
-        args = {'name': self.name}
-        # Make object
-        new_obj = Notify.Push(args, True)
-        # Check setup
-        self.assertDictEqual(new_obj.settings, args)
+        self.assertEqual(new_obj.name, self.name)
         self.assertTrue(new_obj.disable)
 
-    def test_send_msg_bad(self):
-        # Enable push
-        self.push.disable = False
+    def test_send_pomsg_bad(self):
         # Bad API settings
-        self.push.settings['api_key'] = _common.random_string(30)
-        self.push.settings['user_key'] = _common.random_string(30)
+        self.push.pushover.url['token'] = _common.random_string(30)
+        self.push.pushover.url['user'] = _common.random_string(30)
         # Message
         msg = _common.random_string(10)
+        title = _common.random_string(10)
         # Send message
-        resp = self.push.send_message(msg)
+        resp = self.push._send_pushover(msg, title)
         # Check response
         self.assertEqual(resp.status, 400)
         self.assertEqual(resp.reason, 'Bad Request')
 
-    def test_send_msg_good(self):
-        # Enable push
-        self.push.disable = False
+    def test_send_pomsg_good(self):
         # Message
         msg = _common.random_string(10)
         # Send message
-        resp = self.push.send_message(msg)
+        resp = self.push._send_pushover(msg)
+        # Check response
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(resp.reason, 'OK')
+
+    def test_send_pomsg_good_title(self):
+        # Message
+        msg = _common.random_string(10)
+        # Send message
+        resp = self.push._send_pushover(msg)
         # Check response
         self.assertEqual(resp.status, 200)
         self.assertEqual(resp.reason, 'OK')
@@ -111,7 +126,7 @@ class PushObjectTests(unittest.TestCase):
     def test_success_all(self):
         # Enable push
         self.push.disable = False
-        self.push.settings['notify_name'] = 'test'
+        self.push.notify_name = 'test'
         # Generate a 2nd name
         skips = "skip-{0}".format(_common.get_test_id())
         # Set up test
@@ -134,13 +149,6 @@ class PushObjectTests(unittest.TestCase):
         self.assertRaisesRegexp(
             SystemExit, msg, self.push.failure, msg)
 
-    def test_failure_usage(self):
-        # Set up test
-        msg = _common.random_string(10)
-        # Run test
-        self.assertRaisesRegexp(
-            SystemExit, '2', self.push.failure, msg, True)
-
 
 def suite():
     s = MHTestSuite()
@@ -150,4 +158,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite', verbosity=2, buffer=True)
+    unittest.main(defaultTest='suite', verbosity=2)

@@ -50,9 +50,9 @@ class MHObject(object):
     def __init__(self, *kwargs):
         for kwarg in kwargs:
             if type(kwarg) is dict:
-                self._set_settings(kwarg)
+                self.set_settings(kwarg)
             if type(kwarg) is self.MHSettings:
-                self.__dict__.update(kwarg.__dict__)
+                self.set_settings(kwarg.__dict__)
 
     class MHSettings(object):
         '''Object to make data manipulation easier'''
@@ -61,11 +61,12 @@ class MHObject(object):
             '''Converts a dict to object'''
             self.__dict__.update(adict)
 
-    def _set_settings(self, adict):
-            new_dict = {}
-            for key, value in adict.items():
-                if type(value) is dict:
-                    new_dict[key.lower()] = self.MHSettings(value)
-                else:
-                    new_dict[key.lower()] = value
-            self.__dict__.update(new_dict)
+    def set_settings(self, adict):
+        '''Convert dict into object members'''
+        new_dict = {}
+        for key, value in adict.items():
+            if type(value) is dict:
+                new_dict[key.lower()] = self.MHSettings(value)
+            else:
+                new_dict[key.lower()] = value
+        self.__dict__.update(new_dict)

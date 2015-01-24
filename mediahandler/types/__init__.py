@@ -29,20 +29,20 @@ import mediahandler as mh
 
 # ======== VIDEO CLASS ======== #
 
-class MHType(mh.MHObject):
+class MHMediaType(mh.MHObject):
     '''Media handler parent class'''
 
     # ======== SET GLOBAL CLASS OPTIONS ======== #
 
     def __init__(self, settings, push):
         '''Init media class'''
-        super(MHType, self).__init__(settings, push)
+        super(MHMediaType, self).__init__(settings, push)
         # Set up class
         self.push = push
         self.dst_path = ''
         self.type = sub(r'^mh', '', type(self).__name__.lower())
         if not hasattr(self, 'ptype'):
-            self.ptype = 'Media'
+            self.ptype = 'Media Type'
         # Type specific
         if self.ptype is not None:
             # Set destination path
@@ -139,7 +139,7 @@ class MHType(mh.MHObject):
         results = []
         if len(added_data) > 0:
             for added_item in added_data:
-                results.append(added_item[self.query['added_i']])
+                results.append(added_item[self.query.added_i])
         # Get skipped results
         skipped = []
         if len(skip_data) > 0:
@@ -179,4 +179,4 @@ class MHType(mh.MHObject):
     def match_error(self, name):
         '''Return a match error'''
         return self.push.failure(
-            "Unable to match {0}: {1}".format(self.type, name))
+            "Unable to match {0} files: {1}".format(self.type, name))

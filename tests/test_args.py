@@ -25,85 +25,87 @@ from _common import MHTestSuite
 import mediahandler.util.args as Args
 
 
-class ArgsTests(unittest.TestCase):
+# class ArgsTests(unittest.TestCase):
 
-    def setUp(self):
-        self.conf = _common.get_conf_file()
-        self.folder = os.path.dirname(self.conf)
+#     def setUp(self):
+#         self.conf = _common.get_conf_file()
+#         self.folder = os.path.dirname(self.conf)
 
-    def test_empty_args(self):
-        sys.argv = ['']
-        self.assertRaisesRegexp(
-            SystemExit, '1', Args.get_arguments)
+#     def test_empty_args(self):
+#         sys.argv = ['']
+#         self.assertRaisesRegexp(
+#             SystemExit, '1', Args.get_arguments)
 
-    def test_show_help(self):
-        # Test 1
-        sys.argv = ['', '-h']
-        self.assertRaisesRegexp(
-            SystemExit, '0', Args.get_arguments)
-        # Test 2
-        sys.argv = ['', '--help']
-        self.assertRaisesRegexp(
-            SystemExit, '0', Args.get_arguments)
+#     def test_show_help(self):
+#         # Test 1
+#         sys.argv = ['', '-h']
+#         self.assertRaisesRegexp(
+#             SystemExit, '0', Args.get_arguments)
+#         # Test 2
+#         sys.argv = ['', '--help']
+#         self.assertRaisesRegexp(
+#             SystemExit, '0', Args.get_arguments)
 
-    def test_cli_default_args(self):
-        sys.argv = ['', self.folder,
-            '--type', '4',
-            '--query', 'this is my query',
-            '-n',]
-        args = Args.get_arguments()
-        expected = {
-            'config': self.conf,
-            'media': self.folder,
-            'name': 'mediahandler',
-            'no_push': True,
-            'single_track': False,
-            'query': 'this is my query',
-            'stype': 'Audiobooks',
-            'type': 4,
-        }
-        self.assertDictEqual(args, expected)
+#     def test_cli_default_args(self):
+#         sys.argv = ['', self.folder,
+#             '--type', '4',
+#             '--query', 'this is my query',
+#             '-n',]
+#         args = Args.get_arguments()
+#         expected = {
+#             'config': self.conf,
+#             'media': self.folder,
+#             'name': 'mediahandler',
+#             'no_push': True,
+#             'single_track': False,
+#             'query': 'this is my query',
+#             'stype': 'Audiobooks',
+#             'type': 4,
+#         }
+#         self.assertDictEqual(args, expected)
 
-    def test_cli_bad_type_args(self):
-        # Bad File Path
-        sys.argv = ['', '/path/to/files']
-        regex1 = r'File or directory provided for {0} {1}: {2}'.format(
-            'media', 'does not exist', '/path/to/files')
-        self.assertRaisesRegexp(
-            SystemExit, regex1, Args.get_arguments)
-        # Bad type
-        sys.argv = ['', self.folder, '-t', '5']
-        self.assertRaisesRegexp(
-            SystemExit, '2', Args.get_arguments)
-        # Bad conf file
-        sys.argv = ['', self.folder, '-t', '1', '-c', '/path/to/fake.yml']
-        regex2 = r'File or directory provided for {0} {1}: {2}'.format(
-            '-c', 'does not exist', '/path/to/fake.yml')
-        self.assertRaisesRegexp(
-            SystemExit, regex2, Args.get_arguments)
+#     def test_cli_bad_type_args(self):
+#         # Bad File Path
+#         sys.argv = ['', '/path/to/files']
+#         regex1 = r'File or directory provided for {0} {1}: {2}'.format(
+#             'media', 'does not exist', '/path/to/files')
+#         self.assertRaisesRegexp(
+#             SystemExit, regex1, Args.get_arguments)
+#         # Bad type
+#         sys.argv = ['', self.folder, '-t', '5']
+#         self.assertRaisesRegexp(
+#             SystemExit, '2', Args.get_arguments)
+#         # Bad conf file
+#         sys.argv = ['', self.folder, '-t', '1', '-c', '/path/to/fake.yml']
+#         regex2 = r'File or directory provided for {0} {1}: {2}'.format(
+#             '-c', 'does not exist', '/path/to/fake.yml')
+#         self.assertRaisesRegexp(
+#             SystemExit, regex2, Args.get_arguments)
 
-    def test_cli_bad_args(self):
-        sys.argv = ['', '-s']
-        self.assertRaisesRegexp(
-            SystemExit, r'too few arguments', Args.get_arguments)
+#     def test_cli_bad_args(self):
+#         sys.argv = ['', '-s']
+#         self.assertRaisesRegexp(
+#             SystemExit, r'too few arguments', Args.get_arguments)
 
 
 # class ParseDirTests(unittest.TestCase):
 
 #     def setUp(self):
+#         # Conf
+#         self.conf = _common.get_conf_file()
+#         # Folder
+#         self.folder = os.path.dirname(self.conf)
 #         # Test name
 #         self.name = 'test-{0}'.format(_common.get_test_id())
-#         # Temp args
-#         args = {'no_push': False}
-#         # Make handler
-#         self.handler = MH.MHandler(args)
-#         self.types_hash = _common.get_types_by_string()
+#         # Parser
+#         self.parser = Args.get_parser()
 
 #     def test_bad_parse_path(self):
 #         path = os.path.join('path', 'to', 'media', 'filename')
+#         sys.argv
 #         regex = r'Media type media not recognized'
 #         self.assertRaisesRegexp(
-#             SystemExit, regex, self.handler._parse_dir, path)
+#             SystemExit, regex, self.parser.parse_args, [path])
 
 #     def test_bad_parse_path_stucture(self):
 #         # Set up args
@@ -261,4 +263,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+    unittest.main(defaultTest='suite', verbosity=2)

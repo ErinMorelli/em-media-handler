@@ -226,7 +226,7 @@ class GetChaptersTests(BookMediaObjectTests):
         self.assertListEqual(result, expected)
 
 
-@unittest.skipUnless(sys.platform.startswith("linux"), "requires Ubuntu")
+@unittest.skipUnless(sys.platform.startswith("linux"), "requires a Linux system")
 class AddBookTest(BookMediaObjectTests):
 
     def test_add_book(self):
@@ -450,4 +450,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+    unittest.main(defaultTest='suite', verbosity=2)

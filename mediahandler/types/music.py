@@ -24,7 +24,7 @@ from os import path, makedirs
 
 # ======== MUSIC CLASS DECLARTION ======== #
 
-class MHMusic(mediahandler.types.MHType):
+class MHMusic(mediahandler.types.MHMediaType):
     '''Tracks handler class'''
 
     # ======== SET GLOBAL CLASS OPTIONS ======== #

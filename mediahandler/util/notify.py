@@ -20,6 +20,7 @@
 
 import logging
 import sys
+from json import loads
 from urllib import urlencode
 from httplib import HTTPSConnection
 
@@ -37,47 +38,97 @@ class MHPush(mh.MHObject):
         '''Initialize push notifications'''
         logging.info("Initializing notification class")
         super(MHPush, self).__init__(settings, disable)
+        # Set up vars
         self.disable = disable
         self.parser = Args.get_parser()
+        # If enabled, check credentials
+        if self.enabled:
+            self._validate_credentials()
+
+    # ======== VALIDATE CREDENTIALS WRAPPER ======== #
+
+    def _validate_credentials(self):
+        '''Wrapper for validating credentials to push services'''
+        # Pushover
+        self._validate_pushover()
+        # Pushbullet
+        return
+
+    # ======== VALIDATE PUSHOVER CREDENTIALS ======== #
+
+    def _validate_pushover(self):
+        '''Validate pushover api credentials'''
+        logging.debug("Validating pushover credentials")
+        # Set up request url
+        self.pushover.url = {
+            "token": self.pushover.api_key,
+            "user": self.pushover.user_key,
+        }
+        conn_url = urlencode(self.pushover.url)
+        # Initialize connection with pushover
+        self.pushover.conn = HTTPSConnection("api.pushover.net:443")
+        # Make request
+        self.pushover.conn.request(
+            "POST",
+            "/1/users/validate.json",
+            conn_url,
+            {"Content-type": "application/x-www-form-urlencoded"}
+        )
+        conn_resp = loads(self.pushover.conn.getresponse().read())
+        logging.debug(conn_resp)
+        # Check result
+        if not conn_resp['status']:
+            error_msg = 'Pushover: {0}'.format(conn_resp['errors'][0])
+            logging.error(error_msg)
+            self.parser.error(error_msg)
+        # Return success
+        logging.info("Pushover API credentials succesfully validated")
+        return True
 
     # ======== SEND MESSAGE VIA PUSHOVER ======== #
 
-    def send_message(self, conn_msg):
-        '''Send message'''
-        logging.info("Sending push notification")
-        # Initialize connection with pushover
-        conn = HTTPSConnection("api.pushover.net:443")
+    def _send_pushover(self, conn_msg, msg_title=None):
+        '''Send message via pushover'''
+        logging.debug("Sending pushover notification")
         # Set default title
         conn_title = "EM Media Handler"
         # Look for custom notify name
         if self.notify_name is not None:
             conn_title = self.notify_name
+        # Look for message title
+        if msg_title is not None:
+            conn_title = '{0}: {1}'.format(conn_title, msg_title)
         # Encode request URL
-        conn_url = urlencode({
-            "token": self.api_key,
-            "user": self.user_key,
-            "title": conn_title,
-            "message": conn_msg,
-        })
+        self.pushover.url["title"] = conn_title,
+        self.pushover.url["message"] = conn_msg
+        conn_url = urlencode(self.pushover.url)
         logging.debug("API call: %s", conn_url)
         # Send API request
-        conn.request(
+        self.pushover.conn.request(
             "POST",
             "/1/messages.json",
             conn_url,
             {"Content-type": "application/x-www-form-urlencoded"}
         )
         # Get API response
-        conn_resp = conn.getresponse()
-        logging.debug("After push notification send")
+        conn_resp = self.pushover.conn.getresponse()
+        logging.debug(loads(conn_resp.read()))
         # Check for response success
         if conn_resp.status != 200:
             logging.error("API Response: %s %s",
                           conn_resp.status, conn_resp.reason)
-        else:
-            logging.info("API Response: %s %s",
-                         conn_resp.status, conn_resp.reason)
         return conn_resp
+
+    # ======== SEND MESSAGE WRAPPER ======== #
+
+    def send_message(self, conn_msg, msg_title=None):
+        '''Wrapper for sending push notifcations to multiple sources'''
+        # Check if this is enabled
+        if not self.enabled or self.disable:
+            return
+        # Send to pushover
+        self._send_pushover(conn_msg, msg_title)
+        return
 
     # ======== SET SUCCESS INFO ======== #
 
@@ -86,6 +137,7 @@ class MHPush(mh.MHObject):
         logging.info("Starting success notifications")
         # Set success message
         conn_text = ''
+        conn_title = 'Media Added'
         # Check for added files
         if len(file_array) > 0:
             media_list = '\n + '.join(file_array)
@@ -100,14 +152,13 @@ class MHPush(mh.MHObject):
                 conn_text = skipped_msg
             else:
                 conn_text = '{0}\n\n{1}'.format(conn_text, skipped_msg)
+            conn_title = '{0} (with Skips)'.format(conn_title)
         # Check there's a message to send
         if conn_text == '':
             logging.warning("No files or skips found to notify about")
             sys.exit("No files or skips found to notify about")
-        # If push notifications enabled
-        if self.enabled and not self.disable:
-            # Send message
-            self.send_message(conn_text)
+        # Send message
+        self.send_message(conn_text, conn_title)
         # Exit
         logging.warning(conn_text)
         return conn_text
@@ -118,12 +169,11 @@ class MHPush(mh.MHObject):
         '''Failure notification'''
         logging.info("Starting failure notifications")
         # Set error message
+        conn_title = 'Error'
         conn_text = '''There was an error reported:
 {0}'''.format(error_details)
-        # If push notifications enabled
-        if self.enabled and not self.disable:
-            # Send message
-            self.send_message(conn_text)
+        # Send message
+        self.send_message(conn_text, conn_title)
         # Raise python warning
         logging.warning(error_details)
         self.parser.error(error_details)

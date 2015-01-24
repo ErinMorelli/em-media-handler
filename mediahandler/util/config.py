@@ -77,7 +77,7 @@ def _check_modules(settings):
                 for module in item['modules']:
                     _find_module(module[0], module[1])
             # Check applications
-            if 'apps' in item.keys():                
+            if 'apps' in item.keys():
                 for app in item['apps']:
                     _find_app(settings[section], app)
     return
@@ -95,11 +95,12 @@ def _find_module(parent_mod, sub_mod):
     except ImportError:
         err_msg = 'Module {0}.{1} is not installed'.format(parent_mod, sub_mod)
         raise ImportError(err_msg)
-        
+
 
 # ======== CHECK IF APP IS INSTALLED ======== #
 
 def _find_app(settings, app):
+    '''Look for application in system paths'''
     # Save in settings
     name = app['name'].lower()
     settings[name] = None
@@ -133,18 +134,28 @@ def parse_config(file_path):
     # Read yaml files
     parsed = _get_yaml(file_path)
     struct = _get_yaml(os.path.join(mh.__mediaextras__, 'settings.yml'))
-    # Loop through config & validate
-    settings = {}
-    for item in struct['items']:
-        section = item['section']
-        # Loop through options
+
+    # Define section function
+    def _process_section(get_section, get_options, get_parsed):
+        '''Process sections iteratively'''
+        # Make section if it doesn't exist
+        if get_section not in get_parsed.keys():
+            get_parsed[get_section] = {}
+        # Look through options
         new_options = {}
-        for item_option in item['options']:
+        for item_option in get_options:
             option = item_option['name']
             value = ''
+            # Is this a section, process children
+            if item_option['type'] == 'section':
+                new_options[option] = _process_section(
+                    item_option['name'],
+                    item_option['options'],
+                    get_parsed[get_section])
+                continue
             # If option exists, get value
-            if option in parsed[section].keys():
-                value = parsed[section][option]
+            elif option in get_parsed[get_section].keys():
+                value = get_parsed[get_section][option]
             # Otherwise use default
             elif 'default' in item_option.keys():
                 value = item_option['default']
@@ -155,9 +166,17 @@ def parse_config(file_path):
             # Validate values
             valid_func = "_get_valid_{0}".format(item_option['type'])
             validator = getattr(Util.config, valid_func)
-            new_options[option] = validator(section, option, value)
+            new_options[option] = validator(get_section, option, value)
+        # Return new values
+        return new_options
+
+    # Loop through config & validate
+    settings = {}
+    for item in struct['items']:
+        section = item['section']
         # Populate hash
-        settings[section] = new_options
+        settings[section] = _process_section(
+            section, item['options'], parsed)
     # Check that appropriate modules are installed
     _check_modules(settings)
     # Return setting hash

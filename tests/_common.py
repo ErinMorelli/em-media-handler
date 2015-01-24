@@ -34,8 +34,7 @@ class MHTestSuite(unittest.TestSuite):
     def setUpSuite(self):
         # Back up current config
         curr_config = get_conf_file()
-        backup = os.path.join(
-            os.path.dirname(curr_config), 'config.yml.orig')
+        backup = '{0}.orig'.format(curr_config)
         if not os.path.exists(backup):
             shutil.move(curr_config, backup)
         # Make new config for testing
@@ -44,8 +43,7 @@ class MHTestSuite(unittest.TestSuite):
     def tearDownSuite(self):
         # Restore original config
         curr_config = get_conf_file()
-        backup = os.path.join(
-            os.path.dirname(curr_config), 'config.yml.orig')
+        backup = '{0}.orig'.format(curr_config)
         if os.path.exists(backup):
             shutil.move(backup, curr_config)
 
@@ -53,7 +51,7 @@ class MHTestSuite(unittest.TestSuite):
         # Before tests
         self.setUpSuite()
         # Set buffering
-        #result.buffer = True
+        result.buffer = True
         # Run tests
         super(MHTestSuite, self).run(result)
         # After tests

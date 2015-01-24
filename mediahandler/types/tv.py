@@ -17,7 +17,6 @@
 
 # ======== IMPORT MODULES ======== #
 
-import os
 import logging
 import mediahandler.types
 from re import escape, search, sub
@@ -25,7 +24,7 @@ from re import escape, search, sub
 
 # ======== EPISODE CLASS DECLARTION ======== #
 
-class MHTv(mediahandler.types.MHType):
+class MHTv(mediahandler.types.MHMediaType):
     '''Episode handler class'''
 
     # ======== EPISODE CONSTRUCTOR ======== #
@@ -42,7 +41,7 @@ class MHTv(mediahandler.types.MHType):
 
     def process_output(self, output, file_path):
         '''Episode class output processor'''
-        info = super(Episode, self).process_output(output, file_path)
+        info = super(MHTv, self).process_output(output, file_path)
         (added_files, skipped_files) = info
         # Check for no new files
         if len(added_files) == 0:

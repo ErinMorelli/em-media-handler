@@ -17,6 +17,7 @@
 
 import os
 import shutil
+from re import search
 
 import _common
 from _common import unittest
@@ -34,19 +35,17 @@ class MediaObjectTests(unittest.TestCase):
         self.conf = _common.get_conf_file()
         # Set up push object
         self.push = Notify.MHPush({
-            'enabled': True,
+            'enabled': False,
             'notify_name': '',
-            'api_key': _common.random_string(),
-            'user_key': _common.random_string(),
+            'pushover':{
+                'api_key': _common.random_string(),
+                'user_key': _common.random_string(),
+            },
         }, True)
         # Make temp stuff
         self.folder = tempfile.mkdtemp(
             dir=os.path.dirname(self.conf))
         self.tmp_file = _common.make_tmp_file('.avi')
-        # Set filebot
-        self.filebot = os.path.join('/', 'usr', 'bin', 'filebot')
-        if not os.path.isfile(self.filebot):
-            self.filebot = os.path.join('/', 'usr', 'local', 'bin', 'filebot')
         # Build base settings
         self.settings = _common.get_settings()['TV']
         self.settings['folder'] = self.folder
@@ -64,7 +63,9 @@ class BaseMediaObjectTests(MediaObjectTests):
         # Call super
         super(BaseMediaObjectTests, self).setUp()
         # Make an object
-        self.media = Types.Media(self.settings, self.push)
+        self.media = Types.MHMediaType(self.settings, self.push)
+        if not search('test_new_media_object', self.id()):
+            self.media._video_settings()
 
     def tearDown(self):
         # Call super
@@ -75,41 +76,34 @@ class BaseMediaObjectTests(MediaObjectTests):
                 os.unlink(self.settings['log_file'])
 
     def test_new_media_object(self):
-        expected = {
-            'bin': self.filebot,
-            'action': 'copy',
-            'db': '',
-            'flags': '-non-strict',
-            'format': ''
-        }
         # Check results
-        self.assertEqual(self.media.type, 'media')
-        self.assertEqual(self.media.ptype, 'Media')
+        self.assertEqual(self.media.type, 'mediatype')
+        self.assertEqual(self.media.ptype, 'Media Type')
         self.assertEqual(self.media.dst_path, self.folder)
-        self.assertIsInstance(self.media.push, Notify.Push)
-        self.assertDictEqual(self.media.filebot, expected)
+        self.assertIsInstance(self.media.push, Notify.MHPush)
+        self.assertFalse(hasattr(self.media, 'cmd'))
 
     def test_new_media_bad_folder(self):
         # Dummy folder path
         self.settings['folder'] = os.path.join('path', 'to', 'fake')
         # Run test 1
-        regex1 = r'Folder for Media not found: {0}'.format(
+        regex1 = r'Folder for Media Type not found: {0}'.format(
             self.settings['folder'])
         self.assertRaisesRegexp(
-            SystemExit, regex1, Types.Media, self.settings, self.push)
+            SystemExit, regex1, Types.MHMediaType, self.settings, self.push)
         # Run test 2
-        regex2 = r'Folder for Media not found: .*Media'
+        regex2 = r'Folder for Media Type not found: .*Media'
         self.assertRaisesRegexp(
-            SystemExit, regex2, Types.Media, {}, self.push)
+            SystemExit, regex2, Types.MHMediaType, {}, self.push)
 
     def test_media_add(self):
-        regex = r'Unable to match media: {0}'.format(self.tmp_file)
+        regex = r'Unable to match mediatype files: {0}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.media.add, self.tmp_file)
 
     def test_media_add_logging(self):
         self.settings['log_file'] = os.path.join(self.folder, 'media.log')
-        regex = r'Unable to match media: {0}'.format(self.tmp_file)
+        regex = r'Unable to match mediatype files: {0}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.media.add, self.tmp_file)
 
@@ -164,4 +158,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite', verbosity=2, buffer=True)
+    unittest.main(defaultTest='suite', verbosity=2)

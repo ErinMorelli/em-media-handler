@@ -24,6 +24,7 @@ from shutil import rmtree
 from os import path, listdir, remove
 
 import mediahandler as mh
+import mediahandler.util.args as Args
 import mediahandler.util.notify as Notify
 from mediahandler.util.config import make_config, parse_config
 
@@ -35,23 +36,18 @@ class MHandler(mh.MHObject):
 
     # ======== INIT CLASS ======== #
 
-    def __init__(self, args):
+    def __init__(self, config):
         '''Initialize handler class'''
-        # Check args
-        if not args:
-            raise ValueError("Missing input arguments for Handler class")
-        elif type(args) is not dict:
-            raise TypeError("Arguments must be in the form of a dict")
         # Set up args
-        super(MHandler, self).__init__(args)
+        super(MHandler, self).__init__(config)
         # Extract settings from config
-        self.config = make_config(self.config)
-        self._set_settings(parse_config(self.config))
+        self.config = make_config(config)
+        self.set_settings(parse_config(self.config))
         # Set up notify instance
         if hasattr(self, 'no_push'):
-            self.push = Notify.MHPush(self.pushover, self.no_push)
+            self.push = Notify.MHPush(self.push, self.no_push)
         else:
-            self.push = Notify.MHPush(self.pushover)
+            self.push = Notify.MHPush(self.push)
         # Placeholders
         self.single_file = False
         self.extracted = None
@@ -203,12 +199,31 @@ class MHandler(mh.MHObject):
         # Finish & send success notification
         return self.push.success(added_files, skipped_files)
 
+    # ======== PARSE FROM DICT ======== #
+
+    def _parse_args_from_dict(self, media, **kwargs):
+        '''Validated input dict args and set as class members'''
+        # If we're already validated just set new arg values
+        if 'validated' in kwargs.keys() and kwargs['validated']:
+            kwargs['media'] = media
+            if 'config' in kwargs.keys():
+                del kwargs['config']
+            new_args = kwargs
+        else:
+            # Send args to parser for validation
+            new_args = Args.get_add_media_args(media, **kwargs)
+        # Update object
+        self.set_settings(new_args)
+        return
+
     # ======== MAIN ADD MEDIA FUNCTION ======== #
 
-    def add_media(self):
+    def add_media(self, media, **kwargs):
         '''Sort args based on input'''
-        logging.debug("Media: %s", self.media)
+        # Set object info from input
+        self._parse_args_from_dict(media, **kwargs)
         # Check that file was downloaded
+        logging.debug("Media: %s", self.media)
         if path.exists(self.media):
             # Send to handler
             new_files = self._file_handler(self.media)
@@ -221,3 +236,17 @@ class MHandler(mh.MHObject):
             self.push.failure(
                 "No media files found: {0}".format(self.name))
         return new_files
+
+
+# ======== MAIN CMD LINE WRAPPER FUNCTION ======== #
+
+def main(deluge=False):
+    '''Main cmd line wrapper function'''
+    # Get arguments
+    (config, args) = Args.get_arguments(deluge)
+    # Set up handler
+    handler = MHandler(config)
+    added = handler.add_media(args, validated=True)
+    # Print for cmd line
+    sys.stdout.write(added)
+    return added

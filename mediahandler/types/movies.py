@@ -17,7 +17,6 @@
 
 # ======== IMPORT MODULES ======== #
 
-import os
 import logging
 import mediahandler.types
 from re import escape, search
@@ -25,7 +24,7 @@ from re import escape, search
 
 # ======== MOVIE CLASS DECLARTION ======== #
 
-class MHMovie(mediahandler.types.MHType):
+class MHMovie(mediahandler.types.MHMediaType):
     '''Movie handler class'''
 
     # ======== MOVIE CONSTRUCTOR ======== #
@@ -42,7 +41,7 @@ class MHMovie(mediahandler.types.MHType):
 
     def process_output(self, output, file_path):
         '''Movie class output processor'''
-        info = super(Movie, self).process_output(output, file_path)
+        info = super(MHMovie, self).process_output(output, file_path)
         (added_files, skipped_files) = info
         # Check for no new files
         if len(added_files) == 0:

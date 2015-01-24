@@ -30,45 +30,24 @@ from mediahandler.util.config import _find_app
 
 class NewHandlerTests(unittest.TestCase):
 
-    def test_empty_args(self):
-        regex = r'Handler class arguments should be type dict'
+    def test_bad_args(self):
+        regex = r'takes exactly 2 arguments'
         self.assertRaises(
             TypeError, regex, MH.MHandler)
+        self.assertRaises(
+            TypeError, regex, MH.MHandler, 'one', 'two')
 
-    def test_none_args(self):
-        regex = r'Missing input arguments for Handler class'
-        self.assertRaisesRegexp(
-            ValueError, regex, MH.MHandler, None)
-
-    def test_non_dict_args(self):
-        regex = r'Missing input arguments for Handler class'
-        self.assertRaisesRegexp(ValueError, regex, MH.MHandler, None)
-        regex2 = r'Arguments must be in the form of a dict'
-        self.assertRaisesRegexp(TypeError, regex2, MH.MHandler, 'string')
-        self.assertRaisesRegexp(TypeError, regex2, MH.MHandler, ['an', 'array'])
-        self.assertRaisesRegexp(TypeError, regex2, MH.MHandler, True)
-        self.assertRaisesRegexp(TypeError, regex2, MH.MHandler, 8)
+    def test_non_string_args(self):
+        self.assertRaises(TypeError, MH.MHandler, {'a': 'dict'})
+        self.assertRaises(TypeError, MH.MHandler, ['an', 'array'])
+        self.assertRaises(TypeError, MH.MHandler, True)
+        self.assertRaises(TypeError, MH.MHandler, 8)
 
     def test_good_args(self):
-        # Build arguments
-        args = {
-            'config': _common.get_conf_file(),
-            'media': os.path.join('path', 'to', 'files'),
-            'type': 1,
-            'stype': 'TV',
-            'test': {
-                'something': 'here'
-            },
-            'no_push': False,
-        }
         # Run handler
-        new_handler = MH.MHandler(args)
+        new_handler = MH.MHandler(_common.get_conf_file())
         # Check object structure
-        self.assertEqual(
-            new_handler.media, os.path.join('path', 'to', 'files'))
-        self.assertEqual(new_handler.type, 1)
-        self.assertEqual(new_handler.stype, 'TV')
-        self.assertEqual(new_handler.test.something, 'here')
+        self.assertEqual(new_handler.config, _common.get_conf_file())
         self.assertIsInstance(new_handler.push, Notify.MHPush)
         self.assertIsInstance(new_handler, MH.MHandler)
         self.assertIsNone(new_handler.extracted)
@@ -76,15 +55,13 @@ class NewHandlerTests(unittest.TestCase):
 
     def test_missing_args(self):
         # Build arguments
-        args = {
-            'media': os.path.join('path', 'to', 'files'),
-            'type': 'TV',
-            'no_push': False
-        }
+        new_handler = MH.MHandler(None)
         # Run Test 
-        regex = r"'MHandler' object has no attribute 'config'"
-        self.assertRaisesRegexp(
-            AttributeError, regex, MH.MHandler, args)
+        self.assertEqual(new_handler.config, _common.get_conf_file())
+        self.assertIsInstance(new_handler.push, Notify.MHPush)
+        self.assertIsInstance(new_handler, MH.MHandler)
+        self.assertIsNone(new_handler.extracted)
+        self.assertFalse(new_handler.single_file)
 
 
 class HandlerTestClass(unittest.TestCase):
@@ -95,14 +72,14 @@ class HandlerTestClass(unittest.TestCase):
         # Dummy args
         self.name = "test-{0}".format(_common.get_test_id())
         self.args = {
-            'config': self.conf,
             'name': self.name,
             'type': 1,
             'stype': 'TV',
             'single_track': False,
         }
         # Set up handler
-        self.handler = MH.MHandler(self.args)
+        self.handler = MH.MHandler(self.conf)
+        self.handler.set_settings(self.args)
         # Make a dummy folder
         self.dir = tempfile.mkdtemp(
             dir=os.path.dirname(self.conf))
@@ -215,7 +192,7 @@ class FileHandlerTests(HandlerTestClass):
         # Make a dummy file
         self.tmp_file = _common.make_tmp_file('.mp3')
         # Run test
-        regex = r'Unable to match music: {0}'.format(self.tmp_file)
+        regex = r'Unable to match music files: {0}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler._file_handler, self.tmp_file)
 
@@ -243,7 +220,7 @@ class FileHandlerTests(HandlerTestClass):
         # Make a dummy file in dummy folder
         self.tmp_file = _common.make_tmp_file('.mp3', self.dir)
         # Run test
-        regex = r'Unable to match music: {0}'.format(self.dir)
+        regex = r'Unable to match music files: {0}'.format(self.dir)
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler._file_handler, self.dir)
 
@@ -343,18 +320,18 @@ class FindZippedTests(HandlerTestClass):
 class AddMediaTests(HandlerTestClass):
 
     def test_handle_good_path(self):
-        # Modify args
-        self.handler.media = self.dir
         # Run test
-        regex = r'No TV files found for: {0}'.format(self.name)
-        self.assertRaisesRegexp(SystemExit, regex, self.handler.add_media)
+        regex = r'No TV files found for: {0}'.format(
+            os.path.basename(self.dir))
+        self.assertRaisesRegexp(
+            SystemExit, regex, self.handler.add_media, media=self.dir, type=1)
 
     def test_handle_fake_path(self):
-        # Modify args
-        self.handler.media = os.path.join('path', 'to', 'fake')
         # Run test
-        regex = r'No media files found: {0}'.format(self.name)
-        self.assertRaisesRegexp(SystemExit, regex, self.handler.add_media)
+        regex = r'File or directory provided for {0} {1}: {2}'.format(
+            'media', 'does not exist', '/path/tv/fake')
+        self.assertRaisesRegexp(
+            SystemExit, regex, self.handler.add_media, '/path/tv/fake')
 
 
 class AddMediaFilesTests(HandlerTestClass):
@@ -379,7 +356,7 @@ class AddMediaFilesTests(HandlerTestClass):
         self.tmp_file = _common.make_tmp_file('.mp3')
         # Run test
         self.assertFalse(hasattr(self.handler.music, 'single_track'))
-        regex = r'Unable to match music: {0}'.format(self.tmp_file)
+        regex = r'Unable to match music files: {0}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler.add_media_files, self.tmp_file)
         # Check settings
@@ -395,7 +372,7 @@ class AddMediaFilesTests(HandlerTestClass):
         self.tmp_file = _common.make_tmp_file('.mp3')
         # Run test
         self.assertFalse(hasattr(self.handler.music, 'single_track'))
-        regex = r'Unable to match music: {0}'.format(self.tmp_file)
+        regex = r'Unable to match music files: {0}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler.add_media_files, self.tmp_file)
         # Check settings
@@ -434,7 +411,7 @@ class AddMediaFilesTests(HandlerTestClass):
         if enabled:
             regex = r'Folder for {0} not found: .*{1}'.format(stype, stype)
             if stype is 'Music':
-                regex = r'Unable to match music: .*'
+                regex = r'Unable to match music files: .*'
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler.add_media_files, self.tmp_file)
 
@@ -489,4 +466,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite', verbosity=2, buffer=True)
+    unittest.main(defaultTest='suite', verbosity=2)

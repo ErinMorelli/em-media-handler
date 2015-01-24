@@ -33,33 +33,35 @@ class MusicMediaObjectTests(MediaObjectTests):
     def setUp(self):
         # Call Super
         super(MusicMediaObjectTests, self).setUp()
-        # Make an object
+        # Get music settings
+        self.settings = _common.get_settings()['Music']
         self.settings['single_track'] = False
-        self.tracks = Music.Tracks(self.settings, self.push)
         # Set up beets path
         _find_app(self.settings, {'name': 'Beets', 'exec': 'beet'})
+        # Set up music object
+        self.tracks = Music.MHMusic(self.settings, self.push)
 
     def test_new_music_object(self):
         expected = r"(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n"
-        self.assertEqual(self.tracks.query['tags'], '-ql')
-        self.assertEqual(self.tracks.query['added'], expected)
+        self.assertEqual(self.tracks.query.tags, '-ql')
+        self.assertEqual(self.tracks.query.added, expected)
 
     def test_new_music_single(self):
         self.settings['single_track'] = True
-        self.tracks = Music.Tracks(self.settings, self.push)
+        self.tracks = Music.MHMusic(self.settings, self.push)
         # Check results
         expected = r"(Tagging track)\:\s(.*)\nURL\:\n\s{1,4}(.*)\n"
-        self.assertEqual(self.tracks.query['tags'], '-sql')
-        self.assertEqual(self.tracks.query['added'], expected)
+        self.assertEqual(self.tracks.query.tags, '-sql')
+        self.assertEqual(self.tracks.query.added, expected)
 
     def test_music_add_log(self):
         # Make dummy logfile
         name = 'test-{0}.log'.format(_common.get_test_id())
         folder = os.path.join(os.path.dirname(self.conf), 'tmpl')
         log_file = os.path.join(folder, name)
-        self.tracks.settings['log_file'] = log_file
+        self.tracks.log_file = log_file
         # Run tests
-        regex = r'Unable to match tracks: {0}'.format(self.tmp_file)
+        regex = r'Unable to match music files: {0}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.tracks.add, self.tmp_file)
         self.assertTrue(os.path.exists(folder))
@@ -92,7 +94,7 @@ URL:
     def test_music_output_single_good(self):
         # Single file
         self.settings['single_track'] = True
-        self.tracks = Music.Tracks(self.settings, self.push)
+        self.tracks = Music.MHMusic(self.settings, self.push)
         output = '''
 /Downloaded/Music/Taylor Swift - Blank Space {2014-Single}/02 Blank Space.mp3
 Tagging track: Taylor Swift - Blank Space
@@ -131,7 +133,7 @@ Skipping.
     def test_music_output_single_skipped(self):
         # Single file
         self.settings['single_track'] = True
-        self.tracks = Music.Tracks(self.settings, self.push)
+        self.tracks = Music.MHMusic(self.settings, self.push)
         output = '''
 /Downloaded/Music/Taylor Swift - Blank Space {2014-Single} (1 items)
 Skipping.
@@ -150,4 +152,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite', verbosity=2, buffer=True)
+    unittest.main(defaultTest='suite', verbosity=2)

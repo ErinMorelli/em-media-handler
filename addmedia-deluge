@@ -16,25 +16,11 @@
 '''Command line & scripting interface'''
 
 
-# ======== IMPORT MODULES ======== #
+# ======== IMPORT MODULE ======== #
 
-import mediahandler.handler as mh
-from mediahandler.util.torrent import get_deluge_arguments
-
+import mediahandler.handler
 
 # ======== MAIN FUNCTION ======== #
 
-def main():
-    '''Main CLI function'''
-    # Get arguments
-    args = get_deluge_arguments()
-    # Run handler
-    handler = mh.MHandler(args)
-    # Add files
-    return handler.add_media()
-
-
-# ======== COMMAND LINE ======== #
-
 if __name__ == '__main__':
-    main()
+    mediahandler.handler.main(deluge=True)
