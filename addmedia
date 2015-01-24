@@ -13,14 +13,8 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''Command line & scripting interface'''
-
-
-# ======== IMPORT MODULE ======== #
 
 import mediahandler.handler
-
-# ======== MAIN FUNCTION ======== #
 
 if __name__ == '__main__':
     mediahandler.handler.main()
