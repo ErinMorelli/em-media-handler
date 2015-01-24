@@ -50,7 +50,7 @@ class MHAudiobook(mh.MHObject):
         self.orig_path = None
         self.file_type = None
         # Set up book settings
-        self._set_settings({
+        self.set_settings({
             'regex': {
                 "nc": r"\.(mp3|ogg|wav)$",
                 "c": r"\.(m4b)$",

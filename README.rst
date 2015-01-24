@@ -2,7 +2,7 @@
 EM Media Handler
 ================
 :Author: `Erin Morelli <mailto:erin@erinmorelli.com>`_
-:Version: 0.6.6
+:Version: 0.7.0
 
 .. image:: https://api.travis-ci.org/ErinMorelli/em-media-handler.svg?branch=master
   :target: https://travis-ci.org/ErinMorelli/em-media-handler

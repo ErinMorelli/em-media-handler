@@ -83,6 +83,16 @@ class BaseMediaObjectTests(MediaObjectTests):
         self.assertIsInstance(self.media.push, Notify.MHPush)
         self.assertFalse(hasattr(self.media, 'cmd'))
 
+    def test_missing_filebot(self):
+        # Make new object
+        self.media = Types.MHMediaType(self.settings, self.push)
+        # Remove filebot
+        self.media.filebot = None
+        # Run test
+        regex = r'Filebot required to process Media Type files'
+        self.assertRaisesRegexp(
+            SystemExit, regex, self.media._video_settings)
+
     def test_new_media_bad_folder(self):
         # Dummy folder path
         self.settings['folder'] = os.path.join('path', 'to', 'fake')
@@ -102,7 +112,7 @@ class BaseMediaObjectTests(MediaObjectTests):
             SystemExit, regex, self.media.add, self.tmp_file)
 
     def test_media_add_logging(self):
-        self.settings['log_file'] = os.path.join(self.folder, 'media.log')
+        self.media.log_file = os.path.join(self.folder, 'media.log')
         regex = r'Unable to match mediatype files: {0}'.format(self.tmp_file)
         self.assertRaisesRegexp(
             SystemExit, regex, self.media.add, self.tmp_file)

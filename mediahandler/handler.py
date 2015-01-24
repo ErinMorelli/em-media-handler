@@ -44,10 +44,7 @@ class MHandler(mh.MHObject):
         self.config = make_config(config)
         self.set_settings(parse_config(self.config))
         # Set up notify instance
-        if hasattr(self, 'no_push'):
-            self.push = Notify.MHPush(self.push, self.no_push)
-        else:
-            self.push = Notify.MHPush(self.push)
+        self.push = Notify.MHPush(self.notifications)
         # Placeholders
         self.single_file = False
         self.extracted = None
@@ -212,8 +209,10 @@ class MHandler(mh.MHObject):
         else:
             # Send args to parser for validation
             new_args = Args.get_add_media_args(media, **kwargs)
-        # Update object
+        # Update objects
         self.set_settings(new_args)
+        if hasattr(self, 'no_push'):
+            self.push = Notify.MHPush(self.notifications, self.no_push)
         return
 
     # ======== MAIN ADD MEDIA FUNCTION ======== #
@@ -246,7 +245,8 @@ def main(deluge=False):
     (config, args) = Args.get_arguments(deluge)
     # Set up handler
     handler = MHandler(config)
-    added = handler.add_media(args, validated=True)
+    # Set up add media args
+    added = handler.add_media(validated=True, **args)
     # Print for cmd line
     sys.stdout.write(added)
     return added

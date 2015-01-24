@@ -3,7 +3,7 @@ General:
     keep_if_skips: yes
 
 Deluge:
-    enabled: yes
+    enabled: no
     host: 127.0.0.1
     port: 58846
     user: 
@@ -15,7 +15,7 @@ Logging:
     level: 30
     log_file: 
 
-Push:
+Notifications:
     enabled: no
     notify_name: 
     pushover:

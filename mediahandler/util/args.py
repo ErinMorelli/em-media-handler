@@ -265,11 +265,11 @@ def get_deluge_arguments():
 
 # ======== GET ARGUMENTS ======== #
 
-def get_arguments(deluge):
+def get_arguments(deluge=False):
     '''Get arguments'''
     # Check for deluge
     if deluge:
-        return Torrent.get_deluge_arguments()
+        return get_deluge_arguments()
     # Get parser
     parser = get_parser()
     # If no args, show help

@@ -23,8 +23,9 @@ import _common
 from _common import unittest
 from _common import MHTestSuite
 
-
 import mediahandler.util.args as Args
+import mediahandler.util.torrent as Torrent
+from mediahandler.util.config import parse_config
 
 
 class DelugeTests(unittest.TestCase):
@@ -76,6 +77,19 @@ class DelugeTests(unittest.TestCase):
             'path', 'does not exist', '/path/to/file')
         self.assertRaisesRegexp(
             SystemExit, regex, Args.get_deluge_arguments)
+
+
+class RemoveTorrentTests(unittest.TestCase):
+
+    @_common.skipUnlessHasMod('twisted', 'internet')
+    def setUp(self):
+        from twisted.internet import reactor
+        self.conf = _common.get_conf_file()
+        self.settings = parse_config(self.conf)['Deluge']
+
+    @_common.skipUnlessHasMod('deluge', 'ui')
+    def test_remove_torrent(self):
+        Torrent.remove_deluge_torrent(self.settings, 'hash')
 
 
 def suite():

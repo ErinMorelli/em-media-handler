@@ -23,4 +23,4 @@ import mediahandler.handler
 # ======== MAIN FUNCTION ======== #
 
 if __name__ == '__main__':
-    mediahandler.handler.main(deluge=True)
+    mediahandler.handler.main(True)

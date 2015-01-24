@@ -16,6 +16,7 @@
 '''Initialize module'''
 
 import os
+import sys
 import shutil
 
 import _common
@@ -332,6 +333,37 @@ class AddMediaTests(HandlerTestClass):
             'media', 'does not exist', '/path/tv/fake')
         self.assertRaisesRegexp(
             SystemExit, regex, self.handler.add_media, '/path/tv/fake')
+
+    def test_main_good_path(self):
+        # Set up args
+        sys.argv[1:] = [self.dir, '--type', '1']
+        # Run test
+        regex = r'No TV files found for: {0}'.format(
+            os.path.basename(self.dir))
+        self.assertRaisesRegexp(
+            SystemExit, regex, MH.main)
+
+    def test_main_bad_path(self):
+        # Set up args
+        sys.argv[1:] = ['/path/tv/fake']
+        # Run test
+        regex = r'File or directory provided for {0} {1}: {2}'.format(
+            'media', 'does not exist', '/path/tv/fake')
+        self.assertRaisesRegexp(
+            SystemExit, regex, MH.main)
+
+    def test_config_in_args(self):
+        # Set up args
+        args = {
+            'config': os.path.join(self.dir, 'new.yaml'),
+            'no_push': True,
+            'validated': True
+        }
+        self.assertEqual(self.handler.config, self.conf)
+        self.assertFalse(hasattr(self.handler, 'no_push'))
+        self.handler._parse_args_from_dict(self.dir, **args)
+        self.assertEqual(self.handler.config, self.conf)
+        self.assertTrue(self.handler.no_push)
 
 
 class AddMediaFilesTests(HandlerTestClass):

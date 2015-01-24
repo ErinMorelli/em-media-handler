@@ -298,14 +298,14 @@ class MissingSectionConfigTest(unittest.TestCase):
                 'user_key': None,
             }
         }
-        self.assertDictEqual(expected, settings['Push'])
+        self.assertDictEqual(expected, settings['Notifications'])
 
     def remove_conf_section(self):
         # Get conf file content
         with open(self.new_conf) as conf_file:
                 conf_content = conf_file.read()
         # Set up new file content
-        regex = r'(Push:(.|\n)*)notify_name:\s'
+        regex = r'(Notifications:(.|\n)*)notify_name:\s'
         # Make updates
         conf_content = re.sub(regex, r'\1', conf_content)
         # Write new file
@@ -338,6 +338,37 @@ class MissingOptionConfigTest(unittest.TestCase):
                 conf_content = conf_file.read()
         # Set up new file content
         regex = r'(Deluge:(.|\n)*)host: 127.0.0.1'
+        # Make updates
+        conf_content = re.sub(regex, r"\1", conf_content)
+        # Write new file
+        new_conf = open(self.conf, 'w')
+        new_conf.write(conf_content)
+        new_conf.close()
+
+
+class MissingOptionSectionConfigTest(unittest.TestCase):
+
+    def setUp(self):
+        old_conf = _common.get_conf_file()
+        conf_dir = os.path.dirname(old_conf)
+        self.conf = os.path.join(conf_dir, 'temp_MOSCT.yml')
+        shutil.copy(old_conf, self.conf)
+        self.remove_conf_option()
+
+    def tearDown(self):
+        os.unlink(self.conf)
+
+    def test_missing_option(self):
+        settings = Config.parse_config(self.conf)['Notifications']
+        self.assertIn('api_key', settings['pushover'].keys())
+        self.assertIsNone(settings['pushover']['api_key'])
+
+    def remove_conf_option(self):
+        # Get conf file content
+        with open(self.conf) as conf_file:
+                conf_content = conf_file.read()
+        # Set up new file content
+        regex = r'(Notifications:(.|\n)*)pushover:(.|\n)*user_key:'
         # Make updates
         conf_content = re.sub(regex, r"\1", conf_content)
         # Write new file
