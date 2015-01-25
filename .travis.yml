@@ -28,9 +28,9 @@ install:
   - sudo apt-get install -y ia32-libs gstreamer0.10* build-essential -qq
   - sudo apt-get install -y gambas3 cdrdao flac mkcue cuetools shntool php5-cli vlc gstreamer-tools gstreamer0.10-fluendo-mp3 gpac -qq
   # Deluge dependencies
-  - sudo apt-get install -y python python-twisted python-openssl python-setuptools intltool python-xdg python-chardet geoip-database -qq
-  - sudo apt-get install -y python-libtorrent python-notify python-pygame python-glade2 librsvg2-common xdg-utils python-mako -qq
-  - pip install twisted
+  # - sudo apt-get install -y python python-twisted python-openssl python-setuptools intltool python-xdg python-chardet geoip-database -qq
+  # - sudo apt-get install -y python-libtorrent python-notify python-pygame python-glade2 librsvg2-common xdg-utils python-mako -qq
+  - pip install twisted pyOpenSSL chardet pyxdg
   # Music handler dependencies
   - pip install pylast requests mutagen beets
   # Book handler dependencies
