@@ -213,7 +213,7 @@ class ConvertTypeTests(unittest.TestCase):
         # Loop through tests
         for test in test['tests']:
             # Run test
-            Args.convert_type(self.namespace, test)
+            Args._convert_type(self.namespace, test)
             # Check results
             if is_bad:
                 self.assertIsNot(

@@ -86,7 +86,7 @@ URL:
     http://musicbrainz.org/release/4186b65f-c36d-4dac-82d3-221d3f8c7925
 (Similarity: 100.0%) (2005, US)
 '''
-        (new_file, skipped) = self.tracks.process_output(output, self.tmp_file)
+        (new_file, skipped) = self.tracks._process_output(output, self.tmp_file)
         expected = ['alt-J - This Is All Yours', 'Eisley - Room Noises']
         self.assertEqual(new_file, expected)
         self.assertEqual(skipped, [])
@@ -102,7 +102,7 @@ URL:
     http://musicbrainz.org/recording/c3fe7791-0a91-4f0a-a89b-b056f38d3cde
 (Similarity: 100.0%)
 '''
-        (new_file, skipped) = self.tracks.process_output(output, self.tmp_file)
+        (new_file, skipped) = self.tracks._process_output(output, self.tmp_file)
         self.assertEqual(new_file, ['Taylor Swift - Blank Space'])
         self.assertEqual(skipped, [])
 
@@ -121,7 +121,7 @@ URL:
 /Downloaded/Music/Eisley - Discographie (2002-2012)/Eisley - (2009) Fire Kite EP (1 items)
 Skipping.
 '''
-        (new_file, skipped) = self.tracks.process_output(output, self.tmp_file)
+        (new_file, skipped) = self.tracks._process_output(output, self.tmp_file)
         new_expected = ['Eisley - Room Noises']
         skip_expected = [
             'Eisley - (2003) Marvelous Things EP',
@@ -138,7 +138,7 @@ Skipping.
 /Downloaded/Music/Taylor Swift - Blank Space {2014-Single} (1 items)
 Skipping.
 '''
-        (new_file, skipped) = self.tracks.process_output(output, self.tmp_file)
+        (new_file, skipped) = self.tracks._process_output(output, self.tmp_file)
         expected = ['Taylor Swift - Blank Space {2014-Single}']
         self.assertEqual(new_file, [])
         self.assertEqual(skipped, expected)

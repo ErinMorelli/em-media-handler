@@ -168,7 +168,7 @@ class InitLoggingTests(unittest.TestCase):
             },
         }
         # # Send to logging config
-        self.assertIsNone(Config.init_logging(settings))
+        self.assertIsNone(Config._init_logging(settings))
         self.assertTrue(os.path.exists(self.dir))
 
 

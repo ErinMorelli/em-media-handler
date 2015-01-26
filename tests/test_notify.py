@@ -80,20 +80,20 @@ class PushObjectTests(unittest.TestCase):
     def test_send_pomsg_good(self):
         # Message
         msg = _common.random_string(10)
+        title = _common.random_string(10)
         # Send message
-        resp = self.push._send_pushover(msg)
+        resp = self.push._send_pushover(msg, title)
         # Check response
         self.assertEqual(resp.status, 200)
         self.assertEqual(resp.reason, 'OK')
 
-    def test_send_pomsg_good_title(self):
+    def test_send_msg_good_title(self):
         # Message
         msg = _common.random_string(10)
         # Send message
-        resp = self.push._send_pushover(msg)
+        resp = self.push.send_message(msg)
         # Check response
-        self.assertEqual(resp.status, 200)
-        self.assertEqual(resp.reason, 'OK')
+        self.assertIsNone(resp)
 
     def test_success_both_empty(self):
         # Set up test

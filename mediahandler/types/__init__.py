@@ -13,10 +13,15 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''Media types module'''
+'''
+Module: mediahandler.types
 
+Module contains:
 
-# ======== IMPORT MODULES ======== #
+    - MHMediaType -- Parent class for all media type submodules. Includes the
+        logic for the video media types (TV & movies).
+
+'''
 
 import os
 import logging
@@ -27,45 +32,66 @@ from subprocess import Popen, PIPE
 import mediahandler as mh
 
 
-# ======== VIDEO CLASS ======== #
-
 class MHMediaType(mh.MHObject):
-    '''Media handler parent class'''
+    '''Parent class for the media type submodule classes.
 
-    # ======== SET GLOBAL CLASS OPTIONS ======== #
+    Required arguments:
+        - settings -- Dict or MHSettings object.
+        - push -- MHPush object.
+
+    Public method:
+        - add() -- Main wrapper function for adding media files. Processes
+            calls to Beets and Filebot.
+    '''
 
     def __init__(self, settings, push):
-        '''Init media class'''
+        '''Initialize the MHMediaType class.
+
+        Required arguments:
+            - settings -- Dict or MHSettings object.
+            - push -- MHPush object.
+        '''
+
         super(MHMediaType, self).__init__(settings, push)
-        # Set up class
+
+        # Set up class members
         self.push = push
         self.dst_path = ''
         self.type = sub(r'^mh', '', type(self).__name__.lower())
+
+        # If the subclass didn't define a ptype, set default
         if not hasattr(self, 'ptype'):
             self.ptype = 'Media Type'
+
         # Type specific
         if self.ptype is not None:
+
             # Set destination path
             self.dst_path = os.path.join(
                 os.path.expanduser("~"), 'Media', self.ptype)
+
             # Check for custom path in settings
             if hasattr(self, 'folder'):
                 if self.folder is not None:
                     self.dst_path = self.folder
                     logging.debug("Using custom path: %s", self.dst_path)
+
             # Check destination exists
             if not os.path.exists(self.dst_path):
                 self.push.failure("Folder for {0} not found: {1}".format(
                     self.ptype, self.dst_path))
 
-    # ======== SET VIDEO SETTINGS ======== #
-
     def _video_settings(self):
-        '''Set object settings for video types'''
+        '''Set MHMediaType object methods for video types.
+
+        Sets up Filebot query values and post-query regex processing values.
+        '''
+
         # Check for filebot
         if not self.filebot:
             self.push.failure(
                 "Filebot required to process {0} files".format(self.ptype))
+
         # Filebot
         cmd_info = self.MHSettings({
             'action': 'copy',
@@ -74,6 +100,7 @@ class MHMediaType(mh.MHObject):
             'flags': '-non-strict',
         })
         self.__dict__.update({'cmd': cmd_info})
+
         # Object defaults
         query = self.MHSettings({
             'file_types': r'(mkv|avi|m4v|mp4)',
@@ -87,11 +114,16 @@ class MHMediaType(mh.MHObject):
             self.cmd.action.upper(), query.file_types)
         self.__dict__.update({'query': query})
 
-    # ======== GET VIDEO ======== #
+        return
 
     def add(self, file_path):
-        '''A new media file'''
+        '''Wrapper for Filebot requests.
+
+        Sets up Filebot CLI query using object member values.
+        '''
+
         logging.info("Starting %s handler", self.type)
+
         # Set up query
         m_cmd = [self.filebot,
                  '-rename', file_path,
@@ -99,47 +131,57 @@ class MHMediaType(mh.MHObject):
                  '--format', self.cmd.format,
                  '--action', self.cmd.action,
                  self.cmd.flags]
+
         # Check for logfile
         if self.log_file is not None:
             loginfo = [
                 '--log', 'all',
                 '--log-file', self.log_file]
             m_cmd.extend(loginfo)
-        # If we are ignoring subs, remove all non-video files
+
+        # If ignoring subtitles, remove all non-video files
         if self.ignore_subs:
             logging.debug("Ignoring subtitle files")
             self._remove_bad_files(file_path)
-        # Get info
-        return self.media_info(m_cmd, file_path)
 
-    # ======== GET VIDEO INFO FROM FILEBOT ======== #
+        return self._media_info(m_cmd, file_path)
 
-    def media_info(self, cmd, file_path):
-        '''Get video info from filebot'''
-        logging.info("Getting %s information", self.type)
+    def _media_info(self, cmd, file_path):
+        '''Makes request to Beets and Filebot.
+
+        Sends results to _process_output().
+        '''
+
         logging.debug("Query: %s", cmd)
+
         # Process query
         query = Popen(cmd, stdout=PIPE)
+
         # Get output
         (output, err) = query.communicate()
         logging.debug("Query output: %s", output)
         logging.debug("Query return errors: %s", err)
-        # Process output
-        return self.process_output(output, file_path)
 
-    # ======== PROCESS FILEBOT OUTPUT ======== #
+        return self._process_output(output, file_path)
 
-    def process_output(self, output, file_path):
-        '''Check for good response or skipped content'''
+    def _process_output(self, output, file_path):
+        '''Parses response from _media_info() query.
+
+        Returns good results and any skipped files.
+        '''
+
         logging.info("Processing query output")
+
         # Look for content
         added_data = findall(self.query.added, output)
         skip_data = findall(self.query.skip, output)
+
         # Check return
         results = []
         if len(added_data) > 0:
             for added_item in added_data:
                 results.append(added_item[self.query.added_i])
+
         # Get skipped results
         skipped = []
         if len(skip_data) > 0:
@@ -148,35 +190,42 @@ class MHMediaType(mh.MHObject):
                 logging.warning("File was skipped: %s (%s)",
                                 skip_item[self.query.skip_i],
                                 self.query.reason)
+
         # Return error if nothing found
         if len(skipped) == 0 and len(results) == 0:
-            return self.match_error(file_path)
-        # Return results
+            return self._match_error(file_path)
+
         return results, skipped
 
-    # ======== REMOVE BAD FILES ======== #
-
     def _remove_bad_files(self, file_path):
-        '''Removes non-video files from folder'''
+        '''Removes non-video files from media folder.
+
+        Only used when 'ignore_subs' setting is True.
+        '''
+
         logging.info("Removing bad files")
         # Skip if this is not a folder
         if os.path.isfile(file_path):
             return
-        regex = r'\.{0}$'.format(self.query.file_types)
+
         # Look for bad files and remove them
+        regex = r'\.{0}$'.format(self.query.file_types)
         for item in os.listdir(file_path):
+
             item_path = os.path.join(file_path, item)
+
             # If it's a folder, automatically delete
             if os.path.isdir(item_path):
                 rmtree(item_path)
+
             # Otherwise check for non-video files
             elif not search(regex, item):
                 os.unlink(item_path)
+
         return
 
-    # ======== MATCH ERROR ======== #
-
-    def match_error(self, name):
-        '''Return a match error'''
+    def _match_error(self, name):
+        '''Returns a match error via the MHPush object.
+        '''
         return self.push.failure(
             "Unable to match {0} files: {1}".format(self.type, name))

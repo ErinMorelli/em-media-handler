@@ -7,15 +7,18 @@ python:
 #  - 3.3
 
 before_install:
+
   # Add needed repositories
   - sudo add-apt-repository ppa:gambas-team/gambas3 -y
   - sudo add-apt-repository ppa:webupd8team/java -y
   - sudo add-apt-repository ppa:gstreamer-developers/ppa -y
   - sudo apt-get update -qq
+
   # Install and upgrade java to v8 (for Filebot)
   - sudo apt-get install -y oracle-java8-installer oracle-java8-set-default -qq
   - echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
   - sudo update-java-alternatives -s java-8-oracle
+
   # DBUS fixes for ABC
   - sudo apt-get install -y dbus* -qq
   - export DISPLAY=:0
@@ -24,49 +27,60 @@ before_install:
   - export DBUS_SESSION_BUS_PID
 
 install:
+
   # ABC dependencies
   - sudo apt-get install -y ia32-libs gstreamer0.10* build-essential -qq
   - sudo apt-get install -y gambas3 cdrdao flac mkcue cuetools shntool php5-cli vlc gstreamer-tools gstreamer0.10-fluendo-mp3 gpac -qq
+
   # Deluge dependencies
-  # - sudo apt-get install -y python python-twisted python-openssl python-setuptools intltool python-xdg python-chardet geoip-database -qq
-  # - sudo apt-get install -y python-libtorrent python-notify python-pygame python-glade2 librsvg2-common xdg-utils python-mako -qq
   - pip install twisted pyOpenSSL chardet pyxdg
+
   # Music handler dependencies
   - pip install pylast requests mutagen beets
+
   # Book handler dependencies
   - pip install google-api-python-client
+
   # Testing dependencies
   - pip install unittest2 coveralls
 
 before_script:
+
   # Deluge
   - git clone git://deluge-torrent.org/deluge.git; cd deluge; git checkout -b 1.3-stable origin/1.3-stable
-  # - python setup.py build; sudo python setup.py install --install-layout=deb; sudo python setup.py install_data
   - sudo mv deluge $VIRTUAL_ENV/lib/python$TRAVIS_PYTHON_VERSION/site-packages; cd
+
   # Fitebot
   - wget http://cznic.dl.sourceforge.net/project/filebot/filebot/FileBot_4.5.3/filebot_4.5.3_amd64.deb
   - sudo dpkg -i filebot_4.5.3_amd64.deb;
+
   # NeroACC - ABC dependency
   - mkdir aac; cd aac; wget http://ftp6.nero.com/tools/NeroAACCodec-1.5.1.zip
   - unzip -j NeroAACCodec-1.5.1.zip; sudo install -D -m755 neroAacEnc /usr/bin/; cd
+
   # mp4v2 - ABC dependency
   - mkdir mp4v2; cd mp4v2/; wget http://mp4v2.googlecode.com/files/mp4v2-1.9.1.tar.bz2
   - tar -xf ./mp4v2-1.9.1.tar.bz2; cd mp4v2-1.9.1
   - ./configure; make; sudo make install
   - sudo ln -s /usr/local/lib/libmp4v2.so.1.9.1 /usr/lib/libmp4v2.so.1; cd
+
   # ABC
   - wget http://www.ausge.de/component/jdownloads/finish/1-linux-software/6-abc-audio-book-creator/0?Itemid=699 -O abc_0.0.4-0ubuntu1_all.deb
   - sudo dpkg -i abc_0.0.4-0ubuntu1_all.deb
+
   # Clean Up
   - sudo apt-get -f install
   - cd ~/build/ErinMorelli/em-media-handler
 
 script:
+
   # Install mediahandler
   - python ./setup.py install
+
   # Run test suite
   - coverage run --source=mediahandler setup.py test
 
 after_success:
+
   # Send coverage results to coveralls
   coveralls

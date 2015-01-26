@@ -390,7 +390,7 @@ class AddMediaFilesTests(HandlerTestClass):
         self.assertFalse(hasattr(self.handler.music, 'single_track'))
         regex = r'Unable to match music files: {0}'.format(self.tmp_file)
         self.assertRaisesRegexp(
-            SystemExit, regex, self.handler.add_media_files, self.tmp_file)
+            SystemExit, regex, self.handler._add_media_files, self.tmp_file)
         # Check settings
         self.assertTrue(hasattr(self.handler.music, 'single_track'))
 
@@ -406,7 +406,7 @@ class AddMediaFilesTests(HandlerTestClass):
         self.assertFalse(hasattr(self.handler.music, 'single_track'))
         regex = r'Unable to match music files: {0}'.format(self.tmp_file)
         self.assertRaisesRegexp(
-            SystemExit, regex, self.handler.add_media_files, self.tmp_file)
+            SystemExit, regex, self.handler._add_media_files, self.tmp_file)
         # Check settings
         self.assertTrue(hasattr(self.handler.music, 'single_track'))
 
@@ -425,7 +425,7 @@ class AddMediaFilesTests(HandlerTestClass):
         self.assertFalse(hasattr(self.handler.audiobooks, 'custom_search'))
         regex = r'Folder for Audiobooks not found: .*Audiobooks'
         self.assertRaisesRegexp(
-            SystemExit, regex, self.handler.add_media_files, self.tmp_file)
+            SystemExit, regex, self.handler._add_media_files, self.tmp_file)
         # Check settings
         self.assertIs(
             self.handler.audiobooks.custom_search, search_str)
@@ -445,7 +445,7 @@ class AddMediaFilesTests(HandlerTestClass):
             if stype is 'Music':
                 regex = r'Unable to match music files: .*'
         self.assertRaisesRegexp(
-            SystemExit, regex, self.handler.add_media_files, self.tmp_file)
+            SystemExit, regex, self.handler._add_media_files, self.tmp_file)
 
     def test_add_tv_enabled(self):
         self.run_add_type_test('TV')
@@ -481,13 +481,13 @@ class AddMediaFilesTests(HandlerTestClass):
         regex1 = r"'MHSettings' object has no attribute 'enabled'"
         self.assertRaisesRegexp(
             AttributeError, regex1,
-            self.handler.add_media_files, self.tmp_file)
+            self.handler._add_media_files, self.tmp_file)
         # Second test
         self.handler.stype = 'Fake'
         regex2 = r"'MHandler' object has no attribute 'fake'"
         self.assertRaisesRegexp(
             AttributeError, regex2,
-            self.handler.add_media_files, self.tmp_file)
+            self.handler._add_media_files, self.tmp_file)
 
 
 def suite():

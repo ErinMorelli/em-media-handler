@@ -13,11 +13,22 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''Initialize module'''
+'''
+Module: mediahandler
+
+Module contains:
+
+    - MHObject -- Basic object structure for all module and submodule
+        classes. Contains the MHSettings object, which serves as a simple
+        structure for storing data as attributes.
+
+    - Global constants for the module and submodules.
+
+'''
 
 from os.path import join, dirname
 
-__version__ = '0.7.0'
+__version__ = '0.8.0'
 __author__ = 'Erin Morelli <erin@erinmorelli.com>'
 
 
@@ -45,28 +56,55 @@ __mediaextras__ = join(dirname(__file__), 'extras')
 
 
 class MHObject(object):
-    '''Base object for all MH modules'''
+    '''Base object for the mediahandler module and submodules.
+
+    Converts arguments in the form of dict into object attributes for easier
+    data manipulation.
+    '''
 
     def __init__(self, *kwargs):
+        '''Initializes MHObject class by taking in all arguments.
+
+        Converts dicts and MHSettings into object attributes.
+        '''
+
+        # Iterate through arguments
         for kwarg in kwargs:
+
+            # If this is a dict, send as-is to set settings
             if type(kwarg) is dict:
                 self.set_settings(kwarg)
+
+            # If this is a MHSettings object, send object vars
             if type(kwarg) is self.MHSettings:
                 self.set_settings(kwarg.__dict__)
 
     class MHSettings(object):
-        '''Object to make data manipulation easier'''
+        '''Object which serves as a simple structure for storing data
+        as attributes.
+        '''
 
         def __init__(self, adict):
-            '''Converts a dict to object'''
+            '''Converts a dict into object attributes.
+            '''
             self.__dict__.update(adict)
 
     def set_settings(self, adict):
-        '''Convert dict into object members'''
+        '''Iteratively converts a dict into MHSettings objects and
+        subsequently into object attributes.
+        '''
+
+        # Iterate through dict's key and value pairs
         new_dict = {}
         for key, value in adict.items():
+
+            # If the dict has a sub dict, make a new MHSettings object
             if type(value) is dict:
                 new_dict[key.lower()] = self.MHSettings(value)
+
+            # Else keep as-is
             else:
                 new_dict[key.lower()] = value
+
+        # Make updated dicts object members
         self.__dict__.update(new_dict)

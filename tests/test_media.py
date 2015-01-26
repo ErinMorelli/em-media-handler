@@ -126,7 +126,7 @@ Fetching episode data for [Midnight Caller]
 Processed 1 files
 Done ?(?????)?
 '''
-        (new_file, skipped) = self.media.process_output(output, self.tmp_file)
+        (new_file, skipped) = self.media._process_output(output, self.tmp_file)
         expected = ['/media/TV/@midnight/Season 2015/@midnight.S2015E01']
         self.assertEqual(skipped, [])
         self.assertEqual(new_file, expected)
@@ -139,7 +139,7 @@ Skipped [/Downloaded/TV/Downton.Abbey.5x03.720p.HDTV.x264.mkv] because [/Media/T
 Processed 1 files
 Done ?(?????)?
 '''
-        (new_file, skipped) = self.media.process_output(output, self.tmp_file)
+        (new_file, skipped) = self.media._process_output(output, self.tmp_file)
         expected = ['/Downloaded/TV/Downton.Abbey.5x03.720p.HDTV.x264.mkv']
         self.assertEqual(skipped, expected)
         self.assertEqual(new_file, [])

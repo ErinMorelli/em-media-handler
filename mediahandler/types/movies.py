@@ -13,56 +13,87 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''Movie media type module'''
+'''
+Module: mediahandler.types.movies
 
-# ======== IMPORT MODULES ======== #
+Module contains:
+
+    - MHMovie -- Child class of MHMediaType for the movies media type.
+
+'''
 
 import logging
 import mediahandler.types
 from re import escape, search
 
 
-# ======== MOVIE CLASS DECLARTION ======== #
-
 class MHMovie(mediahandler.types.MHMediaType):
-    '''Movie handler class'''
+    '''Child class of MHMediaType for the movies media type.
 
-    # ======== MOVIE CONSTRUCTOR ======== #
+    Required arguments:
+        - settings -- Dict or MHSettings object.
+        - push -- MHPush object.
+
+    Public method:
+        - add() -- inherited from parent MHMediaType.
+    '''
 
     def __init__(self, settings, push):
-        '''Movie class constuctor'''
+        '''Initialize the MHMovie class.
+
+        Required arguments:
+            - settings -- Dict or MHSettings object.
+            - push -- MHPush object.
+        '''
+
+        # Set ptype and call super
         self.ptype = 'Movies'
         super(MHMovie, self).__init__(settings, push)
+
+        # Run setup for video media types
         self._video_settings()
-        # Filebot
+
+        # Set media type-specifc filebot db
         self.cmd.db = "themoviedb"
 
-    # ======== MOVIE OUTOUT PROCESSING ======== #
+    def _process_output(self, output, file_path):
+        '''Parses response from _media_info() query.
 
-    def process_output(self, output, file_path):
-        '''Movie class output processor'''
-        info = super(MHMovie, self).process_output(output, file_path)
+        Returns good results and any skipped files.
+
+        Extends MHMediaType function to specifically parse movie
+        information from Filebot output.
+        '''
+
+        info = super(MHMovie, self)._process_output(output, file_path)
         (added_files, skipped_files) = info
+
         # Check for no new files
         if len(added_files) == 0:
             return info
+
         # Set search query
         epath = escape(self.dst_path)
         mov_find = r"{0}\/(.*\(\d{{4}}\))".format(epath)
         logging.debug("Search query: %s", mov_find)
+
         # See what movies were added
         new_added_files = []
         for added_file in added_files:
+
             # Extract info
             movie = search(mov_find, added_file)
             if movie is None:
                 continue
+
             # Set title
             mov_title = movie.group(1)
+
             # Append to new array
             new_added_files.append(mov_title)
+
         # Make sure we found movies
         if len(new_added_files) == 0:
-            return self.match_error(', '.join(added_files))
-        # Return movies & skips
+            return self._match_error(', '.join(added_files))
+
         return new_added_files, skipped_files

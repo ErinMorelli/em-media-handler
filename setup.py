@@ -13,20 +13,17 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''Media handler module setup'''
-
-
-# ======== IMPORT MODULES ======== #
+'''Media handler module setup
+'''
 
 from setuptools import setup
 from mediahandler.util.config import make_config
 
 
-# ======== MODULE SETUP ======== #
-
+# Set up mediahandler package
 setup(
     name='EM Media Handler',
-    version='0.7.0',
+    version='0.8.0',
     author='Erin Morelli',
     author_email='erin@erinmorelli.com',
     url='http://code.erinmorelli.com/em-media-handler/',

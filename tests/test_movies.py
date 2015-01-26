@@ -49,7 +49,7 @@ Auto-detect movie from context: [/Downloaded/Movies/Snowpiercer.2013.1080p.BluRa
 Processed 1 files
 Done ?(?????)?
 ''' .format(os.path.join(self.folder, 'Snowpiercer (2013).mp4'))
-        (new_file, skipped) = self.movies.process_output(output, self.tmp_file)
+        (new_file, skipped) = self.movies._process_output(output, self.tmp_file)
         self.assertEqual(new_file, ['Snowpiercer (2013)'])
         self.assertEqual(skipped, [])
 
@@ -60,7 +60,7 @@ Skipped [/Downloaded/Movies/Snowpiercer.2013.1080p.BluRay.x264.mp4] because [{0}
 Processed 1 files
 Done ?(?????)?
 '''.format(self.folder)
-        (new_file, skipped) = self.movies.process_output(output, self.tmp_file)
+        (new_file, skipped) = self.movies._process_output(output, self.tmp_file)
         self.assertEqual(new_file, [])
         self.assertEqual(
             skipped,
@@ -80,7 +80,7 @@ Stripping invalid characters from new path: {0}/Star Wars: Episode IV - A New Ho
 Processed 3 files
 Done ?(?????)?
 '''.format(self.folder)
-        (new_files, skipped) = self.movies.process_output(
+        (new_files, skipped) = self.movies._process_output(
             output, self.tmp_file)
         expected = [
             'Star Wars Episode V - The Empire Strikes Back (1980)',
@@ -102,7 +102,7 @@ Done ?(?????)?
             '/Movies/Fake Movie', '/Movies/Another.Fake.Movie')
         self.assertRaisesRegexp(
             SystemExit, regex,
-            self.movies.process_output, output, self.tmp_file)
+            self.movies._process_output, output, self.tmp_file)
 
     def test_movie_output_skips(self):
         output = '''Rename movies using [TheMovieDB]
@@ -127,7 +127,7 @@ Skipped [/Downloaded/Star Wars/star.wars.a.new.hope.1977.avi] because [{0}/Star 
 Processed 6 files
 Done ?(?????)?
 '''.format(self.folder)
-        (new_files, skipped) = self.movies.process_output(
+        (new_files, skipped) = self.movies._process_output(
             output, self.tmp_file)
         new_expected = [
             'Star Wars Episode I - The Phantom Menace (1999)',

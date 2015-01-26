@@ -13,4 +13,23 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''Media handler utility module'''
+'''
+Module: mediahandler.util
+
+This module contains submodules which provide utility functions to the
+main mediahandler object.
+
+Submodules:
+
+    - args.py -- Retrieves and parses argument input from the CLI.
+
+    - config.py -- Retrieves and parses user settings from the configuration
+        file provided.
+
+    - extract.py -- Uses Filebot to extract compressed files for processing.
+
+    - notify.py -- Sends push notifications out via 3rd party services.
+
+    - torrent.py -- Removes torrents from Deluge upon completion.
+
+'''

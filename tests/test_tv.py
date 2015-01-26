@@ -51,7 +51,7 @@ Done ?(?????)?
             os.path.join(
                 self.folder, "Grey's Anatomy",
                 "Season 10", "Grey's.Anatomy.S10E24.mkv"))
-        (new_file, skipped) = self.episode.process_output(
+        (new_file, skipped) = self.episode._process_output(
             output, self.tmp_file)
         expected = ["Grey's Anatomy (Season 10, Episode 24)"]
         self.assertEqual(new_file, expected)
@@ -70,7 +70,7 @@ Skipped [/Downloaded/Grey's Anatomy Season 1/greys.anatomy.s01e03.avi] because [
 Processed 6 files
 Done ?(?????)?
 '''.format(self.folder)
-        (new_files, skipped) = self.episode.process_output(
+        (new_files, skipped) = self.episode._process_output(
             output, self.tmp_file)
         new_expected = [
             "Grey's Anatomy (Season 1, Episode 4)",
@@ -98,7 +98,7 @@ Done ?(?????)?
             '/TV/Fake Show/Fake.Show.S01E01', '/TV/Fake Show/Fake.Show.S01E02')
         self.assertRaisesRegexp(
             SystemExit, regex,
-            self.episode.process_output, output, self.tmp_file)
+            self.episode._process_output, output, self.tmp_file)
 
     def test_tv_output_skipped(self):
         output = '''Rename episodes using [TheTVDB]
@@ -111,7 +111,7 @@ Skipped [/Downloaded/Archer Season 3/Archer.s03e03.avi] because [{0}/Archer/Seas
 Processed 3 files
 Done ?(?????)?
 '''.format(self.folder)
-        (new_files, skipped) = self.episode.process_output(
+        (new_files, skipped) = self.episode._process_output(
             output, self.tmp_file)
         expected = [
             "/Downloaded/Archer Season 3/Archer.s03e01.avi",

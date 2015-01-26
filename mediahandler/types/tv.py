@@ -13,61 +13,93 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''TV media type module'''
+'''
+Module: mediahandler.types.tv
 
-# ======== IMPORT MODULES ======== #
+Module contains:
+
+    - MHTv -- Child class of MHMediaType for the TV media type.
+
+'''
 
 import logging
 import mediahandler.types
 from re import escape, search, sub
 
 
-# ======== EPISODE CLASS DECLARTION ======== #
-
 class MHTv(mediahandler.types.MHMediaType):
-    '''Episode handler class'''
+    '''Child class of MHMediaType for the TV media type.
 
-    # ======== EPISODE CONSTRUCTOR ======== #
+    Required arguments:
+        - settings -- Dict or MHSettings object.
+        - push -- MHPush object.
+
+    Public method:
+        - add() -- inherited from parent MHMediaType.
+    '''
 
     def __init__(self, settings, push):
-        '''Episode class constuctor'''
+        '''Initialize the MHTv class.
+
+        Required arguments:
+            - settings -- Dict or MHSettings object.
+            - push -- MHPush object.
+        '''
+
+        # Set ptype and call super
         self.ptype = 'TV'
         super(MHTv, self).__init__(settings, push)
+
+        # Run setup for video media types
         self._video_settings()
-        # Filebot
+
+        # Set media type-specifc filebot db
         self.cmd.db = "thetvdb"
 
-    # ======== EPISODE OUTOUT PROCESSING ======== #
+    def _process_output(self, output, file_path):
+        '''Parses response from _media_info() query.
 
-    def process_output(self, output, file_path):
-        '''Episode class output processor'''
-        info = super(MHTv, self).process_output(output, file_path)
+        Returns good results and any skipped files.
+
+        Extends MHMediaType function to specifically parse TV Show
+        and episode information from Filebot output.
+        '''
+
+        info = super(MHTv, self)._process_output(output, file_path)
         (added_files, skipped_files) = info
+
         # Check for no new files
         if len(added_files) == 0:
             return info
+
         # Set search query
         epath = escape(self.dst_path)
         tv_find = r"{0}\/(.*)\/(.*)\/.*\.S\d{{2,4}}E(\d{{2,3}})".format(epath)
         logging.debug("Search query: %s", tv_find)
+
         # See what TV files were added
         new_added_files = []
         for added_file in added_files:
+
             # Extract info
             ep_info = search(tv_find, added_file)
             if ep_info is None:
                 continue
+
             # Episode
             ep_num = ep_info.group(3)
             ep_num_fix = sub('^0', '', ep_num)
             episode = "Episode %s" % ep_num_fix
+
             # Set title
             ep_title = "{0} ({1}, {2})".format(
                 ep_info.group(1), ep_info.group(2), episode)
+
             # Append to new array
             new_added_files.append(ep_title)
+
         # Make sure we found episodes
         if len(new_added_files) == 0:
-            return self.match_error(', '.join(added_files))
-        # Return episodes & skips
+            return self._match_error(', '.join(added_files))
+
         return new_added_files, skipped_files

@@ -13,29 +13,47 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''Music media type module'''
+'''
+Module: mediahandler.types.music
 
-# ======== IMPORT MODULES ======== #
+Module contains:
+
+    - MHMusic -- Child class of MHMediaType for the music media type.
+
+'''
 
 import logging
 import mediahandler.types
 from os import path, makedirs
 
 
-# ======== MUSIC CLASS DECLARTION ======== #
-
 class MHMusic(mediahandler.types.MHMediaType):
-    '''Tracks handler class'''
+    '''Child class of MHMediaType for the music media type.
 
-    # ======== SET GLOBAL CLASS OPTIONS ======== #
+    Required arguments:
+        - settings -- Dict or MHSettings object.
+        - push -- MHPush object.
+
+    Public method:
+        - add() -- inherited from parent MHMediaType.
+    '''
 
     def __init__(self, settings, push):
-        '''Tracks class constuctor'''
+        '''Initialize the MHMusic class.
+
+        Required arguments:
+            - settings -- Dict or MHSettings object.
+            - push -- MHPush object.
+        '''
+
+        # Set ptype and call super
         self.ptype = None
         super(MHMusic, self).__init__(settings, push)
-        # Beet
+
+        # Set beets log file path
         self.beetslog = path.join(path.expanduser("~"), 'logs', 'beets.log')
-        # Query info
+
+        # Set regex query info
         self.query = self.MHSettings({
             'tags': '-ql',
             'added': r"(Tagging|To)\:\n\s{1,4}(.*)\nURL\:\n\s{1,4}(.*)\n",
@@ -44,28 +62,34 @@ class MHMusic(mediahandler.types.MHMediaType):
             'skip_i': 1,
             'reason': "see beets log",
         })
+
         # Check for single track
         if self.single_track:
             self.query.tags = "-sql"
             single_regex = r"(Tagging track)\:\s(.*)\nURL\:\n\s{1,4}(.*)\n"
             self.query.added = single_regex
 
-    # ======== ADD MUSIC ======== #
-
     def add(self, file_path):
-        '''Add music to beets library'''
+        '''Overrides the MHMediaType object to process Beets requests.
+
+        Sets up Beets CLI query using object member values.
+        '''
+
         logging.info("Starting %s information handler", self.type)
+
         # Check for custom path in settings
         if self.log_file is not None:
             self.beetslog = self.log_file
             logging.debug("Using custom beets log: %s", self.beetslog)
+
         # Check that log file path exists
         beetslog_dir = path.dirname(self.beetslog)
         if not path.exists(beetslog_dir):
             makedirs(beetslog_dir)
+
         # Set up query
         m_cmd = [self.beets,
                  "import", file_path,
                  self.query.tags, self.beetslog]
-        # Get info
-        return self.media_info(m_cmd, file_path)
+
+        return self._media_info(m_cmd, file_path)
