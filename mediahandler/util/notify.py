@@ -177,11 +177,10 @@ class MHPush(mh.MHObject):
         # Send message
         self.send_message(conn_text, conn_title)
 
-        # Raise python warning
-        logging.warning(error_details)
-        self.parser.error(error_details)
+        # Log warning 
+        logging.error(error_details)
 
-        return
+        self.parser.error(error_details)
 
     # 3rd party API credential validation functions
 

@@ -226,11 +226,10 @@ class MHParser(argparse.ArgumentParser):
         Overrides the argparse.ArgumentParser() method.
         '''
 
-        # Show help message & exit with error message
+        # Print simple help message
         sys.stdout.write('Use `addmedia --help` to view more options\n')
-        sys.exit('addmedia: error: %s' % message)
 
-        return
+        sys.exit('addmedia: error: %s' % message)
 
     def print_help(self, files=None):
         '''Makes the printed help message look nicer by adding padding before
