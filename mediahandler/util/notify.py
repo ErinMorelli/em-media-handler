@@ -25,9 +25,8 @@ Module contains:
 
 import logging
 import sys
-from json import loads
-from urllib import urlencode
-from httplib import HTTPSConnection
+import requests
+from json import dumps
 
 import mediahandler as mh
 import mediahandler.util.args as Args
@@ -102,7 +101,12 @@ class MHPush(mh.MHObject):
             conn_title = '{0}: {1}'.format(conn_title, msg_title)
 
         # Send to pushover
-        self._send_pushover(conn_msg, conn_title)
+        if hasattr(self.pushover, 'session'):
+            self._send_pushover(conn_msg, conn_title)
+
+        # Send to pushbullet
+        if hasattr(self.pushbullet, 'session'):
+            self._send_pushbullet(conn_msg, conn_title)
 
         return
 
@@ -182,6 +186,30 @@ class MHPush(mh.MHObject):
 
         self.parser.error(error_details)
 
+    # 3rd party API requests function
+
+    def _make_request(self, session, url, method='GET', params=None):
+        '''Makes an API request to the provided session object
+        '''
+
+        # Retrieve method function instance from session
+        req = getattr(session, method.lower())
+
+        # Make request
+        resp = req(url, data=params)
+
+        # Get JSON request response
+        conn_resp = resp.json()
+        logging.debug(conn_resp)
+
+        # Check for response success
+        if resp.status_code is not 200:
+            logging.error(
+                "%s %s: %s %s",
+                method, url, resp.status_code, resp.reason)
+
+        return conn_resp
+
     # 3rd party API credential validation functions
 
     def _validate_credentials(self):
@@ -189,7 +217,12 @@ class MHPush(mh.MHObject):
         '''
 
         # Pushover
-        self._validate_pushover()
+        if self.pushover.api_key is not None:
+            self._validate_pushover()
+
+        # Pushbullet
+        if self.pushbullet.token is not None:
+            self._validate_pushbullet()
 
         return
 
@@ -197,38 +230,66 @@ class MHPush(mh.MHObject):
         '''Validates Pushover API credentials.
         '''
 
-        logging.debug("Validating pushover credentials")
+        logging.debug("Validating Pushover credentials")
 
-        # Set up request url
+        # Set up request params
         self.pushover.url = {
-            "token": self.pushover.api_key,
-            "user": self.pushover.user_key,
+            'token': self.pushover.api_key,
+            'user': self.pushover.user_key,
         }
-        conn_url = urlencode(self.pushover.url)
 
-        # Initialize connection with pushover
-        conn = HTTPSConnection("api.pushover.net:443")
+        # Create pushover session object
+        self.pushover.session = requests.Session()
+        self.pushover.session.headers.update({
+           'Content-type': 'application/x-www-form-urlencoded'
+        })
 
         # Make request
-        conn.request(
-            "POST",
-            "/1/users/validate.json",
-            conn_url,
-            {"Content-type": "application/x-www-form-urlencoded"}
+        resp = self._make_request(
+            self.pushover.session,
+            'https://api.pushover.net/1/users/validate.json',
+            'POST',
+            self.pushover.url
         )
 
-        # Get and decode JSON response
-        conn_resp = loads(conn.getresponse().read())
-        logging.debug(conn_resp)
-
         # Check result
-        if not conn_resp['status']:
-            error_msg = 'Pushover: {0}'.format(conn_resp['errors'][0])
+        if not resp['status']:
+            error_msg = 'Pushover: {0}'.format(resp['errors'][0])
             logging.error(error_msg)
             self.parser.error(error_msg)
 
         # Return success
         logging.info("Pushover API credentials successfully validated")
+
+        return True
+
+    def _validate_pushbullet(self):
+        '''Validates Pushbullet API credentials.
+        '''
+
+        logging.debug("Validating Pushbullet credentials")
+
+        # Create pushover session object with credentials
+        self.pushbullet.session = requests.Session()
+        self.pushbullet.session.auth = (self.pushbullet.token, '')
+        self.pushbullet.session.headers.update({
+            'Content-Type': 'application/json'
+        })
+
+        # Make request
+        resp = self._make_request(
+            self.pushbullet.session,
+            'https://api.pushbullet.com/v2/users/me'
+        )
+
+        # Check result
+        if 'error' in resp.keys():
+            error_msg = 'Pushbullet: {0}'.format(resp['error']['message'])
+            logging.error(error_msg)
+            self.parser.error(error_msg)
+
+        # Return success
+        logging.info("Pushbullet API credentials successfully validated")
 
         return True
 
@@ -238,32 +299,41 @@ class MHPush(mh.MHObject):
         '''Sends a message via the Pushover API.
         '''
 
-        logging.debug("Sending pushover notification")
+        logging.debug("Sending Pushover notification")
 
         # Add values to request URL & encode
         self.pushover.url["title"] = conn_title
         self.pushover.url["message"] = conn_msg
-        conn_url = urlencode(self.pushover.url)
-        logging.debug("API call: %s", conn_url)
 
-        # Initialize connection with pushover
-        conn = HTTPSConnection("api.pushover.net:443")
-
-        # Send API request
-        conn.request(
-            "POST",
-            "/1/messages.json",
-            conn_url,
-            {"Content-type": "application/x-www-form-urlencoded"}
+        # Make request
+        resp = self._make_request(
+            self.pushover.session,
+            'https://api.pushover.net/1/messages.json',
+            'POST',
+            self.pushover.url
         )
 
-        # Get API response
-        conn_resp = conn.getresponse()
-        logging.debug(conn_resp.read())
+        return resp
 
-        # Check for response success
-        if conn_resp.status != 200:
-            logging.error("API Response: %s %s",
-                          conn_resp.status, conn_resp.reason)
+    def _send_pushbullet(self, conn_msg, conn_title):
+        '''Sends a message via the Pushbullet API.
+        '''
 
-        return conn_resp
+        logging.debug("Sending Pushbullet notification")
+
+        # Set up json request data
+        request_data = dumps({
+            'type': 'note',
+            'title': conn_title,
+            'body': conn_msg,
+        })
+
+        # Make request
+        resp = self._make_request(
+            self.pushbullet.session,
+            'https://api.pushbullet.com/v2/pushes',
+            'POST',
+            request_data,
+        )
+
+        return resp

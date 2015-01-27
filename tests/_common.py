@@ -138,15 +138,25 @@ def get_types_by_id():
 
 def get_pushover_api():
     apis = {}
+    settings = get_orig_settings()['Notifications']['pushover']
     # Get API Key
     apis['api_key'] = os.getenv('PUSHOVER_API_KEY')
     if apis['api_key'] is None:
-        apis['api_key'] = get_orig_settings()['Pushover']['api_key']
+        apis['api_key'] = settings['api_key']
     # Get User Key
     apis['user_key'] = os.getenv('PUSHOVER_USER_KEY')
     if apis['user_key'] is None:
-        apis['user_key'] = get_orig_settings()['Pushover']['user_key']
+        apis['user_key'] = settings['user_key']
     return apis
+
+
+def get_pushbullet_api():
+    api = {}
+    settings = get_orig_settings()['Notifications']['pushbullet']
+    api['token'] = os.getenv('PUSHBULLET_TOKEN')
+    if api['token'] is None:
+        api['token'] = settings['token']
+    return api
 
 
 def get_google_api():

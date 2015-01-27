@@ -38,29 +38,6 @@ import mediahandler.util.notify as Notify
 from mediahandler.util.config import make_config, parse_config
 
 
-def main(deluge=False):
-    '''Wrapper function for passing CLI arguments to the MHandler
-    add_media() function for processing.
-
-    Optional argument:
-        - deluge -- True/False. Determines whether basic argument
-            parser or deluge argument parser should be used.
-    '''
-
-    # Get arguments
-    (config, args) = Args.get_arguments(deluge)
-
-    # Set up handler
-    handler = MHandler(config)
-
-    # Set up add media args
-    added = handler.add_media(validated=True, **args)
-
-    # Print for cmd line & return
-    sys.stdout.write(added)
-    return added
-
-
 class MHandler(mh.MHObject):
     '''Main handler object structure which serves as an entry point for
     the entire module. Contains the core logic for dispatching media to add
@@ -385,3 +362,26 @@ class MHandler(mh.MHObject):
                 rmtree(files)
 
         return
+
+
+def main(deluge=False):
+    '''Wrapper function for passing CLI arguments to the MHandler
+    add_media() function for processing.
+
+    Optional argument:
+        - deluge -- True/False. Determines whether basic argument
+            parser or deluge argument parser should be used.
+    '''
+
+    # Get arguments
+    (config, args) = Args.get_arguments(deluge)
+
+    # Set up handler
+    handler = MHandler(config)
+
+    # Set up add media args
+    added = handler.add_media(validated=True, **args)
+
+    # Print for cmd line & return
+    sys.stdout.write(added)
+    return added

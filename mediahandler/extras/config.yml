@@ -21,6 +21,8 @@ Notifications:
     pushover:
         api_key: 
         user_key: 
+    pushbullet:
+        token:
 
 TV:
     enabled: yes

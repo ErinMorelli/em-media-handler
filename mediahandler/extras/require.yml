@@ -5,6 +5,11 @@ Deluge:
         - [deluge, ui]
         - [deluge, log]
 
+Notifications:
+    option: enabled
+    modules:
+        - [requests, packages]
+
 Music:
     option: enabled
     modules: 

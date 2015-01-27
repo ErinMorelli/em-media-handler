@@ -29,28 +29,29 @@ class PushObjectTests(unittest.TestCase):
         # Testing name
         self.name = "push-{0}".format(_common.get_test_id())
         # Settings
-        args = {
+        self.args = {
             'enabled': True,
             'notify_name': '',
             'pushover': _common.get_pushover_api(),
+            'pushbullet': _common.get_pushbullet_api()
         }
         # Push object
-        self.push = Notify.MHPush(args)
+        self.push = Notify.MHPush(self.args)
         # Disable push
         self.push.disable = True
 
     def test_bad_po_credentials(self):
-        args = {
-            'enabled': True,
-            'notify_name': '',
-            'pushover': {
-                'api_key': _common.random_string(30),
-                'user_key': _common.random_string(30),
-            },
-        }
+        self.args['pushover']['api_key'] = _common.random_string(30)
+        self.args['pushover']['user_key'] = _common.random_string(30)
         # Run test
         regex = r'Pushover: application token is invalid'
-        self.assertRaisesRegexp(SystemExit, regex, Notify.MHPush, args)
+        self.assertRaisesRegexp(SystemExit, regex, Notify.MHPush, self.args)
+
+    def test_bad_pb_credentials(self):
+        self.args['pushbullet']['token'] = _common.random_string(30)
+        # Run test
+        regex = r'Pushbullet: Access token is missing or invalid.'
+        self.assertRaisesRegexp(SystemExit, regex, Notify.MHPush, self.args)
 
     def test_new_push_object(self):
         # Dummy settings
@@ -74,8 +75,8 @@ class PushObjectTests(unittest.TestCase):
         # Send message
         resp = self.push._send_pushover(msg, title)
         # Check response
-        self.assertEqual(resp.status, 400)
-        self.assertEqual(resp.reason, 'Bad Request')
+        self.assertFalse(resp['status'])
+        self.assertIn('errors', resp.keys())
 
     def test_send_pomsg_good(self):
         # Message
@@ -84,8 +85,29 @@ class PushObjectTests(unittest.TestCase):
         # Send message
         resp = self.push._send_pushover(msg, title)
         # Check response
-        self.assertEqual(resp.status, 200)
-        self.assertEqual(resp.reason, 'OK')
+        self.assertTrue(resp['status'])
+
+    def test_send_pbmsg_bad(self):
+        # Bad API settings
+        self.push.pushbullet.session.auth = (_common.random_string(30), '')
+        # Message
+        msg = _common.random_string(10)
+        title = _common.random_string(10)
+        # Send message
+        resp = self.push._send_pushbullet(msg, title)
+        # Check response
+        self.assertIn('error', resp.keys())
+
+    def test_send_pbmsg_good(self):
+        # Message
+        msg = _common.random_string(10)
+        title = _common.random_string(10)
+        # Send message
+        resp = self.push._send_pushbullet(msg, title)
+        # Check response
+        self.assertIn('iden', resp.keys())
+        self.assertEqual(resp['title'], title)
+        self.assertEqual(resp['body'], msg)
 
     def test_send_msg_good_title(self):
         # Message

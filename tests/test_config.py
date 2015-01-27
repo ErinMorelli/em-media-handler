@@ -296,6 +296,9 @@ class MissingSectionConfigTest(unittest.TestCase):
             'pushover': {
                 'api_key': None,
                 'user_key': None,
+            },
+            'pushbullet': {
+                'token': None,
             }
         }
         self.assertDictEqual(expected, settings['Notifications'])

@@ -69,6 +69,13 @@ items:
                     -
                         name: user_key
                         type: string
+            -
+                name: pushbullet
+                type: section
+                options: 
+                    -
+                        name: token
+                        type: string
     - 
         section: TV
         options:
