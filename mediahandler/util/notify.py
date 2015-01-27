@@ -207,10 +207,10 @@ class MHPush(mh.MHObject):
         conn_url = urlencode(self.pushover.url)
 
         # Initialize connection with pushover
-        self.pushover.conn = HTTPSConnection("api.pushover.net:443")
+        conn = HTTPSConnection("api.pushover.net:443")
 
         # Make request
-        self.pushover.conn.request(
+        conn.request(
             "POST",
             "/1/users/validate.json",
             conn_url,
@@ -218,7 +218,7 @@ class MHPush(mh.MHObject):
         )
 
         # Get and decode JSON response
-        conn_resp = loads(self.pushover.conn.getresponse().read())
+        conn_resp = loads(conn.getresponse().read())
         logging.debug(conn_resp)
 
         # Check result
@@ -241,13 +241,16 @@ class MHPush(mh.MHObject):
         logging.debug("Sending pushover notification")
 
         # Add values to request URL & encode
-        self.pushover.url["title"] = conn_title,
+        self.pushover.url["title"] = conn_title
         self.pushover.url["message"] = conn_msg
         conn_url = urlencode(self.pushover.url)
         logging.debug("API call: %s", conn_url)
 
+        # Initialize connection with pushover
+        conn = HTTPSConnection("api.pushover.net:443")
+
         # Send API request
-        self.pushover.conn.request(
+        conn.request(
             "POST",
             "/1/messages.json",
             conn_url,
@@ -255,8 +258,8 @@ class MHPush(mh.MHObject):
         )
 
         # Get API response
-        conn_resp = self.pushover.conn.getresponse()
-        logging.debug(loads(conn_resp.read()))
+        conn_resp = conn.getresponse()
+        logging.debug(conn_resp.read())
 
         # Check for response success
         if conn_resp.status != 200:
