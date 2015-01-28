@@ -7,6 +7,9 @@ An overview of all available user settings available in the user config file, wh
 
 The configuration file uses yaml formatting, and does not require that every option is present in the file. Sections and options may be left blank or completely removed -- the application will use default values in their place.
 
+.. contents::
+    :local:
+
 General
 *******
 General mediahandler script functionality options.

@@ -5,6 +5,10 @@ An overview of available options and usage of the EM Media Handler command-line 
 
 This section is about the ``addmedia`` script, for information on the ``addmedia-deluge`` script, visit the :doc:`deluge` section.
 
+.. contents::
+    :local:
+    :depth: 1
+
 Usage
 *****
 
@@ -16,7 +20,7 @@ Basic invocation: ::
 
 Use ``addmedia --help`` at any time to view information on the available options.
 
-OPTIONS
+Options
 ********
 
 These are the options available with the ``addmedia`` script.
@@ -82,3 +86,4 @@ This flag overrides the ``enabled`` setting in ``Notifications`` section of the 
 
 Examples
 ********
+

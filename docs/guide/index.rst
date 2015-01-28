@@ -8,7 +8,7 @@ Requirements
 
 EM Media Handler supports Python <= 2.7 - there are plans to support 3.x in a future release.
 
-Check out the :doc:`configuration/requirements` for details on required python packages and 3rd party applications.
+Check out the :doc:`/configuration/requirements` for details on required python packages and 3rd party applications.
 
 Make sure your system is ready before proceeding.
 
@@ -48,7 +48,7 @@ The default user configuration is installed to: ::
 
     ~/.config/mediahandler/config.yml
 
-Use any text editor to open and edit the file. Refer to the :doc:`configuration/settings` article more details on the settings available.
+Use any text editor to open and edit the file. Refer to the :doc:`/configuration/settings` article more details on the settings available.
 
 
 Usage
@@ -60,5 +60,5 @@ To get started type: ::
 
 to view the available options. Read more about the :doc:`configuration/commandline`.
 
-It is also possible to integrate EM Media Handler with `Deluge <http://deluge-torrent.org/>`_ using the `Execute <http://dev.deluge-torrent.org/wiki/Plugins/Execute>`_ plugin. Read more about :doc:`configuration/deluge`.
+It is also possible to integrate EM Media Handler with `Deluge <http://deluge-torrent.org/>`_ using the `Execute <http://dev.deluge-torrent.org/wiki/Plugins/Execute>`_ plugin. Read more about :doc:`/configuration/deluge`.
 
