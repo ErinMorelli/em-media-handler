@@ -8,7 +8,6 @@ Deluge:
     port: 58846
     user: 
     pass: 
-    remove: yes
 
 Logging:
     enabled: yes

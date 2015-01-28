@@ -414,7 +414,7 @@ def get_deluge_arguments():
 
     # Remove torrent
     settings = Config.parse_config(config)['Deluge']
-    if settings['enabled'] and settings['remove']:
+    if settings['enabled']:
         Torrent.remove_deluge_torrent(settings, new_args['hash'])
 
     return config, all_args

@@ -1,13 +1,23 @@
-# Basic txt and doc includes
-include *.txt
-include README.rst
-recursive-include docs *.txt
+# Basic relevant text files
+include LICENSE README.rst
+
+# Include tests
+include tests/*py
+include tests/extras/*.mp3
+
+# Include the Sphinx documentation.
+recursive-include docs *.rst *.py Makefile *.png
+prune docs/_build
+prune docs/_static
+prune docs/_template
 
 # Include blacklist
-include mediahandler/types/blacklist.txt
+include mediahandler/extras/blacklist.txt
 
-# Include yml files
-include *.txt
+# Include yaml config files
+include mediahandler/extras/config.yml
+include mediahandler/extras/require.yml
+include mediahandler/extras/settings.yml
 
 # Exclude junk
 global-exclude .DS_Store

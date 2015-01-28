@@ -31,10 +31,6 @@ items:
             -
                 name: pass
                 type: string
-            -
-                name: remove
-                type: bool
-                default: yes
     -
         section: Logging
         options:
