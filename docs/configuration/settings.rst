@@ -52,7 +52,7 @@ enabled
 #######
 Enable or disable mediahandler's ability to automatically remove a torrent from the Deluge UI when the script is executed on torrent completion.
 
-See :doc:`deluge` for more information on this integration.
+See :doc:`/configuration/deluge` for more information on this integration.
 
 Values
     - ``no`` (default)
@@ -173,6 +173,7 @@ EM Media Handler does not *yet* support specifying a device or channel to send P
 
 TV and Movies
 *************
+TV and Movies both use `Filebot <http://www.filebot.net/>`_ and are the only media type modules enabled "out of the box". Their settings are identical in function, which is why they are grouped together in this guide, but they are unique in execution to their respective type.
 
 Default sections and values: ::
 
@@ -192,26 +193,46 @@ Default sections and values: ::
 
 enabled
 #######
-Default: yes
+Enable or disable processing of media type by mediahandler.
+
+Values:
+    - ``no``
+    - ``yes`` (default)
 
 folder
 ######
+Specify a destination folder for added media files.
+
+TV Default: ``~/Media/TV``
+
+Movies Default: ``~/Media/Movies``
 
 ignore_subs
 ###########
-Default: yes
+Tell Filebot whether or not to process subtitle files along with video files or ignore them.
+
+Values:
+    - ``no``
+    - ``yes`` (default)
 
 format
 ######
-TV default: "{n}/Season {s}/{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}"
-Movies default: "{n} ({y})"
+Specify a Filebot naming format. During mediahandler, it will be appended to the media type's ``folder`` value to form a complete path. See Filebot's `format expressions documentation <https://www.filebot.net/naming.html>`_ for more details.
+
+TV Default: ``"{n}/Season {s}/{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}"``
+
+Movies Default: ``"{n} ({y})"``
 
 log_file
 ########
+Specify a log file to use for Filebot's logging feature.
+
+Default: ``None`` (logging disabled)
 
 
 Music
 *****
+The Music media type is integrated with `Beets <http://beets.radbox.org/>`_.
 
 Default sections and values: ::
 
@@ -221,14 +242,24 @@ Default sections and values: ::
 
 enabled
 #######
-Default: no
+Enable or disable processing of the music media type by mediahandler.
+
+Values:
+    - ``no`` (default)
+    - ``yes``
 
 log_file
 ########
+Specify a log file to use for Beets' logging feature.
+
+Default: ``~/logs/beets.log``
 
 
 Audiobooks
 **********
+The Audiobook media type makes use of the Google Books API for processing. Additionally, creation of chaptered audiobook files (.m4b) is available via integration with the `ABC <http://www.ausge.de/ausge-download/abc-info-english>`_ application for Linux.
+
+EM Media Handler does not *yet* support creation of chaptered audiobook files on OS X.
 
 Default sections and values: ::
 
@@ -241,18 +272,55 @@ Default sections and values: ::
 
 enabled
 #######
-Default: no
+Enable or disable processing of the audiobooks media type by mediahandler.
+
+Values:
+    - ``no`` (default)
+    - ``yes``
 
 folder
 ######
+Specify a destination folder for added audiobooks.
+
+Default: ``~/Media/Audiobooks``
 
 api_key
 #######
+A valid Google API key. To obtain one, you will need to:
+
+1. Visit the `Google API Console <https://console.developers.google.com/>`_.
+2. Create a new project (you can keep the default values that Google provides).
+3. When your project is created, click on the "Enable an API" button on the Project Dashboard.
+4. Scroll to the "Books API" and click on the "Off" button next to it on the right to activate.
+5. In the left-hand menu, click on the "Credentials" option under "APIs & auth"
+6. Click on the "Create new Key" button under "Public API access".
+7. Select "Server key".
+8. (Optional) Specify your server's IP for greater security.
+9. Copy & paste the generated "API KEY" into the ``api_key`` setting in your config file, e.g. ::
+
+        Audiobooks:
+            enabled: yes
+            folder: /my/path/to/books
+            api_key: kKCRCNNsbrfWkohKpxwq
+            make_chapters: on
+            chapter_length: 8
 
 make_chapters
 #############
-Default: off
+Enable or disable creation of chaptered audiobook files (.m4b) using the `ABC <http://www.ausge.de/ausge-download/abc-info-english>`_ application for Linux. Visit the :doc:`requirements` section for information on installation.
+
+EM Media Handler does not *yet* support creation of chaptered audiobook files on OS X.
+
+Values:
+    - ``off`` (default)
+    - ``on``
 
 chapter_length
 ##############
-Default: 8
+Specify, in *hours*, the maximum length each audiobook file (.m4b) created by `ABC <http://www.ausge.de/ausge-download/abc-info-english>`_ should be. For audiobooks that have a running time longer than the specified length, multiple parts will be created, e.g. ::
+
+    ~/Media/Audiobooks/Donna Tartt/The Goldfinch_ A Novel/The Goldfinch, Part 1.m4b
+    ~/Media/Audiobooks/Donna Tartt/The Goldfinch_ A Novel/The Goldfinch, Part 2.m4b
+    ~/Media/Audiobooks/Donna Tartt/The Goldfinch_ A Novel/The Goldfinch, Part 3.m4b
+
+Default: ``8`` (hours)
