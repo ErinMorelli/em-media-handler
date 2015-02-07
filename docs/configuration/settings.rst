@@ -7,6 +7,8 @@ An overview of all available user settings available in the user config file, wh
 
 The configuration file uses yaml formatting, and does not require that every option is present in the file. Sections and options may be left blank or completely removed -- the application will use default values in their place.
 
+View an :doc:`example`
+
 .. contents::
     :local:
 
@@ -53,7 +55,7 @@ Default section and values: ::
 
 enabled
 #######
-Enable or disable mediahandler's ability to automatically remove a torrent from the Deluge UI when the script is executed on torrent completion.
+Enable or disable mediahandler's ability to automatically remove a torrent from the Deluge UI when the script is executed on torrent completion. Please review the python package and application :doc:`requirements` before enabling.
 
 See :doc:`/configuration/deluge` for more information on this integration.
 
@@ -75,11 +77,11 @@ Default: ``58846``
 
 user
 ####
-The user running Deluge server (set Deluge ``auth`` file).
+The user running Deluge server (set in the Deluge ``auth`` file).
 
 pass
 ####
-The password of the user running Deluge server (set Deluge ``auth`` file).
+The password of the user running Deluge server (set in the Deluge ``auth`` file).
 
 
 Logging
@@ -131,7 +133,7 @@ Default section and values: ::
 
 enabled
 #######
-Enable or disable push notifications upon script completion.
+Enable or disable push notifications upon script completion. Please review the python package and application :doc:`requirements` before enabling.
 
 Values:
     - ``no`` (default)
@@ -145,7 +147,7 @@ Default: ``EM Media Handler``
 
 pushover
 ########
-To enable Pushover integration, simple set both the ``api_key`` and ``user_key`` settings with valid credentials: ::
+To enable Pushover integration, simply set both the ``api_key`` and ``user_key`` settings with valid credentials: ::
 
     Notifications:
         enabled: yes
@@ -161,7 +163,7 @@ Your ``api_key`` is specific to the Pushover application you would like to have 
 
 pushbullet
 ##########
-To enable Pushbullet integration, simple set the ``token`` setting with valid credentials: ::
+To enable Pushbullet integration, simply set the ``token`` setting with valid credentials: ::
 
     Notifications:
         enabled: yes
@@ -220,7 +222,7 @@ Values:
 
 format
 ######
-Specify a Filebot naming format. During mediahandler, it will be appended to the media type's ``folder`` value to form a complete path. See Filebot's `format expressions documentation <https://www.filebot.net/naming.html>`_ for more details.
+Specify a Filebot naming format. During processing, it will be appended to the media type's ``folder`` value to form a complete path. See Filebot's `format expressions documentation <https://www.filebot.net/naming.html>`_ for more details.
 
 TV Default: ``"{n}/Season {s}/{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}"``
 
@@ -228,7 +230,7 @@ Movies Default: ``"{n} ({y})"``
 
 log_file
 ########
-Specify a log file to use for Filebot's logging feature.
+Specify a file path (including file name) to a custom log file destination for Filebot to use.
 
 Default: ``None`` (logging disabled)
 
@@ -245,7 +247,7 @@ Default sections and values: ::
 
 enabled
 #######
-Enable or disable processing of the music media type by mediahandler.
+Enable or disable processing of the music media type by mediahandler. Please review the python package and application :doc:`requirements` before enabling.
 
 Values:
     - ``no`` (default)
@@ -253,7 +255,7 @@ Values:
 
 log_file
 ########
-Specify a log file to use for Beets' logging feature.
+Specify a file path (including file name) to a custom log file destination for Beets to use.
 
 Default: ``~/logs/beets.log``
 
@@ -275,7 +277,7 @@ Default sections and values: ::
 
 enabled
 #######
-Enable or disable processing of the audiobooks media type by mediahandler.
+Enable or disable processing of the audiobooks media type by mediahandler. Please review the python package and application :doc:`requirements` before enabling.
 
 Values:
     - ``no`` (default)

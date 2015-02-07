@@ -28,7 +28,7 @@ To upgrade to the latest version: ::
 Installing from Source
 **********************
 
-1. Download the source from either `GitHub <https://github.com/ErinMorelli/em-media-handler>`_ or `BitBucket <http://code.erinmorelli.com/em-media-handler>`.
+1. Download the source from either `GitHub <https://github.com/ErinMorelli/em-media-handler>`_ or `BitBucket <http://code.erinmorelli.com/em-media-handler>`_.
 
 2. From inside the downloaded source folder, run the build command: ::
 
@@ -58,7 +58,7 @@ To get started type: ::
 
     addmedia --help
 
-to view the available options. Read more about the :doc:`configuration/commandline`.
+to view the available options. Read more about the :doc:`/configuration/commandline`.
 
 It is also possible to integrate EM Media Handler with `Deluge <http://deluge-torrent.org/>`_ using the `Execute <http://dev.deluge-torrent.org/wiki/Plugins/Execute>`_ plugin. Read more about :doc:`/configuration/deluge`.
 

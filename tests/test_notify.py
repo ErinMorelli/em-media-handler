@@ -132,8 +132,7 @@ class PushObjectTests(unittest.TestCase):
         skipped = []
         # Run test
         result = self.push.success(file_array, skipped)
-        regex = r'Media was successfully added to your server:\n\+ {0}'.format(
-            self.name)
+        regex = r'\+ {0}'.format(self.name)
         self.assertRegexpMatches(result, regex)
 
     def test_success_empty_files(self):
@@ -142,7 +141,7 @@ class PushObjectTests(unittest.TestCase):
         skipped = [self.name]
         # Run test
         result = self.push.success(file_array, skipped)
-        regex = r'Some files were skipped:\n\- {0}'.format(self.name)
+        regex = r'Skipped files:\n\- {0}'.format(self.name)
         self.assertRegexpMatches(result, regex)
 
     def test_success_all(self):
@@ -156,9 +155,9 @@ class PushObjectTests(unittest.TestCase):
         skipped = [skips]
         # Run test
         result = self.push.success(file_array, skipped)
-        reg1 = r'Media was successfully added to your server:\n\+ {0}'.format(
+        reg1 = r'\+ {0}'.format(
             self.name)
-        reg2 = r'Some files were skipped:\n\- {0}'.format(skips)
+        reg2 = r'Skipped files:\n\- {0}'.format(skips)
         regex = r'{0}\n\n{1}'.format(reg1, reg2)
         self.assertRegexpMatches(result, regex)
 

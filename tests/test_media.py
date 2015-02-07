@@ -156,7 +156,7 @@ Done ?(?????)?
         self.assertFalse(os.path.exists(file1))
         self.assertFalse(os.path.exists(file2))
         self.assertFalse(os.path.exists(file3))
-        self.assertFalse(os.path.exists(bad_folder))
+        self.assertTrue(os.path.exists(bad_folder))
         self.assertTrue(os.path.exists(self.tmp_file))
 
 

@@ -130,21 +130,19 @@ class MHPush(mh.MHObject):
 
         # Check for added files
         if len(file_array) > 0:
-            media_list = '\n + '.join(file_array)
-            conn_text = '''Media was successfully added to your server:
-+ {0}'''.format(media_list)
+            media_list = '\n+ '.join(file_array)
+            conn_text = '+ {0}\n'.format(media_list)
 
         # Set skipped message if set
         if skipped is not None and len(skipped) > 0:
-            skipped_list = '\n - '.join(skipped)
-            skipped_msg = '''Some files were skipped:
-- {0}'''.format(skipped_list)
+            skipped_list = '\n- '.join(skipped)
+            skipped_msg = 'Skipped files:\n- {0}\n'.format(skipped_list)
 
             # Append to existing message, if needed
             if conn_text == '':
                 conn_text = skipped_msg
             else:
-                conn_text = '{0}\n\n{1}'.format(conn_text, skipped_msg)
+                conn_text = '{0}\n{1}'.format(conn_text, skipped_msg)
 
             # Set title for skips
             conn_title = '{0} (with Skips)'.format(conn_title)
@@ -174,12 +172,10 @@ class MHPush(mh.MHObject):
         logging.info("Starting failure notifications")
 
         # Set error message
-        conn_title = 'Error'
-        conn_text = '''There was an error reported:
-{0}'''.format(error_details)
+        conn_title = 'Error Reported'
 
         # Send message
-        self.send_message(conn_text, conn_title)
+        self.send_message(error_details, conn_title)
 
         # Log warning 
         logging.error(error_details)

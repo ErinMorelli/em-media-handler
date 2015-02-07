@@ -7,7 +7,6 @@ This section is about the ``addmedia`` script, for information on the ``addmedia
 
 .. contents::
     :local:
-    :depth: 1
 
 Usage
 *****
@@ -31,15 +30,17 @@ These are the options available with the ``addmedia`` script.
 
 media
 #####
-REQUIRED. Set path to media files to be added. Can be a single file or a folder.
+REQUIRED. Specify media files to be added. Can be a single file or a folder.
 
-Assumes structure: ::
+Assumes media has an absolute path structure using this format: ::
 
     /path/to/<media type>/<media>
 
+If you are not using this format, you will need to specify a `-t / --type`_ value.
+
 -t / --type
 ###########
-Force a specific media type for process.
+Force a specific media type for processing. Overrides the detected media type from `media`_.
 
 By default, ``addmedia`` attempts to detect the media type based on the file path of the `media`_ provided. The assumed file path structure is: ::
 
@@ -61,7 +62,7 @@ Allowed values:
 
 -c / --config
 #############
-Specify a custom configuration file path.
+Specify a custom configuration file to use for processing media.
 
 Default: ``~/.config/mediahandler/config.yml``
 
@@ -81,9 +82,10 @@ Useful for fixing "items were skipped" errors, especially when a folder contains
 #############
 Disable push notifications.
 
-This flag overrides the ``enabled`` setting in ``Notifications`` section of the user config file, but does not modify it.
+This flag overrides the ``enabled`` setting in the ``Notifications`` section of the user config file, but does not modify it.
 
 
 Examples
 ********
 
+The most basic

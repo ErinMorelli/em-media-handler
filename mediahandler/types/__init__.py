@@ -97,7 +97,7 @@ class MHMediaType(mh.MHObject):
             'action': 'copy',
             'db': '',
             'format': os.path.join(self.dst_path, self.format),
-            'flags': '-non-strict',
+            'flags': ['-r', '-non-strict']
         })
         self.__dict__.update({'cmd': cmd_info})
 
@@ -129,8 +129,8 @@ class MHMediaType(mh.MHObject):
                  '-rename', file_path,
                  '--db', self.cmd.db,
                  '--format', self.cmd.format,
-                 '--action', self.cmd.action,
-                 self.cmd.flags]
+                 '--action', self.cmd.action]
+        m_cmd.extend(self.cmd.flags)
 
         # Check for logfile
         if self.log_file is not None:
@@ -214,9 +214,9 @@ class MHMediaType(mh.MHObject):
 
             item_path = os.path.join(file_path, item)
 
-            # If it's a folder, automatically delete
+            # If it's a folder, iterate again
             if os.path.isdir(item_path):
-                rmtree(item_path)
+                self._remove_bad_files(item_path)
 
             # Otherwise check for non-video files
             elif not search(regex, item):

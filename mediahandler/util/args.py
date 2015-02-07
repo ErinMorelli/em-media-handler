@@ -229,7 +229,7 @@ class MHParser(argparse.ArgumentParser):
         # Print simple help message
         sys.stdout.write('Use `addmedia --help` to view more options\n')
 
-        sys.exit('addmedia: error: %s' % message)
+        sys.exit('addmedia: error: {0}'.format(message))
 
     def print_help(self, files=None):
         '''Makes the printed help message look nicer by adding padding before

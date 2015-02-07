@@ -236,7 +236,7 @@ class CheckSuccessTests(HandlerTestClass):
 
     def test_results_skips(self):
         results = ([], [self.dir])
-        regex = r'Some files were skipped:\n- {0}'.format(self.dir)
+        regex = r'Skipped files:\n- {0}'.format(self.dir)
         added = self.handler._check_success(self.dir, results)
         self.assertRegexpMatches(added, regex)
         self.assertTrue(os.path.exists(self.dir))
@@ -244,7 +244,7 @@ class CheckSuccessTests(HandlerTestClass):
     def test_results_good(self):
         self.handler.single_file = False
         results = ([self.dir], [])
-        reg = r'Media was successfully added to your server:\n\+ {0}'.format(
+        reg = r'\+ {0}'.format(
             self.dir)
         added = self.handler._check_success(self.dir, results)
         self.assertRegexpMatches(added, reg)
@@ -254,10 +254,8 @@ class CheckSuccessTests(HandlerTestClass):
         self.handler.single_file = True
         self.tmp_file = _common.make_tmp_file()
         results = ([self.tmp_file], [self.dir])
-        reg1 = r'Media was successfully added to your server:\n\+ {0}'.format(
-            self.tmp_file)
-        reg2 = r'Some files were skipped:\n- {0}'.format(self.dir)
-        regex = r'{0}\n\n{1}'.format(reg1, reg2)
+        regex = r'\+ {0}\n\nSkipped files:\n- {1}'.format(
+            self.tmp_file, self.dir)
         added = self.handler._check_success(self.dir, results)
         self.assertRegexpMatches(added, regex)
         self.assertTrue(os.path.exists(self.dir))
