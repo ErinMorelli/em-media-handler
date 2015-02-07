@@ -34,7 +34,7 @@ Installing from Source
 
     sudo python setup.py build
 
-   .. note:: If you have run the build before, ensure you have a clean build environment first by using:  ``sudo python setup.py clean -a``
+   .. note:: If you have run the build before, ensure you have a clean build environment first by running:  ``sudo python setup.py clean -a``
 
 3. Install the package: ::
 
