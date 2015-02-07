@@ -92,7 +92,7 @@ Useful for fixing "items were skipped" errors, especially when a folder contains
 ################
 Disable push notifications.
 
-This flag overrides the ``enabled`` setting in the ``Notifications`` section of the user config file, but does not modify it.
+This flag overrides the ``enabled`` setting in the ``Notifications`` section of the user configuration file, but does not modify it.
 
 
 Examples
@@ -153,7 +153,7 @@ If push notifications are enabled in your user settings file, the results of any
 Use a Different Configuration File
 ##################################
 
-The configuration file used by EM Media Handler is dependent on the user running the ``addmedia`` script. By default it looks for ``~/.config/mediahandler/config.yml``. If you have a config file located elsewhere, or wish to use another user's config file, you can specify it with the :ref:`config_option` option.
+The configuration file used by EM Media Handler is dependent on the user running the ``addmedia`` script. By default it looks for ``~/.config/mediahandler/config.yml``. If you have a configuration file located elsewhere, or wish to use another user's configuration file, you can specify it with the :ref:`config_option` option.
 
 **Example:** ::
 

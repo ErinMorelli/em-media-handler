@@ -1,11 +1,11 @@
 User Settings
 ============================================
 
-An overview of all available user settings available in the user config file. By default, the config file is installed here: ::
+An overview of all available user settings available in the user configuration file. By default, the configuration file is installed here: ::
 
     ~/.config/mediahandler/config.yml
 
-The configuration file uses yaml formatting, and does not require that every option is present in the file. Sections and options may be left blank or completely removed -- the application will use default values in their place.
+The configuration file uses YAML formatting, and does not require that every option is present in the file. Sections and options may be left blank or completely removed -- the application will use default values in their place.
 
 View an :doc:`example`.
 
@@ -307,7 +307,7 @@ A valid Google API key. To obtain one, you will need to:
 6. Click on the "Create new Key" button under "Public API access".
 7. Select "Server key".
 8. (Optional) Specify your server's IP for greater security.
-9. Copy & paste the generated "API KEY" into the ``api_key`` setting in your config file, e.g. ::
+9. Copy & paste the generated "API KEY" into the ``api_key`` setting in your configuration file, e.g. ::
 
         Audiobooks:
             enabled: yes

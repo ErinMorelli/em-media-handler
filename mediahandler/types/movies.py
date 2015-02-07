@@ -18,7 +18,8 @@ Module: mediahandler.types.movies
 
 Module contains:
 
-    - MHMovie -- Child class of MHMediaType for the movies media type.
+    - |MHMovie|
+        Child class of MHMediaType for the movies media type.
 
 '''
 
@@ -31,19 +32,24 @@ class MHMovie(mediahandler.types.MHMediaType):
     '''Child class of MHMediaType for the movies media type.
 
     Required arguments:
-        - settings -- Dict or MHSettings object.
-        - push -- MHPush object.
+        - settings
+            Dict or MHSettings object.
+        - push
+            MHPush object.
 
     Public method:
-        - add() -- inherited from parent MHMediaType.
+        - |add()|
+            inherited from parent MHMediaType.
     '''
 
     def __init__(self, settings, push):
         '''Initialize the MHMovie class.
 
         Required arguments:
-            - settings -- Dict or MHSettings object.
-            - push -- MHPush object.
+            - settings
+                Dict or MHSettings object.
+            - push
+                MHPush object.
         '''
 
         # Set ptype and call super

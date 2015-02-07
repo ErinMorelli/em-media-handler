@@ -18,7 +18,8 @@ Module: mediahandler.types.music
 
 Module contains:
 
-    - MHMusic -- Child class of MHMediaType for the music media type.
+    - |MHMusic|
+        Child class of MHMediaType for the music media type.
 
 '''
 
@@ -31,19 +32,24 @@ class MHMusic(mediahandler.types.MHMediaType):
     '''Child class of MHMediaType for the music media type.
 
     Required arguments:
-        - settings -- Dict or MHSettings object.
-        - push -- MHPush object.
+        - settings
+            Dict or MHSettings object.
+        - push
+            MHPush object.
 
     Public method:
-        - add() -- inherited from parent MHMediaType.
+        - |add()|
+            inherited from parent MHMediaType.
     '''
 
     def __init__(self, settings, push):
         '''Initialize the MHMusic class.
 
         Required arguments:
-            - settings -- Dict or MHSettings object.
-            - push -- MHPush object.
+            - settings
+                Dict or MHSettings object.
+            - push
+                MHPush object.
         '''
 
         # Set ptype and call super

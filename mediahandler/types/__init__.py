@@ -18,8 +18,19 @@ Module: mediahandler.types
 
 Module contains:
 
-    - MHMediaType -- Parent class for all media type submodules. Includes the
+    - |MHMediaType|
+        Parent class for all media type submodules. Includes the
         logic for the video media types (TV & movies).
+
+Media Type Submodules:
+
+    - |mediahandler.types.audiobooks|
+
+    - |mediahandler.types.movies|
+
+    - |mediahandler.types.music|
+
+    - |mediahandler.types.tv|
 
 '''
 
@@ -36,11 +47,15 @@ class MHMediaType(mh.MHObject):
     '''Parent class for the media type submodule classes.
 
     Required arguments:
-        - settings -- Dict or MHSettings object.
-        - push -- MHPush object.
+        - settings
+            Dict or MHSettings object.
+
+        - push
+            MHPush object.
 
     Public method:
-        - add() -- Main wrapper function for adding media files. Processes
+        - |add()|
+            Main wrapper function for adding media files. Processes
             calls to Beets and Filebot.
     '''
 
@@ -48,8 +63,11 @@ class MHMediaType(mh.MHObject):
         '''Initialize the MHMediaType class.
 
         Required arguments:
-            - settings -- Dict or MHSettings object.
-            - push -- MHPush object.
+            - settings
+                Dict or MHSettings object.
+
+            - push
+                MHPush object.
         '''
 
         super(MHMediaType, self).__init__(settings, push)

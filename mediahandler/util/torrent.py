@@ -17,7 +17,8 @@
 Module: mediahandler.util.torrent
 
 Module contains:
-    - remove_deluge_torrent() -- removes a torrent from Deluge.
+    - |remove_deluge_torrent()|
+        Removes a torrent from Deluge.
 
 '''
 
@@ -28,12 +29,14 @@ def remove_deluge_torrent(settings, torrent_hash):
     '''Removes a torrent from Deluge.
 
     Required arguments:
-        - settings -- Dict or MHSettings object for Deluge info.
-        - torrent_hash -- Valid hash of active torrent to be removed.
+        - settings
+            Dict or MHSettings object for Deluge info.
+        - torrent_hash
+            Valid hash of active torrent to be removed.
 
     This is a Twisted Deferred object which hooks into the Deluge UI client.
     For more information, visit:
-        http://dev.deluge-torrent.org/wiki/Development/UiClient1.2
+    http://dev.deluge-torrent.org/wiki/Development/UiClient1.2
     '''
 
     logging.info("Removing torrent from Deluge")

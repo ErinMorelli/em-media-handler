@@ -16,7 +16,7 @@ If you're a developer, check out the :doc:`development/index` section on using o
 
 If you run into any problems, please `report an issue`_ in the github issue tracker.
 
-To stay up-to-date on project releases, pleae join `our mailing list`_.
+To stay up-to-date on project releases, please join `our mailing list`_.
 
 .. _EM Media Handler: http://erinmorelli.com/projects/em-media-handler/
 .. _our mailing list: http://eepurl.com/5nP1L

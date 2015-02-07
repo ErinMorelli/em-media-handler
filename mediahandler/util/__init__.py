@@ -21,15 +21,20 @@ main mediahandler object.
 
 Submodules:
 
-    - args.py -- Retrieves and parses argument input from the CLI.
+    - |mediahandler.util.args|
+        Retrieves and parses argument input from the CLI.
 
-    - config.py -- Retrieves and parses user settings from the configuration
+    - |mediahandler.util.config|
+        Retrieves and parses user settings from the configuration
         file provided.
 
-    - extract.py -- Uses Filebot to extract compressed files for processing.
+    - |mediahandler.util.extract|
+        Uses Filebot to extract compressed files for processing.
 
-    - notify.py -- Sends push notifications out via 3rd party services.
+    - |mediahandler.util.notify|
+        Sends push notifications out via 3rd party services.
 
-    - torrent.py -- Removes torrents from Deluge upon completion.
+    - |mediahandler.util.torrent|
+        Removes torrents from Deluge upon completion.
 
 '''

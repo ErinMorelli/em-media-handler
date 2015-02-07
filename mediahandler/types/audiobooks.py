@@ -18,9 +18,11 @@ Module: mediahandler.types.audiobooks
 
 Module contains:
 
-    - MHAudiobook -- Child class of MHMediaType for the audiobooks media type.
+    - |MHAudiobook|
+        Child class of MHMediaType for the audiobooks media type.
 
-    - get_book_info() -- Makes API request to Google Books and returns results.
+    - |get_book_info()|
+        Makes API request to Google Books and returns results.
 
 '''
 
@@ -44,8 +46,11 @@ def get_book_info(api_key, query):
     '''Makes API request to Google Books.
 
     Required arguments:
-            - api_key -- String. A valid Google API public access key.
-            - query -- String. Search string to submit to Google.
+            - api_key
+                String. A valid Google API public access key.
+
+            - query
+                String. Search string to submit to Google.
     '''
 
     logging.info("Querying Google Books")
@@ -112,11 +117,15 @@ class MHAudiobook(mh.MHObject):
     '''Child class of MHObject for the audiobooks media type.
 
     Required arguments:
-        - settings -- Dict or MHSettings object.
-        - push -- MHPush object.
+        - settings
+            Dict or MHSettings object.
+
+        - push
+            MHPush object.
 
     Public method:
-        - add() -- Main wrapper function for adding audiobook files. Processes
+        - |add()|
+            Main wrapper function for adding audiobook files. Processes
             calls to the Google Books API and ABC chaptering tool.
     '''
 
@@ -124,8 +133,11 @@ class MHAudiobook(mh.MHObject):
         '''Initialize the MHAudiobook class.
 
         Required arguments:
-            - settings -- Dict or MHSettings object.
-            - push -- MHPush object.
+            - settings
+                Dict or MHSettings object.
+
+            - push
+                MHPush object.
         '''
 
         logging.info("Starting audiobook handler class")
@@ -174,7 +186,8 @@ class MHAudiobook(mh.MHObject):
         to the Google Books API and ABC chaptering tool.
 
         Required arguments:
-            - raw -- Valid path to audiobook files to be processed.
+            - raw
+                Valid path to audiobook files to be processed.
         '''
 
         logging.info("Getting audiobook")
@@ -575,11 +588,14 @@ class MHAudiobook(mh.MHObject):
         '''Move and renames audiobook files based on Google results.
 
         Moves created audiobook files to chosen Audiobook folder location.
-        Saves files with the following naming scheme from Google results:
-            <audiobooks folder>/<author>/<full title>/<short title>.m4b
+        Saves files with the following naming scheme from Google results: ::
 
-        Or for non-chaptered files, the file name is:
-            <track no.> - <short title>.<mp3 or ogg>
+          <audiobooks folder>/<author>/<full title>/<short title>.m4b
+
+        Or for non-chaptered files, the file name is: ::
+
+          <track no.> - <short title>.<mp3 or ogg>
+
         '''
 
         logging.info("Moving audiobook files")

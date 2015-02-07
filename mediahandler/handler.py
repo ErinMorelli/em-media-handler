@@ -18,11 +18,13 @@ Module: mediahandler.handler
 
 Module contains:
 
-    - MHObject -- Main handler object structure which serves as an entry
+    - |MHandler|
+        Main handler object structure which serves as an entry
         point for the entire module. Contains the core logic for dispatching
         media to add to their respective submodules for further handling.
 
-    - main() -- Wrapper function for handling CLI input.
+    - |main()|
+        Wrapper function for handling CLI input.
 
 '''
 
@@ -45,16 +47,20 @@ class MHandler(mh.MHObject):
 
     Required argument:
 
-        - config -- Full path to valid mediahandler configuration file.
-            A default file available for customization is located here:
-                ~/.config/mediahandler/config.yml
+        - config
+            Full path to valid mediahandler configuration file.
+            A default file available for customization is located here: ::
+
+              ~/.config/mediahandler/config.yml
 
     Public methods:
 
-        - add_media() -- Main entry point containing the logic sequence for
+        - add_media()
+            Main entry point containing the logic sequence for
             sending media files to the correct submodule processor.
 
-        - extract_files() -- Wrapper function for accessing the
+        - extract_files()
+            Wrapper function for accessing the
             mediahandler.util.extract module
     '''
 
@@ -63,9 +69,11 @@ class MHandler(mh.MHObject):
 
         Required argument:
 
-            - config -- Full path to valid mediahandler configuration file.
-                A default file available for customization is located here:
-                    ~/.config/mediahandler/config.yml
+            - config
+                Full path to valid mediahandler configuration file.
+                A default file available for customization is located here: ::
+
+                  ~/.config/mediahandler/config.yml
         '''
 
         # Set up args via super
@@ -87,27 +95,34 @@ class MHandler(mh.MHObject):
 
         Required argument:
 
-            - media -- valid path to a file or a folder of media
-                to be added. Assumes structure:
-                    /path/to/<media type>/<media>
+            - media
+                valid path to a file or a folder of media
+                to be added. Assumes structure: ::
+
+                  /path/to/<media type>/<media>
 
         Other valid arguments:
 
-            - type -- Int in range [1, 2, 3, 4]. Declare a specific file type.
+            - type
+                Int in range [1, 2, 3, 4]. Declare a specific file type.
                 Defaults to a <media type> derived from media path.
                 Valid file types are:
-                    1 - TV
-                    2 - Movies
-                    3 - Music
-                    4 - Audiobooks
 
-            - query -- String. Set a custom query string for audiobooks.
+                    * 1 - TV
+                    * 2 - Movies
+                    * 3 - Music
+                    * 4 - Audiobooks
+
+            - query
+                String. Set a custom query string for audiobooks.
                 Useful for fixing "Unable to match" errors.
 
-            - single -- True/False. Force beets to import music as a single
+            - single
+                True/False. Force beets to import music as a single
                 track. Useful for fixing "items were skipped" errors.
 
-            - nopush -- True/False. Disable push notifications. Overrides
+            - nopush
+                True/False. Disable push notifications. Overrides
                 the "enabled" config file setting.
         '''
 
@@ -137,7 +152,7 @@ class MHandler(mh.MHObject):
         argparse object in the mediahandler.util.args module.
 
             - Checks to see if the arguments originate from the CLI via the
-                'validated' flag. Skips argparse validation if True.
+              'validated' flag. Skips argparse validation if True.
 
             - Updated the MHandler and MHPush object members with new values.
         '''
@@ -369,7 +384,8 @@ def main(deluge=False):
     add_media() function for processing.
 
     Optional argument:
-        - deluge -- True/False. Determines whether basic argument
+        - deluge
+            True/False. Determines whether basic argument
             parser or deluge argument parser should be used.
     '''
 

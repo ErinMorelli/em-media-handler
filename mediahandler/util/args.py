@@ -18,19 +18,28 @@ Module: mediahandler.util.args
 
 Module contains:
 
-    - MHParser -- Custom argparse.ArgumentParser child object.
-        - get_parser() -- Retrieves full parser object for CLI args.
-        - get_deluge_parser -- Retrieves abbreviated parser for Deluge args.
+    - |MHParser|
+        Custom argparse.ArgumentParser child object.
+          - |get_parser()|
+              Retrieves full parser object for CLI args.
+          - |get_deluge_parser|
+              Retrieves abbreviated parser for Deluge args.
 
     - Custom argparse.Action validation objects
-        - MHMediaAction -- For parsing media path structure.
-        - MHFilesAction -- For checking if files or folders exist.
-        - MHTypeAction -- For validating media type.
+        - |MHMediaAction|
+            For parsing media path structure.
+        - |MHFilesAction|
+            For checking if files or folders exist.
+        - |MHTypeAction|
+            For validating media type.
 
     - Argument validation wrapper functions:
-        - get_arguments() -- Wrapper for the 'addmedia' CLI.
-        - get_deluge_arguments() -- Wrapper for the 'addmedia-deluge' CLI.
-        - get_add_media_args() -- Wrapper for the add_media() function.
+        - |get_arguments()|
+            Wrapper for the 'addmedia' CLI.
+        - |get_deluge_arguments()|
+            Wrapper for the 'addmedia-deluge' CLI.
+        - |get_add_media_args()|
+            Wrapper for the mediahandler.handler.add_media() function.
 
 '''
 
@@ -57,7 +66,10 @@ class MHMediaAction(argparse.Action):
         detect the media type and name. Sets the 'name' and 'media' values
         into the argparse.Namespace() object.
 
-        Assumes directory structure: /path/to/<media type>/<media name>
+        Assumes directory structure: ::
+
+            /path/to/<media type>/<media name>
+
         '''
 
         # Retrieve full absolute file path
@@ -154,8 +166,10 @@ def _convert_type(namespace, raw_type):
     values and adds them to an argparse.Namespace() object.
 
     Required arguments:
-        - namespace -- The argparse.Namespace() object to updated.
-        - raw_type -- The raw media type string to be parsed.
+        - namespace
+            The argparse.Namespace() object to updated.
+        - raw_type
+            The raw media type string to be parsed.
     '''
 
     # Make lowercase for comparison

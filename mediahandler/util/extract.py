@@ -17,7 +17,8 @@
 Module: mediahandler.util.extract
 
 Module contains:
-    - get_files() -- extracts compressed files via Filebot.
+    - |get_files()|
+        extracts compressed files via Filebot.
 
 '''
 
@@ -30,8 +31,10 @@ def get_files(filebot, file_name):
     '''Extracts compressed files via Filebot.
 
     Required arguments:
-        - filebot -- Path to valid Filebot application script.
-        - file_name -- Path to valid compressed file for extraction.
+        - filebot
+            Path to valid Filebot application script.
+        - file_name
+            Path to valid compressed file for extraction.
     '''
 
     logging.info("Getting files from compressed folder")

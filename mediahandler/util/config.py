@@ -18,10 +18,11 @@ Module: mediahandler.util.config
 
 Module contains:
 
-    - make_config() -- Generates a default yaml configuration file.
+    - |make_config()|
+        Generates a default yaml configuration file.
 
-    - parse_config() -- Parses a yaml configuration file and returns a
-        dict of the settings.
+    - |parse_config()|
+        Parses a yaml configuration file and returns a dict of the settings.
 
 '''
 
@@ -39,7 +40,8 @@ def make_config(new_file=None):
     '''Generates default yaml mediahandler configuration file.
 
     Optional argument:
-        - new_file -- Path to a yaml mediahandler configuration file. Will
+        - new_file
+            Path to a yaml mediahandler configuration file. Will
             verify that the file exists and is readable.
     '''
 
@@ -84,7 +86,8 @@ def parse_config(file_path):
     '''Reads and parses a yaml mediahandler configuration file.
 
     Optional argument:
-        - file_path -- Path to a valid yaml mediahandler configuration file.
+        - file_path
+            Path to a valid yaml mediahandler configuration file.
 
     Uses settings.yml validation structure to build missing and default
     values. Sends values to the correct _get_valid_<type>() function

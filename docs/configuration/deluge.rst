@@ -35,7 +35,7 @@ The recommended setup:
 - Create a label for each media types you intend to use, e.g. "TV", "Movies", etc.
 - Under the "Label Defaults" settings set the following:
     - Enable the "Enable download settings" option
-    - Set "Move Completed" to "Label based subfolder"
+    - Set "Move Completed" to "Label based sub-folder"
 
 You can stop here and manually set each newly added torrent's label, or you can continue on and use the plugin's "Autolabel" settings to create regular expressions that match the various media types and automatically apply labels.
 

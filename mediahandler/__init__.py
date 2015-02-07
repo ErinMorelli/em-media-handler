@@ -18,7 +18,8 @@ Module: mediahandler
 
 Module contains:
 
-    - MHObject -- Basic object structure for all module and submodule
+    - |MHObject|
+        Basic object structure for all module and submodule
         classes. Contains the MHSettings object, which serves as a simple
         structure for storing data as attributes.
 
@@ -28,7 +29,7 @@ Module contains:
 
 from os.path import join, dirname
 
-__version__ = '0.8.2'
+__version__ = '1.0.1'
 __author__ = 'Erin Morelli <erin@erinmorelli.com>'
 
 

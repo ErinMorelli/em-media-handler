@@ -18,7 +18,8 @@ Module: mediahandler.util.notify
 
 Module contains:
 
-    - MHPush -- An object which contains the all the logic for sending
+    - |MHPush|
+        An object which contains the all the logic for sending
         push notifications and raising errors produced by mediahandler.
 
 '''
@@ -37,18 +38,23 @@ class MHPush(mh.MHObject):
     push notifications and raising errors produced by mediahandler.
 
     Arguments:
-        - settings -- Required. Dict or MHSettings object.
-        - disable -- True/False.
+        - settings
+            Required. Dict or MHSettings object.
+        - disable
+            True/False.
 
     Public methods:
 
-        - send_message() -- Wrapper function for sending push notification
+        - |send_message()|
+            Wrapper function for sending push notification
             messages via various 3rd party services.
 
-        - success() -- A wrapper for send_message() which sends a success
+        - |success()|
+            A wrapper for send_message() which sends a success
             message and returns message content.
 
-        - failure() -- A wrapper for send_message() which sends a failure
+        - |failure()|
+            A wrapper for send_message() which sends a failure
             message and raises a SystemExit.
     '''
 
@@ -57,10 +63,12 @@ class MHPush(mh.MHObject):
 
         Arguments:
 
-            - settings -- Required. Dict or MHSettings object containing
+            - settings
+                Required. Dict or MHSettings object containing
                 push notification-specific settings.
 
-            - disable -- True/False. Defaults to False. Enables/disables push
+            - disable
+                True/False. Defaults to False. Enables/disables push
                 notifications and will return only string messages.
         '''
 
@@ -115,10 +123,12 @@ class MHPush(mh.MHObject):
 
         Arguments:
 
-            - file_array -- Required. An array of the files added via the
+            - file_array
+                Required. An array of the files added via the
                 mediahandler.handler.add_media() function.
 
-            - skipped -- Defaults to None. An array of any files that were
+            - skipped
+                Defaults to None. An array of any files that were
                 skipped during the add_media() sequence.
         '''
 
@@ -165,7 +175,8 @@ class MHPush(mh.MHObject):
 
         Required argument:
 
-            - error_details -- String. A message detailing the error that
+            - error_details
+                String. A message detailing the error that
                 was reported during the add_media() sequence.
         '''
 
