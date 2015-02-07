@@ -22,7 +22,7 @@ To set up the event, all you will need the full path to ``addmedia-deluge`` scri
 
     which addmedia-deluge
 
-Which should print something similar to ``/usr/local/bin/addmedia-deluge``. Copy and paste this path value into the "Command" text box when adding a new "Torrent Complete" event.
+Which should print something similar to ``/usr/local/bin/addmedia-deluge``. Copy and paste this path value into the "Command" text box when adding a new "Torrent Complete" event, save it, and you're done!
 
 
 Advanced Set-up

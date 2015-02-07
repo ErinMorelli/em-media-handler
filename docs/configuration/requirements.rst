@@ -27,7 +27,7 @@ Audiobooks
     pip install mutagen
 
 * `ABC <http://www.ausge.de/ausge-download/abc-info-english>`_ (for when ``make_chapters`` is enabled)
-   Detailed installation instructions can be `found here <http://www.ausge.de/ausge-download/abc-info-english>`_
+   Detailed installation instructions can be `found here <http://www.ausge.de/ausge-download/abc-info-english>`_.
 
 
 Notifications

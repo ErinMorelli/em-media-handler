@@ -16,11 +16,11 @@ Make sure your system is ready before proceeding.
 Quick Installation
 ******************
 
-The easiest way to install is via `pip`: ::
+The easiest way to **install** is via `pip`: ::
 
     pip install mediahandler
 
-To upgrade to the latest version: ::
+To **upgrade** to the latest version: ::
 
     pip install -U mediahandler
 
@@ -34,7 +34,7 @@ Installing from Source
 
     sudo python setup.py build
 
-   .. note:: If you have run the build before, ensure you have a clean build environment by using:  ``sudo python setup.py clean -a``
+   .. note:: If you have run the build before, ensure you have a clean build environment first by using:  ``sudo python setup.py clean -a``
 
 3. Install the package: ::
 
