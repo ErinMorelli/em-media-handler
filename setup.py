@@ -27,7 +27,7 @@ setup(
     author = 'Erin Morelli',
     author_email = 'erin@erinmorelli.com',
     url = 'http://code.erinmorelli.com/em-media-handler/',
-    license = 'GNU',
+    license = 'MIT',
     platforms = 'Linux, OSX',
     description = 'A comprehensive media handling automation script.',
     long_description = open('README.rst').read(),
@@ -60,6 +60,20 @@ setup(
         'music': ['beets'],
         'deluge': ['twisted'],
     },
+
+    classifiers=[
+        'Topic :: Home Automation',
+        'Topic :: Multimedia',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'License :: OSI Approved :: MIT License',
+        'Environment :: MacOS X',
+        'Environment :: Console',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Operating System :: MacOS',
+        'Operating System :: POSIX :: Linux',
+    ],
 )
 
 # Generate default config file
