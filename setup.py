@@ -29,7 +29,7 @@ setup(
     url='http://code.erinmorelli.com/em-media-handler/',
     license='GNU',
     platforms='Linux, OSX',
-    description='A comprehensive media handling app.',
+    description='A comprehensive media handling automation script.',
     long_description=open('README.rst').read(),
     test_suite='tests.testall.suite',
     package_dir={

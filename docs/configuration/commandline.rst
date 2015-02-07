@@ -160,5 +160,5 @@ The configuration file used by EM Media Handler is dependent on the user running
     addmedia /home/admin/downloads/Orphan\ Black\ Season\ 2 --type 1 --config /home/johnsmith/documents/johns-config.yml
 
 
-.. |--|  unicode:: U+0020 U+2010 U+2010 .. space hyphen hyphen
-    :trim:
+.. |--|  unicode:: U+2010 U+2010 .. space hyphen hyphen
+    :rtrim:

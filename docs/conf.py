@@ -244,7 +244,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'EMMediaHandler', u'EM Media Handler Documentation',
-   u'Erin Morelli', 'EMMediaHandler', 'One line description of project.',
+   u'Erin Morelli', 'EMMediaHandler', 'A comprehensive media handling automation script.',
    'Miscellaneous'),
 ]
 
