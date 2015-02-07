@@ -3,6 +3,7 @@
 *.svn
 *.tmp
 *._*
+*.egg-info/
 .coverage
 .python-version
 mediaHandler.sublime-project
@@ -11,7 +12,6 @@ mediaHandler.sublime-workspace
 *.sublime-workspace
 TO DOs
 test.py
-EM_Media_Handler.egg-info/
 build/
 dist/
 deluge/

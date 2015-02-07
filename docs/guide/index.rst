@@ -18,11 +18,11 @@ Quick Installation
 
 The easiest way to **install** is via `pip`: ::
 
-    pip install mediahandler
+    pip install em-media-handler
 
 To **upgrade** to the latest version: ::
 
-    pip install -U mediahandler
+    pip install -U em-media-handler
 
 
 Installing from Source

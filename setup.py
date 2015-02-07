@@ -22,11 +22,11 @@ from mediahandler.util.config import make_config
 
 # Set up mediahandler package
 setup(
-    name = 'EM Media Handler',
+    name = 'em-media-handler',
     version = '1.0b1',
     author = 'Erin Morelli',
     author_email = 'erin@erinmorelli.com',
-    url = 'http://code.erinmorelli.com/em-media-handler/',
+    url = 'http://erinmorelli.com/projects/em-media-handler/',
     license = 'MIT',
     platforms = 'Linux, OSX',
     description = 'A comprehensive media handling automation script.',
