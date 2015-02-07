@@ -23,7 +23,7 @@ from mediahandler.util.config import make_config
 # Set up mediahandler package
 setup(
     name = 'EM Media Handler',
-    version = '1.0.1',
+    version = '1.0b1',
     author = 'Erin Morelli',
     author_email = 'erin@erinmorelli.com',
     url = 'http://code.erinmorelli.com/em-media-handler/',
