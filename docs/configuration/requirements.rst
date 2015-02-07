@@ -18,11 +18,11 @@ Music
 
 Audiobooks
 **********
-* `Google API Python Client <https://developers.google.com/api-client-library/python/>`_ ::
+* `Google API Python Client <https://developers.google.com/api-client-library/python/>`_ (automatically installed) ::
 
     pip install google-api-python-client
 
-* Mutagen ::
+* Mutagen (automatically installed) ::
 
     pip install mutagen
 
@@ -32,7 +32,7 @@ Audiobooks
 
 Notifications
 **************
-* `Requests <http://docs.python-requests.org/en/latest>`_ ::
+* `Requests <http://docs.python-requests.org/en/latest>`_ (automatically installed) ::
 
     pip install requests
 

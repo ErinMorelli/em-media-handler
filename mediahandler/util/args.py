@@ -372,7 +372,8 @@ def get_deluge_parser():
         epilog=(
             'For use with the "Torrent Complete" event ' +
             'in Deluge\'s "Execute" plugin.\nMore info: ' +
-            'http://dev.deluge-torrent.org/wiki/Plugins/Execute'),
+            'http://em-media-handler.rtfd.org/en/latest/' +
+            'configuration/deluge.html'),
     )
 
     # Create main options group
