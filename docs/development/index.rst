@@ -5,6 +5,15 @@ This section contains information for developers on each of the EM Media Handler
 
 You can explore the code further on either `GitHub <https://github.com/ErinMorelli/em-media-handler>`_ or `BitBucket <http://code.erinmorelli.com/em-media-handler>`_, as well as fork your own copy to work with.
 
+Testing Suite
+*************
+
+EM Media Handler comes with a full set of unit tests. To run the suite, use: ::
+
+    python setup.py test
+
+.. note:: If tests are failing on your system, it usually due to a lack of dependencies. See :doc:`/configuration/requirements` for more information.
+
 .. toctree::
    :glob:
 

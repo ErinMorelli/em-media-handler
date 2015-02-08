@@ -75,6 +75,7 @@ class CheckModulesTests(unittest.TestCase):
         result = Config._check_modules(self.settings)
         self.assertIsNone(result)
 
+    @_common.skipUnlessHasMod('deluge', 'ui')
     def test_check_deluge(self):
         # Modify settings
         self.settings['Deluge']['enabled'] = True
@@ -130,6 +131,7 @@ class CheckModulesTests(unittest.TestCase):
         self.assertRaisesRegexp(
             ImportError, regex, Config._check_modules, self.settings)
 
+    @_common.skipUnlessHasMod('beets', 'util')
     def test_music_modules(self):
         # Modify settings
         self.settings['Music']['enabled'] = True
@@ -156,6 +158,7 @@ class InitLoggingTests(unittest.TestCase):
         if os.path.exists(self.log_file):
             os.unlink(self.log_file)
 
+    @_common.skipUnlessHasMod('deluge', 'log')
     def test_init_logging(self):
         # Use custom settings
         settings = {

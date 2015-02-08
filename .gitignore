@@ -4,6 +4,7 @@
 *.tmp
 *._*
 *.egg-info/
+.eggs/
 .coverage
 .python-version
 mediaHandler.sublime-project

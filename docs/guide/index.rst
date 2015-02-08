@@ -28,23 +28,25 @@ To **upgrade** to the latest version: ::
 Installing from Source
 **********************
 
-1. Download the source from either `GitHub <https://github.com/ErinMorelli/em-media-handler>`_ or `BitBucket <http://code.erinmorelli.com/em-media-handler>`_.
+.. note::  You may need to prefix the ``python setup.py`` commands below with ``sudo`` depending on your particular environment.
+
+1. Download and extract the source files from either `GitHub <https://github.com/ErinMorelli/em-media-handler>`_ or `BitBucket <http://code.erinmorelli.com/em-media-handler>`_.
 
 2. From inside the downloaded source folder, run the build command: ::
 
-    sudo python setup.py build
+    python setup.py build
 
-   .. note:: If you have run the build before, ensure you have a clean build environment first by running: ``sudo python setup.py clean -a``
+   .. note:: If you have run the build before, ensure you have a clean build environment first by running: ``python setup.py clean -a``
 
 3. Install the package: ::
 
-    sudo python setup.py install
+    python setup.py install
 
 
 User Settings
 *************
 
-The default user configuration is installed to: ::
+The default user configuration file is installed to: ::
 
     ~/.config/mediahandler/config.yml
 

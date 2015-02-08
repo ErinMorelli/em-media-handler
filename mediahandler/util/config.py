@@ -28,12 +28,16 @@ Module contains:
 
 import os
 import imp
-import yaml
 import shutil
 import logging
 
 import mediahandler as mh
 import mediahandler.util as Util
+
+try:
+    import yaml
+except ImportError:
+    pass
 
 
 def make_config(new_file=None):

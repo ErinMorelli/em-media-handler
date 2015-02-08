@@ -188,7 +188,7 @@ class MHPush(mh.MHObject):
         # Send message
         self.send_message(error_details, conn_title)
 
-        # Log warning 
+        # Log warning
         logging.error(error_details)
 
         self.parser.error(error_details)
@@ -248,7 +248,7 @@ class MHPush(mh.MHObject):
         # Create pushover session object
         self.pushover.session = requests.Session()
         self.pushover.session.headers.update({
-           'Content-type': 'application/x-www-form-urlencoded'
+            'Content-type': 'application/x-www-form-urlencoded'
         })
 
         # Make request

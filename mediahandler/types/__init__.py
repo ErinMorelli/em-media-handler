@@ -36,7 +36,6 @@ Media Type Submodules:
 
 import os
 import logging
-from shutil import rmtree
 from re import findall, search, sub
 from subprocess import Popen, PIPE
 

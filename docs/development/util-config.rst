@@ -7,5 +7,4 @@
 .. automodule:: mediahandler.util.config
     :members:
     :undoc-members:
-    :inherited-members:
     :show-inheritance:
