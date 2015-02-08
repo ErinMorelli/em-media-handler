@@ -3,6 +3,11 @@ Installation Requirements
 
 This is a list of required python packages and 3rd party applications needed by the various parts of EM Media Handler. They are broken down by which configuration section needs them when enabled:
 
+General
+*******
+* `PyYAML <http://pyyaml.org/>`_ (automatically installed) ::
+
+    pip install pyyaml
 
 TV and Movies
 *************

@@ -51,6 +51,7 @@ setup(
     ],
 
     install_requires = [
+        'pyyaml',
         'google-api-python-client',
         'mutagen',
         'requests',
