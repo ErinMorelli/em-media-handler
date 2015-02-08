@@ -29,7 +29,7 @@ Module contains:
 
 from os.path import join, dirname
 
-__version__ = '1.0b1'
+__version__ = '1.0b2'
 __author__ = 'Erin Morelli <erin@erinmorelli.com>'
 
 
