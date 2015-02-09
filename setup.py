@@ -26,7 +26,7 @@ setup(
     version = '1.0b3',
     author = 'Erin Morelli',
     author_email = 'erin@erinmorelli.com',
-    url = 'http://erinmorelli.com/projects/em-media-handler/',
+    url = 'http://www.erinmorelli.com/projects/em-media-handler/',
     license = 'MIT',
     platforms = 'Linux, OSX',
     description = 'A comprehensive media handling automation script.',
