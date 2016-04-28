@@ -18,7 +18,7 @@ EM Media Handler is easily installed via ``pip``: ::
 
     pip install em-media-handler
 
-Then check out the `Getting Started <http://em-media-handler.readthedocs.org/en/latest/guide/index.html>`_ guide to learn more.
+Then check out the `Getting Started <https://em-media-handler.readthedocs.io/en/latest/guide/index.html>`_ guide to learn more.
 
 Authors
 *******
