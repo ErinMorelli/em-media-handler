@@ -172,7 +172,7 @@ class MHandler(mh.MHObject):
         self.set_settings(new_args)
 
         # Update MHPush object, if necessary
-        if hasattr(self, 'no_push'):
+        if hasattr(self, 'no_push') and getattr(self, 'no_push'):
             self.push = Notify.MHPush(self.notifications, self.no_push)
 
         return

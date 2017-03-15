@@ -148,6 +148,7 @@ class MHAudiobook(mh.MHObject):
         self.push = push
         self.orig_path = None
         self.file_type = None
+        self.type = re.sub(r'^mh', '', type(self).__name__.lower())
 
         # Set up book settings
         self.set_settings({
