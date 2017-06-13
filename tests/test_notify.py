@@ -15,6 +15,7 @@
 # included in all copies or substantial portions of the Software.
 '''Initialize module'''
 
+import time
 
 import _common
 from _common import unittest
@@ -26,6 +27,8 @@ import mediahandler.util.notify as Notify
 class PushObjectTests(unittest.TestCase):
 
     def setUp(self):
+        # Pause prevent API rate-limiting
+        time.sleep(5)
         # Testing name
         self.name = "push-{0}".format(_common.get_test_id())
         # Settings
@@ -43,12 +46,16 @@ class PushObjectTests(unittest.TestCase):
     def test_bad_po_credentials(self):
         self.args['pushover']['api_key'] = _common.random_string(30)
         self.args['pushover']['user_key'] = _common.random_string(30)
+        # Pause prevent API rate-limiting
+        time.sleep(5)
         # Run test
         regex = r'Pushover: application token is invalid'
         self.assertRaisesRegexp(SystemExit, regex, Notify.MHPush, self.args)
 
     def test_bad_pb_credentials(self):
         self.args['pushbullet']['token'] = _common.random_string(30)
+        # Pause prevent API rate-limiting
+        time.sleep(5)
         # Run test
         regex = r'Pushbullet: Access token is missing or invalid.'
         self.assertRaisesRegexp(SystemExit, regex, Notify.MHPush, self.args)
@@ -59,6 +66,8 @@ class PushObjectTests(unittest.TestCase):
             'enabled': False,
             'name': self.name
         }
+        # Pause prevent API rate-limiting
+        time.sleep(5)
         # Make object
         new_obj = Notify.MHPush(args, True)
         # Check setup
@@ -72,6 +81,8 @@ class PushObjectTests(unittest.TestCase):
         # Message
         msg = _common.random_string(10)
         title = _common.random_string(10)
+        # Pause prevent API rate-limiting
+        time.sleep(5)
         # Send message
         resp = self.push._send_pushover(msg, title)
         # Check response
@@ -82,6 +93,8 @@ class PushObjectTests(unittest.TestCase):
         # Message
         msg = _common.random_string(10)
         title = _common.random_string(10)
+        # Pause prevent API rate-limiting
+        time.sleep(5)
         # Send message
         resp = self.push._send_pushover(msg, title)
         # Check response
@@ -93,6 +106,8 @@ class PushObjectTests(unittest.TestCase):
         # Message
         msg = _common.random_string(10)
         title = _common.random_string(10)
+        # Pause prevent API rate-limiting
+        time.sleep(5)
         # Send message
         resp = self.push._send_pushbullet(msg, title)
         # Check response
@@ -102,6 +117,8 @@ class PushObjectTests(unittest.TestCase):
         # Message
         msg = _common.random_string(10)
         title = _common.random_string(10)
+        # Pause prevent API rate-limiting
+        time.sleep(5)
         # Send message
         resp = self.push._send_pushbullet(msg, title)
         # Check response
@@ -112,6 +129,8 @@ class PushObjectTests(unittest.TestCase):
     def test_send_msg_good_title(self):
         # Message
         msg = _common.random_string(10)
+        # Pause prevent API rate-limiting
+        time.sleep(5)
         # Send message
         resp = self.push.send_message(msg)
         # Check response
@@ -121,6 +140,8 @@ class PushObjectTests(unittest.TestCase):
         # Set up test
         file_array = []
         skipped = []
+        # Pause prevent API rate-limiting
+        time.sleep(5)
         # Run test
         regex = r'No files or skips found to notify about'
         self.assertRaisesRegexp(
@@ -130,6 +151,8 @@ class PushObjectTests(unittest.TestCase):
         # Set up test
         file_array = [self.name]
         skipped = []
+        # Pause prevent API rate-limiting
+        time.sleep(5)
         # Run test
         result = self.push.success(file_array, skipped)
         regex = r'\+ {0}'.format(self.name)
@@ -139,6 +162,8 @@ class PushObjectTests(unittest.TestCase):
         # Set up test
         file_array = []
         skipped = [self.name]
+        # Pause prevent API rate-limiting
+        time.sleep(5)
         # Run test
         result = self.push.success(file_array, skipped)
         regex = r'Skipped files:\n\- {0}'.format(self.name)
@@ -153,6 +178,8 @@ class PushObjectTests(unittest.TestCase):
         # Set up test
         file_array = [self.name]
         skipped = [skips]
+        # Pause prevent API rate-limiting
+        time.sleep(5)
         # Run test
         result = self.push.success(file_array, skipped)
         reg1 = r'\+ {0}'.format(
@@ -166,6 +193,8 @@ class PushObjectTests(unittest.TestCase):
         self.push.disable = False
         # Set up test
         msg = _common.random_string(10)
+        # Pause prevent API rate-limiting
+        time.sleep(5)
         # Run test
         self.assertRaisesRegexp(
             SystemExit, msg, self.push.failure, msg)

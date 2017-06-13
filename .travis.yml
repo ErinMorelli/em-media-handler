@@ -12,7 +12,6 @@ before_install:
   # Add needed repositories
   - sudo add-apt-repository ppa:gambas-team/gambas3 -y
   - sudo add-apt-repository ppa:webupd8team/java -y
-  # - sudo add-apt-repository ppa:gstreamer-developers/ppa -y
   - sudo apt-get update -qq
 
   # Install and upgrade java to v8 (for Filebot)
@@ -30,7 +29,6 @@ before_install:
 install:
 
   # ABC dependencies
-  # - sudo apt-get install -y ia32-libs gstreamer1.0* build-essential -qq
   - sudo apt-get install -y gstreamer1.0* build-essential -qq
   - sudo apt-get install -y gambas3 cdrdao flac mkcue cuetools shntool php5-cli vlc gstreamer-tools gstreamer1.0-fluendo-mp3 gpac -qq
   - sudo apt-get install -y libstdc++6:i386 mp4v2-utils gksu
