@@ -12,7 +12,7 @@ before_install:
   # Add needed repositories
   - sudo add-apt-repository ppa:gambas-team/gambas3 -y
   - sudo add-apt-repository ppa:webupd8team/java -y
-  - sudo add-apt-repository ppa:gstreamer-developers/ppa -y
+  # - sudo add-apt-repository ppa:gstreamer-developers/ppa -y
   - sudo apt-get update -qq
 
   # Install and upgrade java to v8 (for Filebot)
