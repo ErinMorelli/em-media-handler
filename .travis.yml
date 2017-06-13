@@ -30,7 +30,8 @@ before_install:
 install:
 
   # ABC dependencies
-  - sudo apt-get install -y ia32-libs gstreamer1.0* build-essential -qq
+  # - sudo apt-get install -y ia32-libs gstreamer1.0* build-essential -qq
+  - sudo apt-get install -y gstreamer1.0* build-essential -qq
   - sudo apt-get install -y gambas3 cdrdao flac mkcue cuetools shntool php5-cli vlc gstreamer-tools gstreamer1.0-fluendo-mp3 gpac -qq
 
   # Deluge dependencies
