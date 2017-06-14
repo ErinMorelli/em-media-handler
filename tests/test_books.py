@@ -52,7 +52,7 @@ class BaseBookObjectTests(BookMediaObjectTests):
     def test_bad_google_api(self):
         self.settings['api_key'] = None
         regex = r'Google Books API key not found'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             Warning, regex, Books.MHAudiobook, self.settings, self.push)
 
     def test_custom_chapter_length(self):
@@ -307,7 +307,7 @@ class GetFilesTests(BookMediaObjectTests):
         import mutagen.mp3
         # Run test
         regex = r''
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             mutagen.mp3.HeaderNotFoundError,
             regex, self.book._get_files, self.folder, True)
 

@@ -39,7 +39,7 @@ class FindModulesTests(unittest.TestCase):
         module = _common.random_string(8)
         submod = _common.random_string(5)
         regex = r'Module {0}.{1} is not installed'.format(module, submod)
-        self.assertRaisesRegexp(ImportError, regex,
+        self.assertRaisesRegex(ImportError, regex,
                                 Config._find_module, module, submod)
 
     def test_find_app_success(self):
@@ -52,7 +52,7 @@ class FindModulesTests(unittest.TestCase):
         settings = _common.get_settings()['Movies']
         app = {'name': 'NotReal', 'exec': 'notreal.php'}
         regex = r'NotReal application not found'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ImportError, regex, Config._find_app, settings, app)
 
 
@@ -128,7 +128,7 @@ class CheckModulesTests(unittest.TestCase):
         self.settings['Audiobooks']['make_chapters'] = True
         # Run
         regex = r'ABC application not found'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ImportError, regex, Config._check_modules, self.settings)
 
     @_common.skipUnlessHasMod('beets', 'util')
@@ -189,7 +189,7 @@ class SimpleValidationConfigTests(unittest.TestCase):
         self.assertTrue(bool_reg)
         # Bad case
         regex = r'Value provided for \'Sect: opt\' is not a valid boolean'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError, regex,
             Config._get_valid_bool, 'Sect', 'opt', 'astring')
 
@@ -204,7 +204,7 @@ class SimpleValidationConfigTests(unittest.TestCase):
         self.assertEqual(string_reg, '127.0.0.1')
         # Bad case
         regex = r'Value provided for \'Sect: opt\' is not a valid string'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError, regex, Config._get_valid_string, 'Sect', 'opt', 6789)
 
     def test_valid_number(self):
@@ -218,7 +218,7 @@ class SimpleValidationConfigTests(unittest.TestCase):
         self.assertEqual(num_reg, 58846)
         # Bad case
         regex = r'Value provided for \'Sect: opt\' is not a valid number'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError, regex,
             Config._get_valid_number, 'Sect', 'opt', 'astring')
 
@@ -255,7 +255,7 @@ class FileValidationConfigTests(unittest.TestCase):
         # Invalid case
         log_file = os.path.join('path', 'to', 'log.log')
         regex = "File path provided for 'Logging: log_file' does not exist:"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError, regex,
             Config._get_valid_file, 'Logging', 'log_file', log_file)
 
@@ -271,7 +271,7 @@ class FileValidationConfigTests(unittest.TestCase):
         # Invalid case
         mov_folder = os.path.join('path', 'to', 'movies')
         regex = r"Path provided for 'Movies: folder' does not exist: .*"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError, regex,
             Config._get_valid_folder, 'Movies', 'folder', mov_folder)
 
@@ -410,7 +410,7 @@ class MakeConfigTests(unittest.TestCase):
         self.tmp_file = _common.make_tmp_file('.yml')
         os.chmod(self.tmp_file, 0o000)
         regex = r'Configuration file cannot be opened'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             Warning, regex, Config.make_config, self.tmp_file)
 
     @unittest.skipUnless('SUDO_UID' in os.environ.keys(), 'for sudoers only')
@@ -429,7 +429,7 @@ class MakeConfigTests(unittest.TestCase):
         # Check formatting
         expected = Config.parse_config(self.conf)
         settings = Config.parse_config(results)
-        self.assertListEqual(settings.keys(), expected.keys())
+        self.assertEqual(settings.keys(), expected.keys())
 
     def get_owner(self, filename):
         return getpwuid(os.stat(filename).st_uid).pw_uid

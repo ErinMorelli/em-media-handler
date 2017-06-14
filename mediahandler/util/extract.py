@@ -54,7 +54,7 @@ def get_files(filebot, file_name):
     logging.debug("Filebot return errors: %s", err)
 
     # Process output
-    file_info = search(r"extract to \[(.*)\]\n", output)
+    file_info = search(r"extract to \[(.*)\]\n", output.decode('utf-8'))
     if file_info is None:
         return None
 

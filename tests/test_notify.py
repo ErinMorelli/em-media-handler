@@ -50,7 +50,7 @@ class PushObjectTests(unittest.TestCase):
         time.sleep(5)
         # Run test
         regex = r'Pushover: application token is invalid'
-        self.assertRaisesRegexp(SystemExit, regex, Notify.MHPush, self.args)
+        self.assertRaisesRegex(SystemExit, regex, Notify.MHPush, self.args)
 
     def test_bad_pb_credentials(self):
         self.args['pushbullet']['token'] = _common.random_string(30)
@@ -58,7 +58,7 @@ class PushObjectTests(unittest.TestCase):
         time.sleep(5)
         # Run test
         regex = r'Pushbullet: Access token is missing or invalid.'
-        self.assertRaisesRegexp(SystemExit, regex, Notify.MHPush, self.args)
+        self.assertRaisesRegex(SystemExit, regex, Notify.MHPush, self.args)
 
     def test_new_push_object(self):
         # Dummy settings
@@ -144,7 +144,7 @@ class PushObjectTests(unittest.TestCase):
         time.sleep(5)
         # Run test
         regex = r'No files or skips found to notify about'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, regex, self.push.success, file_array, skipped)
 
     def test_success_empty_skips(self):
@@ -196,7 +196,7 @@ class PushObjectTests(unittest.TestCase):
         # Pause prevent API rate-limiting
         time.sleep(5)
         # Run test
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, msg, self.push.failure, msg)
 
 

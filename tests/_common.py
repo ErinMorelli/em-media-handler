@@ -19,6 +19,7 @@ import os
 import shutil
 import string
 import tempfile
+import importlib
 from random import choice
 
 try:
@@ -60,7 +61,8 @@ class MHTestSuite(unittest.TestSuite):
 
 def skipUnlessHasMod(module, submodule):
     try:
-        Config._find_module(module, submodule)
+        importlib.import_module("{0}.{1}".format(
+            module, submodule))
     except ImportError:
         return unittest.skip("requires module {0}.{1}".format(
             module, submodule))

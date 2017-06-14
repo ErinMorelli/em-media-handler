@@ -100,7 +100,7 @@ Done ?(?????)?
 '''
         regex = r'Unable to match movie files: {0}. {1}'.format(
             '/Movies/Fake Movie', '/Movies/Another.Fake.Movie')
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, regex,
             self.movies._process_output, output, self.tmp_file)
 

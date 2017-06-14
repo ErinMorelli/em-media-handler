@@ -41,21 +41,21 @@ class ArgsTests(unittest.TestCase):
 
     def test_empty_args(self):
         sys.argv = ['']
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, '1', Args.get_arguments)
 
     def test_show_help(self):
         # Test 1
         sys.argv = ['', '-h']
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, '0', Args.get_arguments)
         # Test 2
         sys.argv = ['', '--help']
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, '0', Args.get_arguments)
         # Test 3
         sys.argv = ['']
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, '1', Args.get_arguments)
 
     def test_non_add_media_args(self):
@@ -122,23 +122,26 @@ class ArgsTests(unittest.TestCase):
         sys.argv = ['', '/path/to/files']
         regex1 = r'File or directory provided for {0} {1}: {2}'.format(
             'media', 'does not exist', '/path/to/files')
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, regex1, Args.get_arguments)
         # Bad type
         sys.argv = ['', self.folder, '-t', '5']
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, '2', Args.get_arguments)
         # Bad conf file
         sys.argv = ['', self.folder, '-t', '1', '-c', '/path/to/fake.yml']
         regex2 = r'File or directory provided for {0} {1}: {2}'.format(
             'config', 'does not exist', '/path/to/fake.yml')
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, regex2, Args.get_arguments)
 
     def test_cli_bad_args(self):
         sys.argv = ['', '-s']
-        self.assertRaisesRegexp(
-            SystemExit, r'too few arguments', Args.get_arguments)
+        self.assertRaisesRegex(
+            SystemExit,
+            r'(too few arguments|the following arguments are required: media)',
+            Args.get_arguments
+        )
 
 
 class ParseDirTests(unittest.TestCase):
@@ -163,7 +166,7 @@ class ParseDirTests(unittest.TestCase):
 
     def test_bad_parse_path(self):
         regex = r"Detected media type '.*' not recognized".format(self.folder)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, regex, self.parser.parse_args, [self.folder])
 
     def run_good_type_path(self, stype):

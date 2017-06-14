@@ -179,7 +179,7 @@ class MHMediaType(mh.MHObject):
         logging.debug("Query output: %s", output)
         logging.debug("Query return errors: %s", err)
 
-        return self._process_output(output, file_path)
+        return self._process_output(output.decode('utf-8'), file_path)
 
     def _process_output(self, output, file_path):
         '''Parses response from _media_info() query.

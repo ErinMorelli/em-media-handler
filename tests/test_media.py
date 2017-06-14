@@ -90,7 +90,7 @@ class BaseMediaObjectTests(MediaObjectTests):
         self.media.filebot = None
         # Run test
         regex = r'Filebot required to process Media Type files'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, regex, self.media._video_settings)
 
     def test_new_media_bad_folder(self):
@@ -99,22 +99,22 @@ class BaseMediaObjectTests(MediaObjectTests):
         # Run test 1
         regex1 = r'Folder for Media Type not found: {0}'.format(
             self.settings['folder'])
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, regex1, Types.MHMediaType, self.settings, self.push)
         # Run test 2
         regex2 = r'Folder for Media Type not found: .*Media'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, regex2, Types.MHMediaType, {}, self.push)
 
     def test_media_add(self):
         regex = r'Unable to match mediatype files: {0}'.format(self.tmp_file)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, regex, self.media.add, self.tmp_file)
 
     def test_media_add_logging(self):
         self.media.log_file = os.path.join(self.folder, 'media.log')
         regex = r'Unable to match mediatype files: {0}'.format(self.tmp_file)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, regex, self.media.add, self.tmp_file)
 
     def test_process_output_good(self):

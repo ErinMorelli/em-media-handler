@@ -96,7 +96,7 @@ Done ?(?????)?
 '''
         regex = r'Unable to match tv files: {0}, {1}'.format(
             '/TV/Fake Show/Fake.Show.S01E01', '/TV/Fake Show/Fake.Show.S01E02')
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, regex,
             self.episode._process_output, output, self.tmp_file)
 

@@ -62,7 +62,7 @@ class MusicMediaObjectTests(MediaObjectTests):
         self.tracks.log_file = log_file
         # Run tests
         regex = r'Unable to match music files: {0}'.format(self.tmp_file)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, regex, self.tracks.add, self.tmp_file)
         self.assertTrue(os.path.exists(folder))
         # Clean up

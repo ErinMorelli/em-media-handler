@@ -47,7 +47,7 @@ class DelugeTests(unittest.TestCase):
 
     def test_empty_args(self):
         sys.argv = ['']
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, '1', Args.get_deluge_arguments)
 
     def test_get_good_args(self):
@@ -69,13 +69,16 @@ class DelugeTests(unittest.TestCase):
     def test_get_bad_args(self):
         # Test 1
         sys.argv = ['', 'hash', 'name']
-        self.assertRaisesRegexp(
-            SystemExit, r'too few arguments', Args.get_deluge_arguments)
+        self.assertRaisesRegex(
+            SystemExit,
+            r'(too few arguments|the following arguments are required: TORRENT PATH)',
+            Args.get_deluge_arguments
+        )
         # Test 2
         sys.argv = ['', 'hash', 'name', '/path/to/file']
         regex = r'File or directory provided for {0} {1}: {2}'.format(
             'path', 'does not exist', '/path/to/file')
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, regex, Args.get_deluge_arguments)
 
 

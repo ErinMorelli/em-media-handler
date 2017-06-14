@@ -70,14 +70,14 @@ class ExtractBadZipTests(unittest.TestCase):
     def test_bad_handler_zip(self):
         # Run handler
         regex = r'Unable to extract files: {0}'.format(self.name)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, regex,
             self.handler.extract_files, self.bad_zip)
 
     def test_bad_handler_non_zip(self):
         # Run handler
         regex = r'Unable to extract files: {0}'.format(self.name)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, regex,
             self.handler.extract_files, self.bad_non_zip)
 
@@ -150,7 +150,7 @@ class ExtractGoodZipTests(unittest.TestCase):
     def test_good_handler_zip_found(self):
         # Run handler
         regex = r'Folder for TV not found: .*TV'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             SystemExit, regex,
             self.handler._find_zipped, self.zip_name)
 

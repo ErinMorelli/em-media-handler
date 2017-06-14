@@ -31,7 +31,6 @@ import logging
 from re import search
 from math import ceil
 from shutil import copy, move
-from urllib2 import build_opener
 from subprocess import Popen, PIPE
 from os import path, listdir, makedirs
 
@@ -41,6 +40,15 @@ from googleapiclient.discovery import build
 from mutagen.mp3 import MP3
 from mutagen.ogg import OggFileType
 
+try:
+    from urllib.request import build_opener
+except ImportError:
+    from urllib2 import build_opener
+
+try:
+    xrange
+except NameError:
+    xrange = range
 
 def get_book_info(api_key, query):
     '''Makes API request to Google Books.

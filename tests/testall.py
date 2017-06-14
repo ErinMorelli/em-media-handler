@@ -19,8 +19,8 @@ import os
 import re
 import sys
 
-from _common import unittest
-from _common import MHTestSuite
+from tests._common import unittest
+from tests._common import MHTestSuite
 
 pkgpath = os.path.dirname(__file__) or '.'
 sys.path.append(pkgpath)
