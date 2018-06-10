@@ -30,7 +30,7 @@ setup(
     license = 'MIT',
     platforms = 'Linux, OSX',
     description = 'A comprehensive media handling automation script.',
-    long_description = open('README.rst').read(),
+    long_description = open('README.md').read(),
     test_suite = 'tests.testall.suite',
     include_package_data = True,
 
