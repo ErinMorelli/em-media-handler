@@ -127,7 +127,7 @@ class MHMediaType(mh.MHObject):
             'reason': '{0} already exists in {1}'.format(
                 self.type, self.dst_path)
         })
-        query.added = r'\[{0}\] Rename \[(.*)\] to \[(.*)\.{1}\]'.format(
+        query.added = r'\[{0}\] From \[(.*)\] to \[(.*)\.{1}\]'.format(
             self.cmd.action.upper(), query.file_types)
         self.__dict__.update({'query': query})
 
