@@ -6,44 +6,44 @@ Deluge:
     enabled: no
     host: 127.0.0.1
     port: 58846
-    user: 
-    pass: 
+    user:
+    pass:
 
 Logging:
     enabled: yes
     level: 30
-    log_file: 
+    log_file:
 
 Notifications:
     enabled: no
-    notify_name: 
+    notify_name:
     pushover:
-        api_key: 
-        user_key: 
+        api_key:
+        user_key:
     pushbullet:
         token:
 
 TV:
     enabled: yes
-    folder: 
+    folder:
     ignore_subs: yes
-    format: "{n}/Season {s}/{n.space('.')}.{'S'+s.pad(2)}E{e.pad(2)}"
+    format: '{n}/Season {s}/{n.space(".")}.{"S"+s.pad(2)}E{e.pad(2)}'
     log_file:
 
 Movies:
     enabled: yes
-    folder: 
+    folder:
     ignore_subs: yes
-    format: "{n} ({y})"
+    format: '{n} ({y})'
     log_file:
 
 Music:
     enabled: no
-    log_file: 
+    log_file:
 
 Audiobooks:
     enabled: no
-    folder: 
-    api_key: 
+    folder:
+    api_key:
     make_chapters: off
     chapter_length: 8

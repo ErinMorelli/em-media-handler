@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,7 +14,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''
+"""
 Module: mediahandler.types
 
 Module contains:
@@ -32,7 +33,7 @@ Media Type Submodules:
 
     - |mediahandler.types.tv|
 
-'''
+"""
 
 import os
 import logging
@@ -43,7 +44,7 @@ import mediahandler as mh
 
 
 class MHMediaType(mh.MHObject):
-    '''Parent class for the media type submodule classes.
+    """Parent class for the media type submodule classes.
 
     Required arguments:
         - settings
@@ -56,10 +57,10 @@ class MHMediaType(mh.MHObject):
         - |add()|
             Main wrapper function for adding media files. Processes
             calls to Beets and Filebot.
-    '''
+    """
 
     def __init__(self, settings, push):
-        '''Initialize the MHMediaType class.
+        """Initialize the MHMediaType class.
 
         Required arguments:
             - settings
@@ -67,7 +68,7 @@ class MHMediaType(mh.MHObject):
 
             - push
                 MHPush object.
-        '''
+        """
 
         super(MHMediaType, self).__init__(settings, push)
 
@@ -99,10 +100,10 @@ class MHMediaType(mh.MHObject):
                     self.ptype, self.dst_path))
 
     def _video_settings(self):
-        '''Set MHMediaType object methods for video types.
+        """Set MHMediaType object methods for video types.
 
         Sets up Filebot query values and post-query regex processing values.
-        '''
+        """
 
         # Check for filebot
         if not self.filebot:
@@ -122,22 +123,20 @@ class MHMediaType(mh.MHObject):
         query = self.MHSettings({
             'file_types': r'(mkv|avi|m4v|mp4)',
             'skip': r'Skipped \[(.*)\] because \[(.*)\] already exists',
-            'added_i': 1,
+            'added_i': 2,
             'skip_i': 0,
             'reason': '{0} already exists in {1}'.format(
                 self.type, self.dst_path)
         })
-        query.added = r'\[{0}\] Rename \[(.*)\] to \[(.*)\.{1}\]'.format(
-            self.cmd.action.upper(), query.file_types)
+        query.added = r'\[{0}\] ({1}) \[(.*)\] to \[(.*)\.{2}\]'.format(
+            self.cmd.action.upper(), 'From|Rename', query.file_types)
         self.__dict__.update({'query': query})
 
-        return
-
     def add(self, file_path):
-        '''Wrapper for Filebot requests.
+        """Wrapper for Filebot requests.
 
         Sets up Filebot CLI query using object member values.
-        '''
+        """
 
         logging.info("Starting %s handler", self.type)
 
@@ -164,10 +163,10 @@ class MHMediaType(mh.MHObject):
         return self._media_info(m_cmd, file_path)
 
     def _media_info(self, cmd, file_path):
-        '''Makes request to Beets and Filebot.
+        """Makes request to Beets and Filebot.
 
         Sends results to _process_output().
-        '''
+        """
 
         logging.debug("Query: %s", cmd)
 
@@ -182,12 +181,16 @@ class MHMediaType(mh.MHObject):
         return self._process_output(output, file_path)
 
     def _process_output(self, output, file_path):
-        '''Parses response from _media_info() query.
+        """Parses response from _media_info() query.
 
         Returns good results and any skipped files.
-        '''
+        """
 
         logging.info("Processing query output")
+
+        # Convert output to str, if needed
+        if not isinstance(output, str):
+            output = output.decode('utf-8')
 
         # Look for content
         added_data = findall(self.query.added, output)
@@ -195,13 +198,13 @@ class MHMediaType(mh.MHObject):
 
         # Check return
         results = []
-        if len(added_data) > 0:
+        if added_data:
             for added_item in added_data:
                 results.append(added_item[self.query.added_i])
 
         # Get skipped results
         skipped = []
-        if len(skip_data) > 0:
+        if skip_data:
             for skip_item in skip_data:
                 skipped.append(skip_item[self.query.skip_i])
                 logging.warning("File was skipped: %s (%s)",
@@ -209,16 +212,16 @@ class MHMediaType(mh.MHObject):
                                 self.query.reason)
 
         # Return error if nothing found
-        if len(skipped) == 0 and len(results) == 0:
+        if not skipped and not results:
             return self._match_error(file_path)
 
         return results, skipped
 
     def _remove_bad_files(self, file_path):
-        '''Removes non-video files from media folder.
+        """Removes non-video files from media folder.
 
         Only used when 'ignore_subs' setting is True.
-        '''
+        """
 
         logging.info("Removing bad files")
         # Skip if this is not a folder
@@ -239,10 +242,11 @@ class MHMediaType(mh.MHObject):
             elif not search(regex, item):
                 os.unlink(item_path)
 
-        return
-
     def _match_error(self, name):
-        '''Returns a match error via the MHPush object.
-        '''
+        """Returns a match error via the MHPush object.
+        """
         return self.push.failure(
             "Unable to match {0} files: {1}".format(self.type, name))
+
+    def __repr__(self):
+        return '<MHMediaType {0}>'.format(self.__dict__)

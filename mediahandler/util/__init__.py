@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,7 +14,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''
+"""
 Module: mediahandler.util
 
 This module contains submodules which provide utility functions to the
@@ -37,4 +38,4 @@ Submodules:
     - |mediahandler.util.torrent|
         Removes torrents from Deluge upon completion.
 
-'''
+"""

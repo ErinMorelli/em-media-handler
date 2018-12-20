@@ -6,7 +6,8 @@ Welcome to EM Media Handler! This guide will help you get started with automatin
 Requirements
 ***************
 
-EM Media Handler supports Python <= 2.7 - there are plans to support 3.x in a future release.
+EM Media Handler supports Python versions 2.7 and >= 3.4 on Linux and macOS operating systems.
+Support for Windows is in beta beginning with version 1.1.
 
 Check out the :doc:`/configuration/requirements` for details on required python packages and 3rd party applications.
 

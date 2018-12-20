@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,7 +14,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''
+"""
 Module: mediahandler.types.music
 
 Module contains:
@@ -21,15 +22,16 @@ Module contains:
     - |MHMusic|
         Child class of MHMediaType for the music media type.
 
-'''
+"""
 
 import logging
-import mediahandler.types
 from os import path, makedirs
+
+import mediahandler.types
 
 
 class MHMusic(mediahandler.types.MHMediaType):
-    '''Child class of MHMediaType for the music media type.
+    """Child class of MHMediaType for the music media type.
 
     Required arguments:
         - settings
@@ -40,17 +42,17 @@ class MHMusic(mediahandler.types.MHMediaType):
     Public method:
         - |add()|
             inherited from parent MHMediaType.
-    '''
+    """
 
     def __init__(self, settings, push):
-        '''Initialize the MHMusic class.
+        """Initialize the MHMusic class.
 
         Required arguments:
             - settings
                 Dict or MHSettings object.
             - push
                 MHPush object.
-        '''
+        """
 
         # Set ptype and call super
         self.ptype = None
@@ -76,10 +78,10 @@ class MHMusic(mediahandler.types.MHMediaType):
             self.query.added = single_regex
 
     def add(self, file_path):
-        '''Overrides the MHMediaType object to process Beets requests.
+        """Overrides the MHMediaType object to process Beets requests.
 
         Sets up Beets CLI query using object member values.
-        '''
+        """
 
         logging.info("Starting %s information handler", self.type)
 

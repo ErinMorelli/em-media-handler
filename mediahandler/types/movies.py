@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,7 +14,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''
+"""
 Module: mediahandler.types.movies
 
 Module contains:
@@ -21,15 +22,17 @@ Module contains:
     - |MHMovie|
         Child class of MHMediaType for the movies media type.
 
-'''
+"""
 
+import os
 import logging
-import mediahandler.types
 from re import escape, search
+
+import mediahandler.types
 
 
 class MHMovie(mediahandler.types.MHMediaType):
-    '''Child class of MHMediaType for the movies media type.
+    """Child class of MHMediaType for the movies media type.
 
     Required arguments:
         - settings
@@ -40,17 +43,17 @@ class MHMovie(mediahandler.types.MHMediaType):
     Public method:
         - |add()|
             inherited from parent MHMediaType.
-    '''
+    """
 
     def __init__(self, settings, push):
-        '''Initialize the MHMovie class.
+        """Initialize the MHMovie class.
 
         Required arguments:
             - settings
                 Dict or MHSettings object.
             - push
                 MHPush object.
-        '''
+        """
 
         # Set ptype and call super
         self.ptype = 'Movies'
@@ -63,25 +66,26 @@ class MHMovie(mediahandler.types.MHMediaType):
         self.cmd.db = "themoviedb"
 
     def _process_output(self, output, file_path):
-        '''Parses response from _media_info() query.
+        """Parses response from _media_info() query.
 
         Returns good results and any skipped files.
 
         Extends MHMediaType function to specifically parse movie
         information from Filebot output.
-        '''
+        """
 
         info = super(MHMovie, self)._process_output(output, file_path)
         (added_files, skipped_files) = info
 
         # Check for no new files
-        if len(added_files) == 0:
+        if not added_files:
             return info
 
         # Set search query
         epath = escape(self.dst_path)
-        mov_find = r"{0}\/(.*\(\d{{4}}\))".format(epath)
-        logging.debug("Search query: %s", mov_find)
+        mov_find = r'{0}{1}(.*\(\d{{4}}\))'.format(
+            epath, escape(os.sep))
+        logging.debug('Search query: %s', mov_find)
 
         # See what movies were added
         new_added_files = []
@@ -99,7 +103,7 @@ class MHMovie(mediahandler.types.MHMediaType):
             new_added_files.append(mov_title)
 
         # Make sure we found movies
-        if len(new_added_files) == 0:
+        if not new_added_files:
             return self._match_error(', '.join(added_files))
 
         return new_added_files, skipped_files

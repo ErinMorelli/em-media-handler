@@ -1,7 +1,8 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler Testing Module
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,17 +14,17 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''Initialize module'''
+"""Initialize module"""
 
 import os
-import sys
+import mock
 import shutil
 
-import _common
-from _common import unittest
-from _common import MHTestSuite
+import tests.common as common
+from tests.common import unittest
+from tests.common import MHTestSuite
 
-from test_media import MediaObjectTests
+from tests.test_media import MediaObjectTests
 
 from mediahandler.util.config import _find_app
 import mediahandler.types.audiobooks as Books
@@ -38,9 +39,9 @@ class BookMediaObjectTests(MediaObjectTests):
         self.audio_file = os.path.join(
             os.path.dirname(__file__), 'extra', 'test_mp3_file.mp3')
         # Book-specific settings
-        self.settings = _common.get_settings()['Audiobooks']
+        self.settings = common.get_settings()['Audiobooks']
         self.settings['folder'] = self.folder
-        self.settings['api_key'] = _common.get_google_api()
+        self.settings['api_key'] = common.get_google_api()
         self.settings['chapter_length'] = 8
         self.settings['make_chapters'] = False
         # Make an object
@@ -182,7 +183,7 @@ class GetChaptersTests(BookMediaObjectTests):
 
     def make_cover(self):
         # Make dummy cover image
-        tmp_img = _common.make_tmp_file('.jpg')
+        tmp_img = common.make_tmp_file('.jpg')
         cover_img = os.path.join(self.folder, 'cover.jpg')
         shutil.move(tmp_img, cover_img)
 
@@ -226,7 +227,7 @@ class GetChaptersTests(BookMediaObjectTests):
         self.assertListEqual(result, expected)
 
 
-#@unittest.skipUnless(sys.platform.startswith("linux"), "requires a Linux system")
+# @unittest.skipUnless(sys.platform.startswith("linux"), "requires a Linux system")
 @unittest.skip("Too resource heavy right now")
 class AddBookTest(BookMediaObjectTests):
 
@@ -259,9 +260,9 @@ class GetFilesTests(BookMediaObjectTests):
 
     def test_get_files_mixed(self):
         # Set up folder
-        book_file1 = _common.make_tmp_file('.m4b', self.folder)
-        book_file2 = _common.make_tmp_file('.m4b', self.folder)
-        _common.make_tmp_file('.mp3', self.folder)
+        book_file1 = common.make_tmp_file('.m4b', self.folder)
+        book_file2 = common.make_tmp_file('.m4b', self.folder)
+        common.make_tmp_file('.mp3', self.folder)
         # Set up test
         expected = [book_file1, book_file2]
         # Run test
@@ -272,8 +273,8 @@ class GetFilesTests(BookMediaObjectTests):
 
     def test_get_files_good(self):
         # Set up folder
-        book_file1 = _common.make_tmp_file('.m4b', self.folder)
-        book_file2 = _common.make_tmp_file('.m4b', self.folder)
+        book_file1 = common.make_tmp_file('.m4b', self.folder)
+        book_file2 = common.make_tmp_file('.m4b', self.folder)
         # Set up test
         expected = [book_file1, book_file2]
         # Run test
@@ -284,8 +285,8 @@ class GetFilesTests(BookMediaObjectTests):
 
     def test_get_files_bad(self):
         # Set up folder
-        book_file1 = _common.make_tmp_file('.mp3', self.folder)
-        book_file2 = _common.make_tmp_file('.mp3', self.folder)
+        book_file1 = common.make_tmp_file('.mp3', self.folder)
+        book_file2 = common.make_tmp_file('.mp3', self.folder)
         # Set up test
         expected = [
             os.path.basename(book_file1),
@@ -298,11 +299,11 @@ class GetFilesTests(BookMediaObjectTests):
         self.assertListEqual(sorted(expected), sorted(result))
         self.assertEqual(self.book.file_type, 'mp3')
 
-    @_common.skipUnlessHasMod('mutagen', 'mp3')
+    @common.skipUnlessHasMod('mutagen', 'mp3')
     def test_get_files_bad_chaptered(self):
         # Set up folder
-        _common.make_tmp_file('.mp3', self.folder)
-        _common.make_tmp_file('.mp3', self.folder)
+        common.make_tmp_file('.mp3', self.folder)
+        common.make_tmp_file('.mp3', self.folder)
         # Set up test
         import mutagen.mp3
         # Run test
@@ -313,8 +314,8 @@ class GetFilesTests(BookMediaObjectTests):
 
     def test_get_files_none(self):
         # Set up folder
-        _common.make_tmp_file('.m4a', self.folder)
-        _common.make_tmp_file('.m4a', self.folder)
+        common.make_tmp_file('.m4a', self.folder)
+        common.make_tmp_file('.m4a', self.folder)
         # Set up test
         expected = []
         # Run test
@@ -329,14 +330,41 @@ class MoveFilesBookTests(BookMediaObjectTests):
     def setUp(self):
         super(MoveFilesBookTests, self).setUp()
         # Set up book info
-        self.book.set_book_info('Outrage Arnaldur')
+        with mock.patch('googleapiclient.discovery.Resource') as resource:
+            resource.return_value.volumes.return_value.list.return_value. \
+                execute.return_value.get.return_value = [
+                    {
+                        'id': 'IklPK8m8M44C',
+                        'volumeInfo': {
+                            'title': 'Outrage',
+                            'subtitle': 'An Inspector Erlendur Novel',
+                            'authors': ['Arnaldur Indridason'],
+                            'publishedDate': '2012-09-18',
+                            'categories': ['Fiction'],
+                            'imageLinks': {'thumbnail': ''}
+                        }
+                    }]
+            self.book.set_book_info('Outrage Arnaldur')
         # Settings
         self.book.orig_path = self.folder
 
-    def test_move_no_subtitle(self):
+    @mock.patch('googleapiclient.discovery.Resource')
+    def test_move_no_subtitle(self, resource):
+        resource.return_value.volumes.return_value.list.return_value. \
+            execute.return_value.get.return_value = [
+            {
+                'id': 'int6DwAAQBAJ',
+                'volumeInfo': {
+                    'title': 'The Lovely Bones',
+                    'authors': ['Alice Sebold'],
+                    'publishedDate': '2018-11-17',
+                    'categories': ['Drama'],
+                    'imageLinks': {'thumbnail': ''}
+                }
+            }]
         self.book.set_book_info('The Lovely Bones Alice Sebold')
         # Make dummy file
-        book_file = _common.make_tmp_file('.m4b', self.folder)
+        book_file = common.make_tmp_file('.m4b', self.folder)
         # Set up file array
         file_array = [book_file]
         # Run test
@@ -353,8 +381,8 @@ class MoveFilesBookTests(BookMediaObjectTests):
     def test_move_no_chapters(self):
         self.book.file_type = 'mp3'
         # Make dummy files
-        _common.make_tmp_file('.mp3', self.folder)
-        _common.make_tmp_file('.mp3', self.folder)
+        common.make_tmp_file('.mp3', self.folder)
+        common.make_tmp_file('.mp3', self.folder)
         # Set up file array
         file_array = sorted(os.listdir(self.folder))
         # Run test
@@ -366,8 +394,8 @@ class MoveFilesBookTests(BookMediaObjectTests):
 
     def test_move_chapters(self):
         # Make dummy files
-        book_file1 = _common.make_tmp_file('.m4b', self.folder)
-        book_file2 = _common.make_tmp_file('.m4b', self.folder)
+        book_file1 = common.make_tmp_file('.m4b', self.folder)
+        book_file2 = common.make_tmp_file('.m4b', self.folder)
         # Set up file array
         file_array = [book_file1, book_file2]
         # Run test
@@ -392,14 +420,14 @@ class MoveFilesBookTests(BookMediaObjectTests):
             'Outrage_ An Inspector Erlendur Novel')
         new_file1 = os.path.join(new_path, 'Outrage, Part 1.m4b')
         new_file2 = os.path.join(new_path, 'Outrage, Part 2.m4b')
-        dummy_file = _common.make_tmp_file('.m4b', self.folder)
+        dummy_file = common.make_tmp_file('.m4b', self.folder)
         # Make directories & files
         os.makedirs(new_path)
         shutil.copy(dummy_file, new_file1)
         shutil.copy(dummy_file, new_file2)
         # Make dummy files
-        book_file1 = _common.make_tmp_file('.m4b', self.folder)
-        book_file2 = _common.make_tmp_file('.m4b', self.folder)
+        book_file1 = common.make_tmp_file('.m4b', self.folder)
+        book_file2 = common.make_tmp_file('.m4b', self.folder)
         # Set up file array
         file_array = [book_file1, book_file2]
         # Run test
@@ -413,10 +441,23 @@ class MoveFilesBookTests(BookMediaObjectTests):
 
 class SingleFileBookTests(BookMediaObjectTests):
 
-    def test_single_file_good(self):
+    @mock.patch('googleapiclient.discovery.Resource')
+    def test_single_file_good(self, resource):
+        resource.return_value.volumes.return_value.list.return_value. \
+            execute.return_value.get.return_value = [
+            {
+                'id': 'int6DwAAQBAJ',
+                'volumeInfo': {
+                    'title': 'The Lovely Bones',
+                    'authors': ['Alice Sebold'],
+                    'publishedDate': '2018-11-17',
+                    'categories': ['Drama'],
+                    'imageLinks': {'thumbnail': ''}
+                }
+            }]
         # Set up test
         self.book.orig_path = self.folder
-        book_file = _common.make_tmp_file('.m4b', self.folder)
+        book_file = common.make_tmp_file('.m4b', self.folder)
         # Run test
         result = self.book._single_file(book_file, 'The Lovely Bones')
         # Check results
@@ -426,13 +467,26 @@ class SingleFileBookTests(BookMediaObjectTests):
         self.assertEqual(expected_path, result)
         self.assertTrue(os.path.exists(expected_file))
 
-    def test_ask_google_return(self):
+    @mock.patch('googleapiclient.discovery.Resource')
+    def test_ask_google_return(self, resource):
+        resource.return_value.volumes.return_value.list.return_value.\
+            execute.return_value.get.return_value = [
+        {
+            'id': 'BDgMX4r2efUC',
+            'volumeInfo': {
+                'title': 'Voices',
+                'subtitle': 'An Inspector Erlendur Novel',
+                'authors': ['Arnaldur Indridason'],
+                'publishedDate': '2008-09-02',
+                'categories': ['Fiction'],
+                'imageLinks': {'thumbnail': ''}
+            }
+        }]
         # Run test
         result = Books.get_book_info(self.book.api_key, 'Voices Arnaldur')
         # Check result
         expected = {
             'author': 'Arnaldur Indridason',
-            'cover': 'http://books.google.com/books/content?id=BDgMX4r2efUC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api',
             'genre': 'Fiction',
             'id': 'BDgMX4r2efUC',
             'long_title': 'Voices: An Inspector Erlendur Novel',
@@ -440,7 +494,7 @@ class SingleFileBookTests(BookMediaObjectTests):
             'subtitle': 'An Inspector Erlendur Novel',
             'year': '2008'
         }
-        self.assertDictEqual(expected, result)
+        self.assertDictContainsSubset(expected, result)
 
 
 def suite():

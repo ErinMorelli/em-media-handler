@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,7 +14,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''
+"""
 Module: mediahandler.types.tv
 
 Module contains:
@@ -21,15 +22,17 @@ Module contains:
     - |MHTv|
         Child class of MHMediaType for the TV media type.
 
-'''
+"""
 
+import os
 import logging
-import mediahandler.types
 from re import escape, search, sub
+
+import mediahandler.types
 
 
 class MHTv(mediahandler.types.MHMediaType):
-    '''Child class of MHMediaType for the TV media type.
+    """Child class of MHMediaType for the TV media type.
 
     Required arguments:
         - settings
@@ -40,17 +43,17 @@ class MHTv(mediahandler.types.MHMediaType):
     Public method:
         - |add()|
             inherited from parent MHMediaType.
-    '''
+    """
 
     def __init__(self, settings, push):
-        '''Initialize the MHTv class.
+        """Initialize the MHTv class.
 
         Required arguments:
             - settings
                 Dict or MHSettings object.
             - push
                 MHPush object.
-        '''
+        """
 
         # Set ptype and call super
         self.ptype = 'TV'
@@ -60,27 +63,28 @@ class MHTv(mediahandler.types.MHMediaType):
         self._video_settings()
 
         # Set media type-specifc filebot db
-        self.cmd.db = "thetvdb"
+        self.cmd.db = 'thetvdb'
 
     def _process_output(self, output, file_path):
-        '''Parses response from _media_info() query.
+        """Parses response from _media_info() query.
 
         Returns good results and any skipped files.
 
         Extends MHMediaType function to specifically parse TV Show
         and episode information from Filebot output.
-        '''
+        """
 
         info = super(MHTv, self)._process_output(output, file_path)
         (added_files, skipped_files) = info
 
         # Check for no new files
-        if len(added_files) == 0:
+        if not added_files:
             return info
 
         # Set search query
         epath = escape(self.dst_path)
-        tv_find = r"{0}\/(.*)\/(.*)\/.*\.S\d{{2,4}}E(\d{{2,3}})".format(epath)
+        tv_find = r'{path}{s}(.*){s}(.*){s}.*\.S\d{{2,4}}E(\d{{2,3}})'.format(
+            path=epath, s=escape(os.sep))
         logging.debug("Search query: %s", tv_find)
 
         # See what TV files were added
@@ -105,7 +109,7 @@ class MHTv(mediahandler.types.MHMediaType):
             new_added_files.append(ep_title)
 
         # Make sure we found episodes
-        if len(new_added_files) == 0:
+        if not new_added_files:
             return self._match_error(', '.join(added_files))
 
         return new_added_files, skipped_files

@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,20 +14,20 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''
+"""
 Module: mediahandler.util.torrent
 
 Module contains:
     - |remove_deluge_torrent()|
         Removes a torrent from Deluge.
 
-'''
+"""
 
 import logging
 
 
 def remove_deluge_torrent(settings, torrent_hash):
-    '''Removes a torrent from Deluge.
+    """Removes a torrent from Deluge.
 
     Required arguments:
         - settings
@@ -37,7 +38,7 @@ def remove_deluge_torrent(settings, torrent_hash):
     This is a Twisted Deferred object which hooks into the Deluge UI client.
     For more information, visit:
     http://dev.deluge-torrent.org/wiki/Development/UiClient1.2
-    '''
+    """
 
     logging.info("Removing torrent from Deluge")
 
@@ -55,14 +56,14 @@ def remove_deluge_torrent(settings, torrent_hash):
 
     # We create a callback function to be called upon a successful connection
     def on_connect_success(result):
-        '''Connect success callback.
-        '''
+        """Connect success callback.
+        """
 
         logging.debug("Connection was successful: %s", result)
 
         def on_remove_torrent(success):
-            '''On remove callback.
-            '''
+            """On remove callback.
+            """
 
             if success:
                 logging.debug("Torrent remove successful")
@@ -73,11 +74,9 @@ def remove_deluge_torrent(settings, torrent_hash):
             client.disconnect()
             reactor.stop()
 
-            return
-
         def on_get_session_state(torrents):
-            '''On session state callback.
-            '''
+            """On session state callback.
+            """
 
             # Look for completed torrent in list
             found = False
@@ -91,7 +90,6 @@ def remove_deluge_torrent(settings, torrent_hash):
                         torrent_hash,
                         False).addCallback(
                             on_remove_torrent)
-
                     break
 
             if not found:
@@ -101,20 +99,16 @@ def remove_deluge_torrent(settings, torrent_hash):
                 client.disconnect()
                 reactor.stop()
 
-            return
-
         # Get list of current torrent hashes
         client.core.get_session_state().addCallback(on_get_session_state)
-
-        return
 
     # We add the callback to the Deferred object we got from connect()
     deluge.addCallback(on_connect_success)
 
     # To be called when an error is encountered
     def on_connect_fail(result):
-        '''Connect fail callback.
-        '''
+        """Connect fail callback.
+        """
 
         logging.error("Connection failed: %s", result)
 
@@ -122,12 +116,8 @@ def remove_deluge_torrent(settings, torrent_hash):
         client.disconnect()
         reactor.stop()
 
-        return
-
     # We add the callback (in this case it's an errback, for error)
     deluge.addErrback(on_connect_fail)
 
     # Run the twisted main loop to make everything go
     reactor.run()
-
-    return

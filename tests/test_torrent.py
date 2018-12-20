@@ -1,7 +1,8 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler Testing Module
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,15 +14,15 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''Initialize module'''
+"""Initialize module"""
 
 import os
 import sys
 import shutil
 
-import _common
-from _common import unittest
-from _common import MHTestSuite
+import tests.common as common
+from tests.common import unittest
+from tests.common import MHTestSuite
 
 import mediahandler.util.args as Args
 import mediahandler.util.torrent as Torrent
@@ -32,14 +33,14 @@ class DelugeTests(unittest.TestCase):
 
     def setUp(self):
         # Conf
-        self.conf = _common.get_conf_file()
+        self.conf = common.get_conf_file()
         # Set up dummy file
         parent_folder = os.path.dirname(self.conf)
         self.folder = os.path.join(parent_folder, 'television')
         if not os.path.exists(self.folder):
             os.makedirs(self.folder)
         # Make temp file in folder
-        self.tmp_file = _common.make_tmp_file('.avi', self.folder)
+        self.tmp_file = common.make_tmp_file('.avi', self.folder)
 
     def tearDown(self):
         if os.path.exists(self.folder):
@@ -69,8 +70,8 @@ class DelugeTests(unittest.TestCase):
     def test_get_bad_args(self):
         # Test 1
         sys.argv = ['', 'hash', 'name']
-        self.assertRaisesRegexp(
-            SystemExit, r'too few arguments', Args.get_deluge_arguments)
+        regex = r'(too few arguments|the following arguments are required: TORRENT PATH)'
+        self.assertRaisesRegexp(SystemExit, regex, Args.get_deluge_arguments)
         # Test 2
         sys.argv = ['', 'hash', 'name', '/path/to/file']
         regex = r'File or directory provided for {0} {1}: {2}'.format(
@@ -81,13 +82,13 @@ class DelugeTests(unittest.TestCase):
 
 class RemoveTorrentTests(unittest.TestCase):
 
-    @_common.skipUnlessHasMod('twisted', 'internet')
+    @common.skipUnlessHasMod('twisted', 'internet')
     def setUp(self):
         from twisted.internet import reactor
-        self.conf = _common.get_conf_file()
+        self.conf = common.get_conf_file()
         self.settings = parse_config(self.conf)['Deluge']
 
-    @_common.skipUnlessHasMod('deluge', 'ui')
+    @common.skipUnlessHasMod('deluge', 'ui')
     def test_remove_torrent(self):
         Torrent.remove_deluge_torrent(self.settings, 'hash')
 

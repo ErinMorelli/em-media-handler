@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,7 +14,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''
+"""
 Module: mediahandler.types.audiobooks
 
 Module contains:
@@ -24,26 +25,36 @@ Module contains:
     - |get_book_info()|
         Makes API request to Google Books and returns results.
 
-'''
+"""
 
+import os
 import re
-import logging
 from re import search
+import logging
 from math import ceil
 from shutil import copy, move
-from urllib2 import build_opener
 from subprocess import Popen, PIPE
 from os import path, listdir, makedirs
-
-import mediahandler as mh
 
 from googleapiclient.discovery import build
 from mutagen.mp3 import MP3
 from mutagen.ogg import OggFileType
 
+import mediahandler as mh
+
+try:
+    from urllib.request import build_opener
+except ImportError:
+    from urllib2 import build_opener
+
+try:
+    XRANGE = xrange
+except NameError:
+    XRANGE = range
+
 
 def get_book_info(api_key, query):
-    '''Makes API request to Google Books.
+    """Makes API request to Google Books.
 
     Required arguments:
             - api_key
@@ -51,7 +62,7 @@ def get_book_info(api_key, query):
 
             - query
                 String. Search string to submit to Google.
-    '''
+    """
 
     logging.info("Querying Google Books")
 
@@ -114,7 +125,7 @@ def get_book_info(api_key, query):
 
 
 class MHAudiobook(mh.MHObject):
-    '''Child class of MHObject for the audiobooks media type.
+    """Child class of MHObject for the audiobooks media type.
 
     Required arguments:
         - settings
@@ -127,10 +138,10 @@ class MHAudiobook(mh.MHObject):
         - |add()|
             Main wrapper function for adding audiobook files. Processes
             calls to the Google Books API and ABC chaptering tool.
-    '''
+    """
 
     def __init__(self, settings, push):
-        '''Initialize the MHAudiobook class.
+        """Initialize the MHAudiobook class.
 
         Required arguments:
             - settings
@@ -138,9 +149,11 @@ class MHAudiobook(mh.MHObject):
 
             - push
                 MHPush object.
-        '''
+        """
 
         logging.info("Starting audiobook handler class")
+
+        self.folder = None
         super(MHAudiobook, self).__init__(settings, push)
 
         # Set globals
@@ -183,13 +196,13 @@ class MHAudiobook(mh.MHObject):
         logging.debug("Using chapter length: %s", self.max_length)
 
     def add(self, raw):
-        '''Main wrapper function for adding audiobook files. Processes calls
+        """Main wrapper function for adding audiobook files. Processes calls
         to the Google Books API and ABC chaptering tool.
 
         Required arguments:
             - raw
                 Valid path to audiobook files to be processed.
-        '''
+        """
 
         logging.info("Getting audiobook")
 
@@ -229,7 +242,7 @@ class MHAudiobook(mh.MHObject):
         logging.debug("Move was successful: %s", move_files)
 
         # Verify success
-        if len(move_files) == 0 and len(skipped) == 0:
+        if not move_files and not skipped:
             return self.push.failure(
                 "Unable to move book files: {0}".format(raw))
 
@@ -241,17 +254,17 @@ class MHAudiobook(mh.MHObject):
         return [book_title], skipped
 
     def _clean_string(self, str_path):
-        '''Cleans query string before sending to Google API.
+        """Cleans query string before sending to Google API.
 
         Takes in a string parse from media file path and removes non-
         alphanumeric characters, extra whitespace, blacklisted words,
         and other unwanted characters.
-        '''
+        """
 
         logging.info("Cleaning up path string")
 
         # Get query from folder path
-        find_book = str_path.rsplit('/')[1:]
+        find_book = str_path.rsplit(os.sep)[1:]
         string = find_book[-1]
         logging.debug("Initial string: %s", string)
 
@@ -260,7 +273,8 @@ class MHAudiobook(mh.MHObject):
 
         # Get blacklist items from file
         blacklist_file = path.join(mh.__mediaextras__, 'blacklist.txt')
-        blacklist = [line.strip() for line in open(blacklist_file)]
+        with open(blacklist_file) as blacklist_io:
+            blacklist = [line.strip() for line in blacklist_io]
 
         # Convert blacklist array to regex string
         blacklist = "|".join(blacklist)
@@ -293,19 +307,19 @@ class MHAudiobook(mh.MHObject):
         return string
 
     def set_book_info(self, query):
-        '''A wrapper function for calling get_book_info().
+        """A wrapper function for calling get_book_info().
 
         Converts resulting dict into object members.
-        '''
+        """
 
         result = get_book_info(self.api_key, query)
         self.book_info = self.MHSettings(result)
 
     def _single_file(self, file_path, path_name):
-        '''Extra processing needed for single audiobook files.
+        """Extra processing needed for single audiobook files.
 
         Creates new folder and moves file into it.
-        '''
+        """
 
         logging.info("Handling as single file")
 
@@ -333,11 +347,11 @@ class MHAudiobook(mh.MHObject):
         return new_folder
 
     def _save_cover(self, img_dir, img_url):
-        '''Retrieves and saves cover image from Google results.
+        """Retrieves and saves cover image from Google results.
 
         Will use an existing cover image if it is in the same directory
         as the main files and is named 'cover.jpg'.
-        '''
+        """
 
         logging.info("Saving audiobook cover image")
 
@@ -363,11 +377,11 @@ class MHAudiobook(mh.MHObject):
 
         # Get image info from web & open
         response = opener.open(no_curl)
+        opener.close()
 
         # Write image to new cover file
-        output = open(img_path, "wb")
-        output.write(response.read())
-        output.close()
+        with open(img_path, "wb") as output:
+            output.write(response.read())
 
         # Add image to book info
         self.book_info.cover_image = img_path
@@ -375,13 +389,13 @@ class MHAudiobook(mh.MHObject):
         return img_path
 
     def _get_files(self, file_dir, make_chapters):
-        '''Parses directory to look for and process audiobook files.
+        """Parses directory to look for and process audiobook files.
 
         Returns existing chaptered audiobook files (.m4b). If 'make_chapters'
         setting is disabled, will return non-chaptered files (.mp3, .ogg). Or
         if 'make_chapters' is enabled, will look for non-chaptered files and
         send them to be chapterized.
-        '''
+        """
 
         logging.info("Retrieving audiobook files")
 
@@ -415,7 +429,7 @@ class MHAudiobook(mh.MHObject):
             logging.debug("To chapter file count: %s", len(to_chapterize))
 
             # If there are no chaptered files, chapterize other files
-            if len(to_chapterize) > 0 and len(book_files) == 0:
+            if to_chapterize and not book_files:
                 (chapter_success, new_files) = self._chapterize_files(
                     file_dir, to_chapterize)
 
@@ -425,28 +439,28 @@ class MHAudiobook(mh.MHObject):
                     return False, new_files
 
         # If chapterizing is disabled, return all files
-        elif len(book_files) == 0 and len(to_chapterize) > 0:
+        elif not book_files and to_chapterize:
             logging.debug("Not making chapters")
             book_files = to_chapterize
 
         # If there are chaptered files but other files too, note it
-        elif len(book_files) > 0 and len(to_chapterize) > 0:
+        elif book_files and to_chapterize:
             logging.warning('Non-chaptered files were found and ignored: %s',
                             ', '.join(to_chapterize))
 
         # Make sure we have chapterized files to return
         logging.debug("Final book file count: %s", len(book_files))
-        if len(book_files) > 0:
+        if book_files:
             is_chapterized = True
 
         return is_chapterized, book_files
 
     def _chapterize_files(self, file_path, file_array):
-        '''Chapterizes non-chaptered audiobook files (.mp3, .ogg)
+        """Chapterizes non-chaptered audiobook files (.mp3, .ogg)
 
         Sends query to ABC application to convert files into chaptered
         audiobook files based on the 'chapter_length' setting.
-        '''
+        """
 
         logging.info("Chapterizing audiobook files")
         new_files = []
@@ -478,6 +492,9 @@ class MHAudiobook(mh.MHObject):
             logging.debug("ABC output: %s", output)
             logging.debug("ABC err: %s", err)
 
+            # Close process
+            b_open.terminate()
+
             # Find file names in output
             bfiles = search(r"Audiobook \'(.*)\.m4b\' created succsessfully!",
                             output)
@@ -500,11 +517,11 @@ class MHAudiobook(mh.MHObject):
         return True, new_files
 
     def _get_chapters(self, file_path, file_array, file_type):
-        '''Breaks up non-chaptered files in to folders for ABC processing.
+        """Breaks up non-chaptered files in to folders for ABC processing.
 
         Returns an array of paths to folders. Each folder is for an audiobook
         chaptered file part based on the results of _calculate_chunks().
-        '''
+        """
 
         logging.info("Determining book parts")
 
@@ -538,12 +555,12 @@ class MHAudiobook(mh.MHObject):
         return book_chunks
 
     def _calculate_chunks(self, file_path, file_array, file_type):
-        '''Calculates how many different chaptered file parts should be made
+        """Calculates how many different chaptered file parts should be made
         by ABC based on the 'chapter_length' setting.
 
         Returns an array of arrays containing the paths to the non-chaptered
         files for each new part.
-        '''
+        """
 
         # Defaults
         file_type = file_type.upper()
@@ -579,14 +596,14 @@ class MHAudiobook(mh.MHObject):
             # Create array chunks
             if array_chunk > 0:
                 chunks = [file_array[x:x+array_chunk]
-                          for x in xrange(0, len(file_array), array_chunk)]
+                          for x in XRANGE(0, len(file_array), array_chunk)]
             else:
                 chunks = [file_array]
 
         return chunks
 
     def _move_files(self, file_array, has_chapters):
-        '''Move and renames audiobook files based on Google results.
+        """Move and renames audiobook files based on Google results.
 
         Moves created audiobook files to chosen Audiobook folder location.
         Saves files with the following naming scheme from Google results: ::
@@ -597,7 +614,7 @@ class MHAudiobook(mh.MHObject):
 
           <track no.> - <short title>.<mp3 or ogg>
 
-        '''
+        """
 
         logging.info("Moving audiobook files")
 

@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,14 +14,14 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''
+"""
 Module: mediahandler.util.extract
 
 Module contains:
     - |get_files()|
         extracts compressed files via Filebot.
 
-'''
+"""
 
 import logging
 from re import search
@@ -28,15 +29,14 @@ from subprocess import Popen, PIPE
 
 
 def get_files(filebot, file_name):
-    '''Extracts compressed files via Filebot.
+    """Extracts compressed files via Filebot.
 
     Required arguments:
         - filebot
             Path to valid Filebot application script.
         - file_name
             Path to valid compressed file for extraction.
-    '''
-
+    """
     logging.info("Getting files from compressed folder")
 
     # Set up query
@@ -53,8 +53,14 @@ def get_files(filebot, file_name):
     logging.debug("Filebot output: %s", output)
     logging.debug("Filebot return errors: %s", err)
 
+    # Convert output
+    try:
+        output = output.decode('utf-8')
+    except UnicodeDecodeError:
+        pass
+
     # Process output
-    file_info = search(r"extract to \[(.*)\]\n", output)
+    file_info = search(r"extract to \[(.*)\][\r]?\n", output)
     if file_info is None:
         return None
 

@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,7 +14,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''
+"""
 Module: mediahandler.util.config
 
 Module contains:
@@ -24,12 +25,12 @@ Module contains:
     - |parse_config()|
         Parses a yaml configuration file and returns a dict of the settings.
 
-'''
+"""
 
 import os
-import imp
 import shutil
 import logging
+from importlib import import_module
 
 import mediahandler as mh
 import mediahandler.util as Util
@@ -41,17 +42,21 @@ except ImportError:
 
 
 def make_config(new_file=None):
-    '''Generates default yaml mediahandler configuration file.
+    """Generates default yaml mediahandler configuration file.
 
     Optional argument:
         - new_file
             Path to a yaml mediahandler configuration file. Will
             verify that the file exists and is readable.
-    '''
+    """
 
     # Set default path
     config_file = os.path.join(os.path.expanduser("~"),
                                '.config', 'mediahandler', 'config.yml')
+
+    # Validate config
+    if new_file and not isinstance(new_file, str):
+        raise TypeError('argument should be a string file path')
 
     # Check for user-provided path
     if new_file is not None:
@@ -72,22 +77,26 @@ def make_config(new_file=None):
         config_path = os.path.dirname(config_file)
         if not os.path.exists(config_path):
             os.makedirs(config_path)
-            os.chmod(config_path, 0o775)
+            if not mh.__iswin__:
+                os.chmod(config_path, 0o775)
 
         # Copy new configuration file to path
         shutil.copy(default_config, config_file)
 
+        # Modify default config values for windows
+        if mh.__iswin__:
+            _modify_config_for_windows(config_file)
+
         # Change permissions to current user if sudo
         if 'SUDO_UID' in os.environ.keys():
-            filed = os.open(config_file, os.O_RDONLY)
-            os.fchown(filed, int(os.environ['SUDO_UID']), -1)
-            os.close(filed)
+            with os.open(config_file, os.O_RDONLY) as filed:
+                os.fchown(filed, int(os.environ['SUDO_UID']), -1)
 
     return config_file
 
 
 def parse_config(file_path):
-    '''Reads and parses a yaml mediahandler configuration file.
+    """Reads and parses a yaml mediahandler configuration file.
 
     Optional argument:
         - file_path
@@ -96,7 +105,7 @@ def parse_config(file_path):
     Uses settings.yml validation structure to build missing and default
     values. Sends values to the correct _get_valid_<type>() function
     for validation.
-    '''
+    """
 
     # Read yaml files
     parsed = _get_yaml(file_path)
@@ -104,11 +113,11 @@ def parse_config(file_path):
 
     # Define section function
     def _process_section(get_section, get_options, get_parsed):
-        '''Processes a section of yaml options.
+        """Processes a section of yaml options.
 
         Sets the default value for the option if unset. Dispatches value to
         correct validation function.
-        '''
+        """
 
         # Make section if it doesn't exist
         if get_section not in get_parsed.keys():
@@ -136,7 +145,11 @@ def parse_config(file_path):
             elif 'default' in item_option.keys():
                 value = item_option['default']
 
-            # Fallback to non
+                # Check for default tv format
+                if get_section == 'TV' and option == 'format' and mh.__iswin__:
+                    value = os.path.join(*value.split('/'))
+
+            # Fallback to none
             else:
                 new_options[option] = None
                 continue
@@ -163,18 +176,33 @@ def parse_config(file_path):
     return settings
 
 
+def _modify_config_for_windows(config_file):
+    """Modifies config file to use windows-formatted paths.
+    """
+
+    config = _get_yaml(config_file)
+
+    # Change TV format to use windows path
+    form = config['TV']['format']
+    config['TV']['format'] = os.path.join(*form.split('/')).replace('\'', '"')
+
+    # Write changes to the file
+    with open(config_file, 'w') as config_io:
+        yaml.dump(config, config_io, indent=4, default_flow_style=False)
+
+
 # Settings option validation functions
 
 def _get_valid_bool(section, option, provided):
-    '''Validates a boolean type configuration option.
+    """Validates a boolean type configuration option.
 
     Returns False by default if the option is unset.
-    '''
+    """
 
     if provided is None:
         return False
 
-    if type(provided) is not bool:
+    if not isinstance(provided, bool):
         error = "Value provided for '{0}: {1}' is not a valid boolean".format(
             section, option)
         raise ValueError(error)
@@ -183,15 +211,15 @@ def _get_valid_bool(section, option, provided):
 
 
 def _get_valid_string(section, option, provided):
-    '''Validates a string type configuration option.
+    """Validates a string type configuration option.
 
     Returns None by default if the option is unset.
-    '''
+    """
 
     if provided is None:
         return None
 
-    if type(provided) is not str:
+    if not isinstance(provided, str):
         error = "Value provided for '{0}: {1}' is not a valid string".format(
             section, option)
         raise ValueError(error)
@@ -200,10 +228,10 @@ def _get_valid_string(section, option, provided):
 
 
 def _get_valid_number(section, option, provided):
-    '''Validates an int type configuration option.
+    """Validates an int type configuration option.
 
     Returns None by default if the option is unset.
-    '''
+    """
 
     if provided is None:
         return None
@@ -218,10 +246,10 @@ def _get_valid_number(section, option, provided):
 
 
 def _get_valid_file(section, option, provided):
-    '''Validates a file type configuration option.
+    """Validates a file type configuration option.
 
     Returns None by default if the option is unset.
-    '''
+    """
 
     if provided is None:
         return None
@@ -237,10 +265,10 @@ def _get_valid_file(section, option, provided):
 
 
 def _get_valid_folder(section, option, provided):
-    '''Validates a folder type configuration option.
+    """Validates a folder type configuration option.
 
     Returns None by default if the option is unset.
-    '''
+    """
 
     if provided is None:
         return None
@@ -256,11 +284,12 @@ def _get_valid_folder(section, option, provided):
 # Configuration parse helper functions
 
 def _get_yaml(yaml_file):
-    '''Retrieves and parses a yaml file.
-    '''
+    """Retrieves and parses a yaml file.
+    """
 
     # Read yaml file
-    yaml_contents = open(yaml_file).read()
+    with open(yaml_file) as yaml_io:
+        yaml_contents = yaml_io.read()
 
     # Decode yaml
     contents = yaml.load(yaml_contents)
@@ -269,11 +298,11 @@ def _get_yaml(yaml_file):
 
 
 def _init_logging(settings):
-    '''Turns on logging for the mediahandler object.
+    """Turns on logging for the mediahandler object.
 
     User the 'log_file' and 'level' settings from the user
     configuration file for setup.
-    '''
+    """
 
     # Set defaults
     log_file = os.path.join(
@@ -301,18 +330,19 @@ def _init_logging(settings):
     # Enable deluge logging
     if settings['Deluge']['enabled']:
         from deluge import log
-        log.setupLogger()
-
-    return
+        try:
+            log.setupLogger()
+        except AttributeError:
+            log.setup_logger()
 
 
 def _check_modules(settings):
-    '''Looks for modules and applications required by user-enabled options.
+    """Looks for modules and applications required by user-enabled options.
 
     Uses the require.yml settings to determine which python modules or third-
     party applications are needed for a given enabled option and then checks
     the user's system to see if they are installed.
-    '''
+    """
 
     # Check for logging
     if settings['Logging']['enabled']:
@@ -340,21 +370,17 @@ def _check_modules(settings):
                 for app in item['apps']:
                     _find_app(settings[section], app)
 
-    return
-
 
 def _find_module(parent_mod, sub_mod):
-    '''Attempts to load a python module.
+    """Attempts to load a python module.
 
     Raises an ImportError if a python module and submodule is not installed
     on the user's system.
-    '''
+    """
 
     try:
-        # Look attempt to load module
-        mod_info = imp.find_module(parent_mod)
-        mod = imp.load_module(parent_mod, *mod_info)
-        imp.find_module(sub_mod, mod.__path__)
+        # Attempt to import the module
+        import_module('{0}.{1}'.format(parent_mod, sub_mod))
 
         return True
 
@@ -366,17 +392,18 @@ def _find_module(parent_mod, sub_mod):
 
 
 def _find_app(settings, app):
-    '''Looks for an installed application in the user's local $PATH.
+    """Looks for an installed application in the user's local $PATH.
 
     Raises an ImportError if the application is not found.
-    '''
+    """
 
     # Save in settings
     name = app['name'].lower()
     settings[name] = None
 
     # Retrieve local paths
-    local_paths = os.environ['PATH'].rsplit(':')
+    split_token = ';' if mh.__iswin__ else ':'
+    local_paths = os.environ['PATH'].rsplit(split_token)
 
     # Look for app in local paths
     for local_path in local_paths:
@@ -387,9 +414,14 @@ def _find_app(settings, app):
             settings[name] = path
             break
 
+        # Try .exe for windows
+        if mh.__iswin__:
+            win_path = path + '.exe'
+            if os.path.isfile(win_path):
+                settings[name] = win_path
+                break
+
     # If app not found, raise ImportError
     if settings[name] is None:
         error = '{0} application not found'.format(app['name'])
         raise ImportError(error)
-
-    return

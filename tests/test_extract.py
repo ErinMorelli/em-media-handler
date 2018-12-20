@@ -1,7 +1,8 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler Testing Module
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,17 +14,17 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''Initialize module'''
+"""Initialize module"""
 
 import os
 import shutil
 import zipfile as zf
 import contextlib
 
-import _common
-from _common import unittest
-from _common import tempfile
-from _common import MHTestSuite
+import tests.common as common
+from tests.common import unittest
+from tests.common import tempfile
+from tests.common import MHTestSuite
 
 import mediahandler.util.extract as Extract
 import mediahandler.handler as MH
@@ -33,9 +34,9 @@ class ExtractBadZipTests(unittest.TestCase):
 
     def setUp(self):
         # Conf
-        self.conf = _common.get_conf_file()
+        self.conf = common.get_conf_file()
         # Tmp name
-        self.name = "test-{0}".format(_common.get_test_id())
+        self.name = "test-{0}".format(common.get_test_id())
         # Make handler
         self.handler = MH.MHandler(self.conf)
         self.handler.set_settings({'name': self.name})
@@ -86,9 +87,9 @@ class ExtractGoodZipTests(unittest.TestCase):
 
     def setUp(self):
         # Conf
-        self.conf = _common.get_conf_file()
+        self.conf = common.get_conf_file()
         # Tmp name
-        self.name = "test-{0}".format(_common.get_test_id())
+        self.name = "test-{0}".format(common.get_test_id())
         self.folder = os.path.join(os.path.dirname(self.conf), 'test_ET')
         # Tmp args
         args = {

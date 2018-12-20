@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,7 +14,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''
+"""
 Module: mediahandler.util.notify
 
 Module contains:
@@ -22,19 +23,21 @@ Module contains:
         An object which contains the all the logic for sending
         push notifications and raising errors produced by mediahandler.
 
-'''
+"""
 
 import logging
 import sys
-import requests
 from json import dumps
+
+import requests
+from requests.exceptions import RequestException
 
 import mediahandler as mh
 import mediahandler.util.args as Args
 
 
 class MHPush(mh.MHObject):
-    '''An object which contains the all the logic for sending
+    """An object which contains the all the logic for sending
     push notifications and raising errors produced by mediahandler.
 
     Arguments:
@@ -56,10 +59,10 @@ class MHPush(mh.MHObject):
         - |failure()|
             A wrapper for send_message() which sends a failure
             message and raises a SystemExit.
-    '''
+    """
 
     def __init__(self, settings, disable=False):
-        '''Initializes the MHPush object.
+        """Initializes the MHPush object.
 
         Arguments:
 
@@ -70,7 +73,7 @@ class MHPush(mh.MHObject):
             - disable
                 True/False. Defaults to False. Enables/disables push
                 notifications and will return only string messages.
-        '''
+        """
 
         logging.info("Initializing notification class")
 
@@ -85,13 +88,11 @@ class MHPush(mh.MHObject):
         if self.enabled:
             self._validate_credentials()
 
-        return
-
     def send_message(self, conn_msg, msg_title=None):
-        '''Wrapper for sending push notifications via 3rd party services.
+        """Wrapper for sending push notifications via 3rd party services.
 
         The function will exit if the disable flag is set.
-        '''
+        """
 
         # Check if this is enabled
         if not self.enabled or self.disable:
@@ -116,10 +117,8 @@ class MHPush(mh.MHObject):
         if hasattr(self.pushbullet, 'session'):
             self._send_pushbullet(conn_msg, conn_title)
 
-        return
-
     def success(self, file_array, skipped=None):
-        '''Builds and sends a success notification.
+        """Builds and sends a success notification.
 
         Arguments:
 
@@ -130,7 +129,7 @@ class MHPush(mh.MHObject):
             - skipped
                 Defaults to None. An array of any files that were
                 skipped during the add_media() sequence.
-        '''
+        """
 
         logging.info("Starting success notifications")
 
@@ -139,12 +138,12 @@ class MHPush(mh.MHObject):
         conn_title = 'Media Added'
 
         # Check for added files
-        if len(file_array) > 0:
+        if file_array:
             media_list = '\n+ '.join(file_array)
             conn_text = '+ {0}\n'.format(media_list)
 
         # Set skipped message if set
-        if skipped is not None and len(skipped) > 0:
+        if skipped is not None and skipped:
             skipped_list = '\n- '.join(skipped)
             skipped_msg = 'Skipped files:\n- {0}\n'.format(skipped_list)
 
@@ -171,14 +170,14 @@ class MHPush(mh.MHObject):
         return conn_text
 
     def failure(self, error_details):
-        '''Builds and sends a failure notification.
+        """Builds and sends a failure notification.
 
         Required argument:
 
             - error_details
                 String. A message detailing the error that
                 was reported during the add_media() sequence.
-        '''
+        """
 
         logging.info("Starting failure notifications")
 
@@ -196,8 +195,8 @@ class MHPush(mh.MHObject):
     # 3rd party API requests function
 
     def _make_request(self, session, url, method='GET', params=None):
-        '''Makes an API request to the provided session object
-        '''
+        """Makes an API request to the provided session object
+        """
 
         # Retrieve method function instance from session
         req = getattr(session, method.lower())
@@ -210,7 +209,7 @@ class MHPush(mh.MHObject):
         logging.debug(conn_resp)
 
         # Check for response success
-        if resp.status_code is not 200:
+        if resp.status_code != 200:
             logging.error(
                 "%s %s: %s %s",
                 method, url, resp.status_code, resp.reason)
@@ -220,8 +219,8 @@ class MHPush(mh.MHObject):
     # 3rd party API credential validation functions
 
     def _validate_credentials(self):
-        '''Wrapper for validating API credentials for 3rd party services.
-        '''
+        """Wrapper for validating API credentials for 3rd party services.
+        """
 
         # Pushover
         if self.pushover.api_key is not None:
@@ -231,11 +230,9 @@ class MHPush(mh.MHObject):
         if self.pushbullet.token is not None:
             self._validate_pushbullet()
 
-        return
-
     def _validate_pushover(self):
-        '''Validates Pushover API credentials.
-        '''
+        """Validates Pushover API credentials.
+        """
 
         logging.debug("Validating Pushover credentials")
 
@@ -252,12 +249,17 @@ class MHPush(mh.MHObject):
         })
 
         # Make request
-        resp = self._make_request(
-            self.pushover.session,
-            'https://api.pushover.net/1/users/validate.json',
-            'POST',
-            self.pushover.url
-        )
+        try:
+            resp = self._make_request(
+                self.pushover.session,
+                'https://api.pushover.net/1/users/validate.json',
+                'POST',
+                self.pushover.url
+            )
+        except RequestException as exc:
+            error_msg = 'Pushover: {0}'.format(exc.response.reason)
+            logging.error(error_msg)
+            self.parser.error(error_msg)
 
         # Check result
         if not resp['status']:
@@ -271,8 +273,8 @@ class MHPush(mh.MHObject):
         return True
 
     def _validate_pushbullet(self):
-        '''Validates Pushbullet API credentials.
-        '''
+        """Validates Pushbullet API credentials.
+        """
 
         logging.debug("Validating Pushbullet credentials")
 
@@ -284,10 +286,15 @@ class MHPush(mh.MHObject):
         })
 
         # Make request
-        resp = self._make_request(
-            self.pushbullet.session,
-            'https://api.pushbullet.com/v2/users/me'
-        )
+        try:
+            resp = self._make_request(
+                self.pushbullet.session,
+                'https://api.pushbullet.com/v2/users/me'
+            )
+        except RequestException as exc:
+            error_msg = 'Pushbullet: {0}'.format(exc.response.reason)
+            logging.error(error_msg)
+            self.parser.error(error_msg)
 
         # Check result
         if 'error' in resp.keys():
@@ -303,8 +310,8 @@ class MHPush(mh.MHObject):
     # 3rd party API send functions
 
     def _send_pushover(self, conn_msg, conn_title):
-        '''Sends a message via the Pushover API.
-        '''
+        """Sends a message via the Pushover API.
+        """
 
         logging.debug("Sending Pushover notification")
 
@@ -323,8 +330,8 @@ class MHPush(mh.MHObject):
         return resp
 
     def _send_pushbullet(self, conn_msg, conn_title):
-        '''Sends a message via the Pushbullet API.
-        '''
+        """Sends a message via the Pushbullet API.
+        """
 
         logging.debug("Sending Pushbullet notification")
 
@@ -344,3 +351,6 @@ class MHPush(mh.MHObject):
         )
 
         return resp
+
+    def __repr__(self):
+        return '<MHPush {0}>'.format(self.__dict__)

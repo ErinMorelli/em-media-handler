@@ -1,7 +1,8 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler Testing Module
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,12 +14,13 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''Common testing functions module'''
+"""Common testing functions module"""
 
 import os
 import shutil
 import string
 import tempfile
+import warnings
 from random import choice
 
 try:
@@ -137,26 +139,14 @@ def get_types_by_id():
 
 
 def get_pushover_api():
-    apis = {}
-    settings = get_orig_settings()['Notifications']['pushover']
-    # Get API Key
-    apis['api_key'] = os.getenv('PUSHOVER_API_KEY')
-    if apis['api_key'] is None:
-        apis['api_key'] = settings['api_key']
-    # Get User Key
-    apis['user_key'] = os.getenv('PUSHOVER_USER_KEY')
-    if apis['user_key'] is None:
-        apis['user_key'] = settings['user_key']
-    return apis
+    return {
+        'api_key': random_string(10),
+        'user_key': random_string(10)
+    }
 
 
 def get_pushbullet_api():
-    api = {}
-    settings = get_orig_settings()['Notifications']['pushbullet']
-    api['token'] = os.getenv('PUSHBULLET_TOKEN')
-    if api['token'] is None:
-        api['token'] = settings['token']
-    return api
+    return {'token': random_string(10)}
 
 
 def get_google_api():
@@ -164,3 +154,12 @@ def get_google_api():
     if key is None:
         key = get_orig_settings()['Audiobooks']['api_key']
     return key
+
+
+def remove_file(file_path):
+    for retry in range(100):
+        try:
+            os.unlink(file_path)
+            break
+        except:
+            pass

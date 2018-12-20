@@ -1,7 +1,8 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler Testing Module
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,14 +14,14 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''Common testing functions module'''
+"""Common testing functions module"""
 
 import os
 import re
 import sys
 
-from _common import unittest
-from _common import MHTestSuite
+from tests.common import unittest
+from tests.common import MHTestSuite
 
 pkgpath = os.path.dirname(__file__) or '.'
 sys.path.append(pkgpath)

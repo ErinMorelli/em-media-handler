@@ -6,7 +6,7 @@
 EM Media Handler
 ============================================
 
-Welcome to to the documentation for `EM Media Handler`_, a comprehensive media automation system for Linux and OS X.
+Welcome to to the documentation for `EM Media Handler`_, a comprehensive media automation system for Linux, macOS, and Windows (beta).
 
 To get started, begin with the :doc:`guide/index` guide. Which will walk you through the basics of installation and configuration.
 

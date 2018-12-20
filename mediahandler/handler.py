@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # EM MEDIA HANDLER
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,7 +14,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''
+"""
 Module: mediahandler.handler
 
 Module contains:
@@ -26,7 +27,7 @@ Module contains:
     - |main()|
         Wrapper function for handling CLI input.
 
-'''
+"""
 
 import re
 import sys
@@ -41,7 +42,7 @@ from mediahandler.util.config import make_config, parse_config
 
 
 class MHandler(mh.MHObject):
-    '''Main handler object structure which serves as an entry point for
+    """Main handler object structure which serves as an entry point for
     the entire module. Contains the core logic for dispatching media to add
     to their respective submodules for further handling.
 
@@ -62,10 +63,10 @@ class MHandler(mh.MHObject):
         - extract_files()
             Wrapper function for accessing the
             mediahandler.util.extract module
-    '''
+    """
 
     def __init__(self, config):
-        '''Initialize the MHandler class.
+        """Initialize the MHandler class.
 
         Required argument:
 
@@ -74,7 +75,7 @@ class MHandler(mh.MHObject):
                 A default file available for customization is located here: ::
 
                   ~/.config/mediahandler/config.yml
-        '''
+        """
 
         # Set up args via super
         super(MHandler, self).__init__(config)
@@ -91,7 +92,7 @@ class MHandler(mh.MHObject):
         self.extracted = None
 
     def add_media(self, media, **kwargs):
-        '''Entry point function for adding media via the MHandler object.
+        """Entry point function for adding media via the MHandler object.
 
         Required argument:
 
@@ -124,7 +125,7 @@ class MHandler(mh.MHObject):
             - nopush
                 True/False. Disable push notifications. Overrides
                 the "enabled" config file setting.
-        '''
+        """
 
         # Set object info from input
         self._parse_args_from_dict(media, **kwargs)
@@ -148,14 +149,14 @@ class MHandler(mh.MHObject):
         return new_files
 
     def _parse_args_from_dict(self, media, **kwargs):
-        '''Validate arguments from the add_media() function via the CLI
+        """Validate arguments from the add_media() function via the CLI
         argparse object in the mediahandler.util.args module.
 
             - Checks to see if the arguments originate from the CLI via the
               'validated' flag. Skips argparse validation if True.
 
             - Updated the MHandler and MHPush object members with new values.
-        '''
+        """
 
         # If we're already validated just set new arg values
         if 'validated' in kwargs.keys() and kwargs['validated']:
@@ -175,17 +176,15 @@ class MHandler(mh.MHObject):
         if hasattr(self, 'no_push') and getattr(self, 'no_push'):
             self.push = Notify.MHPush(self.notifications, self.no_push)
 
-        return
-
     def _file_handler(self, files):
-        '''A wrapper function for _add_media_files().
+        """A wrapper function for _add_media_files().
 
             - Looks for and extracts zipped files
             - Sets single_file flag
             - Checks that media folder is not empty
             - Sends media files to _add_media_files()
             - Checks for success
-        '''
+        """
 
         logging.info("Starting files handler")
 
@@ -197,7 +196,7 @@ class MHandler(mh.MHObject):
             self.single_file = True
 
         # Make sure folders have files
-        elif len(listdir(files)) == 0:
+        elif not listdir(files):
             self.push.failure(
                 "No {0} files found for: {1}".format(self.stype, self.name))
 
@@ -207,10 +206,10 @@ class MHandler(mh.MHObject):
         return self._check_success(files, results)
 
     def _find_zipped(self, files):
-        '''Looks for compressed file types and sends them to extract_files().
+        """Looks for compressed file types and sends them to extract_files().
 
         File types supported: .zip, .rar, .7z
-        '''
+        """
 
         logging.info("Looking for zipped files")
         file_string = files
@@ -231,14 +230,12 @@ class MHandler(mh.MHObject):
             # Rescan files
             self._file_handler(get_files)
 
-        return
-
     def extract_files(self, raw):
-        '''Wrapper function for sending compressed files for extraction via
+        """Wrapper function for sending compressed files for extraction via
         the mediahandler.util.extract module.
 
         Requires the Filebot application for extraction.
-        '''
+        """
 
         logging.info("Extracting files from compressed file")
         self.extracted = raw
@@ -264,12 +261,12 @@ class MHandler(mh.MHObject):
         return extracted
 
     def _add_media_files(self, files):
-        '''Sends media files to the correct mediahandler.types submodule
+        """Sends media files to the correct mediahandler.types submodule
         based on media type.
 
         Derives submodule name and submodule MHMediaType subclass name from
         the 'stype' member value.
-        '''
+        """
 
         logging.info("Getting media information")
         use_type = self.stype.lower()
@@ -307,18 +304,18 @@ class MHandler(mh.MHObject):
         return media.add(files)
 
     def _get_class_name(self):
-        '''Return the MHMediaType subclass name based on the media type.
-        '''
+        """Return the MHMediaType subclass name based on the media type.
+        """
         use_type = re.sub(r's$', '', self.stype)
 
         return 'MH{0}'.format(use_type.capitalize())
 
     def _check_success(self, files, results):
-        '''Checks and processes the output of _add_media_files().
+        """Checks and processes the output of _add_media_files().
 
         Sends files to be removed (if enabled). Documents added and skipped
         files then sends information to mediahandler.util.notify module.
-        '''
+        """
 
         logging.info("Checking for success")
         skip = False
@@ -327,12 +324,12 @@ class MHandler(mh.MHObject):
         (added_files, skipped_files) = results
 
         # Make sure files were added
-        if len(added_files) == 0 and len(skipped_files) == 0:
+        if not added_files and not skipped_files:
             self.push.failure(
                 "No {0} files found for: {1}".format(self.stype, self.name))
 
         # Make note of any skips
-        if len(skipped_files) > 0:
+        if skipped_files:
             skip = True
 
         # Remove old files
@@ -341,11 +338,11 @@ class MHandler(mh.MHObject):
         return self.push.success(added_files, skipped_files)
 
     def _remove_files(self, files, skip):
-        '''Removes left over files from processing.
+        """Removes left over files from processing.
 
         Checks user's 'keep_files' and 'keep_if_skips' settings. Removes
         any extracted files in addition to other left over files.
-        '''
+        """
 
         keep = self.general.keep_files
         keep_skips = self.general.keep_if_skips
@@ -378,19 +375,22 @@ class MHandler(mh.MHObject):
 
         return
 
+    def __repr__(self):
+        return '<MHandler {0}>'.format(self.__dict__)
 
-def main(deluge=False):
-    '''Wrapper function for passing CLI arguments to the MHandler
+
+def main(is_deluge=False):
+    """Wrapper function for passing CLI arguments to the MHandler
     add_media() function for processing.
 
     Optional argument:
         - deluge
             True/False. Determines whether basic argument
             parser or deluge argument parser should be used.
-    '''
+    """
 
     # Get arguments
-    (config, args) = Args.get_arguments(deluge)
+    (config, args) = Args.get_arguments(is_deluge)
 
     # Set up handler
     handler = MHandler(config)
@@ -401,3 +401,9 @@ def main(deluge=False):
     # Print for cmd line & return
     sys.stdout.write(added)
     return added
+
+
+def deluge():
+    """Wrapper function for the addmedia-deluge script.
+    """
+    return main(is_deluge=True)

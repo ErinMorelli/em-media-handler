@@ -1,7 +1,8 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler Testing Module
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,16 +14,16 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''Initialize module'''
+"""Initialize module"""
 
 import os
 import sys
 import shutil
 from argparse import Namespace
 
-import _common
-from _common import unittest
-from _common import MHTestSuite
+import tests.common as common
+from tests.common import unittest
+from tests.common import MHTestSuite
 
 import mediahandler.util.args as Args
 
@@ -30,7 +31,7 @@ import mediahandler.util.args as Args
 class ArgsTests(unittest.TestCase):
 
     def setUp(self):
-        self.conf = _common.get_conf_file()
+        self.conf = common.get_conf_file()
         self.folder = os.path.dirname(self.conf)
         self.tmp_file = None
         self.tmp_folder = None
@@ -81,7 +82,7 @@ class ArgsTests(unittest.TestCase):
         # Make good folder
         self.tmp_folder = os.path.join(self.folder, 'books')
         os.makedirs(self.tmp_folder)
-        self.tmp_file = _common.make_tmp_file('.m4b', self.tmp_folder)
+        self.tmp_file = common.make_tmp_file('.m4b', self.tmp_folder)
         # Set up args
         file_name = os.path.basename(self.tmp_file)
         sys.argv = ['', 'hash', file_name, self.tmp_folder]
@@ -137,23 +138,23 @@ class ArgsTests(unittest.TestCase):
 
     def test_cli_bad_args(self):
         sys.argv = ['', '-s']
-        self.assertRaisesRegexp(
-            SystemExit, r'too few arguments', Args.get_arguments)
+        regex = r'(too few arguments|the following arguments are required: media)'
+        self.assertRaisesRegexp(SystemExit, regex, Args.get_arguments)
 
 
 class ParseDirTests(unittest.TestCase):
 
     def setUp(self):
         # Conf
-        self.conf = _common.get_conf_file()
+        self.conf = common.get_conf_file()
         # Folder
         self.folder = os.path.dirname(self.conf)
         # Test name
-        self.name = 'test-{0}'.format(_common.get_test_id())
+        self.name = 'test-{0}'.format(common.get_test_id())
         # Parser
         self.parser = Args.get_parser()
         # Types hash
-        self.types_hash = _common.get_types_by_string()
+        self.types_hash = common.get_types_by_string()
         # Placeholder
         self.tmp_folder = None
 
@@ -171,7 +172,7 @@ class ParseDirTests(unittest.TestCase):
         # Make good folder
         self.tmp_folder = os.path.join(self.folder, stype)
         os.makedirs(self.tmp_folder)
-        self.tmp_file = _common.make_tmp_file('.avi', self.tmp_folder)
+        self.tmp_file = common.make_tmp_file('.avi', self.tmp_folder)
         # Set up args
         filename = os.path.basename(self.tmp_file)
         # Build expected values
@@ -205,7 +206,7 @@ class ConvertTypeTests(unittest.TestCase):
 
     def setUp(self):
         self.namespace = Namespace
-        self.types_hash = _common.get_types_by_string()
+        self.types_hash = common.get_types_by_string()
 
     def run_type_test(self, test, is_bad=False):
         stype = test['type']

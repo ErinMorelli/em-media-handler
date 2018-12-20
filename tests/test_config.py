@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler Testing Module
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,20 +14,29 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-'''Initialize module'''
+"""Initialize module"""
 
 import os
 import re
 import sys
 import shutil
-from pwd import getpwuid
+import yaml
 
-import _common
-from _common import unittest
-from _common import tempfile
-from _common import MHTestSuite
+import tests.common as common
+from tests.common import unittest
+from tests.common import tempfile
+from tests.common import MHTestSuite
 
 import mediahandler.util.config as Config
+
+SKIP_PWD = False
+try:
+    from pwd import getpwuid
+except:
+    SKIP_PWD = True
+    pass
+
+IS_WIN = os.name == 'nt'
 
 
 class FindModulesTests(unittest.TestCase):
@@ -36,20 +46,20 @@ class FindModulesTests(unittest.TestCase):
         self.assertTrue(mod_yes)
 
     def test_find_module_failure(self):
-        module = _common.random_string(8)
-        submod = _common.random_string(5)
+        module = common.random_string(8)
+        submod = common.random_string(5)
         regex = r'Module {0}.{1} is not installed'.format(module, submod)
         self.assertRaisesRegexp(ImportError, regex,
                                 Config._find_module, module, submod)
 
     def test_find_app_success(self):
-        settings = _common.get_settings()['TV']
+        settings = common.get_settings()['TV']
         app = {'name': 'Filebot', 'exec': 'filebot'}
         Config._find_app(settings, app)
         self.assertIn('filebot', settings.keys())
 
     def test_find_app_failure(self):
-        settings = _common.get_settings()['Movies']
+        settings = common.get_settings()['Movies']
         app = {'name': 'NotReal', 'exec': 'notreal.php'}
         regex = r'NotReal application not found'
         self.assertRaisesRegexp(
@@ -60,7 +70,7 @@ class CheckModulesTests(unittest.TestCase):
 
     def setUp(self):
         # Get settings
-        self.settings = _common.get_settings()
+        self.settings = common.get_settings()
         # Remove settings we are testing for
         del self.settings['TV']['filebot']
         del self.settings['Movies']['filebot']
@@ -75,7 +85,7 @@ class CheckModulesTests(unittest.TestCase):
         result = Config._check_modules(self.settings)
         self.assertIsNone(result)
 
-    @_common.skipUnlessHasMod('deluge', 'ui')
+    @common.skipUnlessHasMod('deluge', 'ui')
     def test_check_deluge(self):
         # Modify settings
         self.settings['Deluge']['enabled'] = True
@@ -131,7 +141,7 @@ class CheckModulesTests(unittest.TestCase):
         self.assertRaisesRegexp(
             ImportError, regex, Config._check_modules, self.settings)
 
-    @_common.skipUnlessHasMod('beets', 'util')
+    @common.skipUnlessHasMod('beets', 'util')
     def test_music_modules(self):
         # Modify settings
         self.settings['Music']['enabled'] = True
@@ -144,10 +154,10 @@ class InitLoggingTests(unittest.TestCase):
 
     def setUp(self):
         # Conf
-        self.conf = _common.get_conf_file()
+        self.conf = common.get_conf_file()
         # Unique test ID
-        self.name = 'test-{0}'.format(_common.get_test_id())
-        self.folder = _common.random_string(9)
+        self.name = 'test-{0}'.format(common.get_test_id())
+        self.folder = common.random_string(9)
         # Set logfile
         self.dir = os.path.join(os.path.dirname(self.conf), self.folder)
         self.log_file = os.path.join(self.dir, '{0}.log'.format(self.name))
@@ -156,9 +166,9 @@ class InitLoggingTests(unittest.TestCase):
         if os.path.exists(self.dir):
             shutil.rmtree(self.dir)
         if os.path.exists(self.log_file):
-            os.unlink(self.log_file)
+            common.remove_file(self.log_file)
 
-    @_common.skipUnlessHasMod('deluge', 'log')
+    @common.skipUnlessHasMod('deluge', 'log')
     def test_init_logging(self):
         # Use custom settings
         settings = {
@@ -178,7 +188,7 @@ class InitLoggingTests(unittest.TestCase):
 class SimpleValidationConfigTests(unittest.TestCase):
 
     def setUp(self):
-        self.settings = _common.get_settings()
+        self.settings = common.get_settings()
 
     def test_valid_bool(self):
         # Empty string case
@@ -227,7 +237,7 @@ class FileValidationConfigTests(unittest.TestCase):
 
     def setUp(self):
         # Get original conf file
-        self.conf = _common.get_conf_file()
+        self.conf = common.get_conf_file()
         # Setup temp conf path
         conf_dir = os.path.dirname(self.conf)
         self.new_conf = os.path.join(conf_dir, 'temp_FVCT.yml')
@@ -238,14 +248,14 @@ class FileValidationConfigTests(unittest.TestCase):
         self.dir = ''
 
     def tearDown(self):
-        os.unlink(self.new_conf)
+        common.remove_file(self.new_conf)
         if os.path.exists(self.tmp_file):
-            os.unlink(self.tmp_file)
+            common.remove_file(self.tmp_file)
         if os.path.exists(self.dir):
             shutil.rmtree(self.dir)
 
     def test_valid_file(self):
-        self.tmp_file = _common.make_tmp_file('.log')
+        self.tmp_file = common.make_tmp_file('.log')
         # Empty string case
         file_null = Config._get_valid_file('Deluge', 'user', None)
         self.assertIsNone(file_null)
@@ -280,7 +290,7 @@ class MissingSectionConfigTest(unittest.TestCase):
 
     def setUp(self):
         # Get original conf file
-        self.old_conf = _common.get_conf_file()
+        self.old_conf = common.get_conf_file()
         # Setup temp conf path
         conf_dir = os.path.dirname(self.old_conf)
         self.new_conf = os.path.join(conf_dir, 'temp_MSCT.yml')
@@ -288,11 +298,11 @@ class MissingSectionConfigTest(unittest.TestCase):
         shutil.copy(self.old_conf, self.new_conf)
 
     def tearDown(self):
-        os.unlink(self.new_conf)
+        common.remove_file(self.new_conf)
 
     def test_missing_section(self):
         self.remove_conf_section()
-        settings = _common.get_settings(self.new_conf)
+        settings = common.get_settings(self.new_conf)
         expected = {
             'enabled': False,
             'notify_name': None,
@@ -310,28 +320,26 @@ class MissingSectionConfigTest(unittest.TestCase):
         # Get conf file content
         with open(self.new_conf) as conf_file:
                 conf_content = conf_file.read()
-        # Set up new file content
-        regex = r'(Notifications:(.|\n)*)notify_name:\s'
+        # Parse YAML
+        conf = yaml.load(conf_content)
         # Make updates
-        conf_content = re.sub(regex, r'\1', conf_content)
-        # Write new file
-        new_conf = open(self.new_conf, 'w')
-        new_conf.write(conf_content)
-        new_conf.close()
-        return
+        del conf['Notifications']
+        # Write to file
+        with open(self.new_conf, 'w') as conf_file:
+            yaml.dump(conf, conf_file, indent=4, default_flow_style=False)
 
 
 class MissingOptionConfigTest(unittest.TestCase):
 
     def setUp(self):
-        old_conf = _common.get_conf_file()
+        old_conf = common.get_conf_file()
         conf_dir = os.path.dirname(old_conf)
         self.conf = os.path.join(conf_dir, 'temp_MOCT.yml')
         shutil.copy(old_conf, self.conf)
         self.remove_conf_option()
 
     def tearDown(self):
-        os.unlink(self.conf)
+        common.remove_file(self.conf)
 
     def test_missing_option(self):
         settings = Config.parse_config(self.conf)
@@ -342,27 +350,26 @@ class MissingOptionConfigTest(unittest.TestCase):
         # Get conf file content
         with open(self.conf) as conf_file:
                 conf_content = conf_file.read()
-        # Set up new file content
-        regex = r'(Deluge:(.|\n)*)host: 127.0.0.1'
+        # Parse YAML
+        conf = yaml.load(conf_content)
         # Make updates
-        conf_content = re.sub(regex, r"\1", conf_content)
-        # Write new file
-        new_conf = open(self.conf, 'w')
-        new_conf.write(conf_content)
-        new_conf.close()
+        del conf['Deluge']['host']
+        # Write to file
+        with open(self.conf, 'w') as conf_file:
+            yaml.dump(conf, conf_file, indent=4, default_flow_style=False)
 
 
 class MissingOptionSectionConfigTest(unittest.TestCase):
 
     def setUp(self):
-        old_conf = _common.get_conf_file()
+        old_conf = common.get_conf_file()
         conf_dir = os.path.dirname(old_conf)
         self.conf = os.path.join(conf_dir, 'temp_MOSCT.yml')
         shutil.copy(old_conf, self.conf)
         self.remove_conf_option()
 
     def tearDown(self):
-        os.unlink(self.conf)
+        common.remove_file(self.conf)
 
     def test_missing_option(self):
         settings = Config.parse_config(self.conf)['Notifications']
@@ -373,14 +380,13 @@ class MissingOptionSectionConfigTest(unittest.TestCase):
         # Get conf file content
         with open(self.conf) as conf_file:
                 conf_content = conf_file.read()
-        # Set up new file content
-        regex = r'(Notifications:(.|\n)*)pushover:(.|\n)*user_key:'
+        # Parse YAML
+        conf = yaml.load(conf_content)
         # Make updates
-        conf_content = re.sub(regex, r"\1", conf_content)
-        # Write new file
-        new_conf = open(self.conf, 'w')
-        new_conf.write(conf_content)
-        new_conf.close()
+        del conf['Notifications']
+        # Write to file
+        with open(self.conf, 'w') as conf_file:
+            yaml.dump(conf, conf_file, indent=4, default_flow_style=False)
 
 
 class MakeConfigTests(unittest.TestCase):
@@ -389,7 +395,7 @@ class MakeConfigTests(unittest.TestCase):
         # Conf
         self.conf = os.path.join(
             os.path.expanduser("~"), '.config', 'mediahandler', 'config.yml')
-        self.name = _common.get_test_id()
+        self.name = common.get_test_id()
         # New conf
         self.tmp_file = ''
         self.maxDiff = None
@@ -399,21 +405,23 @@ class MakeConfigTests(unittest.TestCase):
         if os.path.exists(folder):
             shutil.rmtree(folder)
         if os.path.exists(self.tmp_file):
-            os.unlink(self.tmp_file)
+            common.remove_file(self.tmp_file)
 
     def test_default_conf(self):
         new_conf = Config.make_config()
         self.assertEqual(new_conf, self.conf)
 
     @unittest.skipIf('SUDO_UID' in os.environ.keys(), 'for non-sudoers only')
+    @unittest.skipIf(SKIP_PWD, 'for non-Windows systems')
     def test_bad_conf(self):
-        self.tmp_file = _common.make_tmp_file('.yml')
+        self.tmp_file = common.make_tmp_file('.yml')
         os.chmod(self.tmp_file, 0o000)
         regex = r'Configuration file cannot be opened'
         self.assertRaisesRegexp(
             Warning, regex, Config.make_config, self.tmp_file)
 
     @unittest.skipUnless('SUDO_UID' in os.environ.keys(), 'for sudoers only')
+    @unittest.skipIf(SKIP_PWD, 'for non-Windows systems')
     def test_conf_permissions(self):
         self.tmp_file = os.path.join(
             os.path.dirname(self.conf), '{0}.yml'.format(self.name))
@@ -422,14 +430,14 @@ class MakeConfigTests(unittest.TestCase):
             int(os.environ['SUDO_UID']), self.get_owner(file_path))
 
     def test_custom_conf(self):
-        name = 'test-{0}.conf'.format(_common.get_test_id())
+        name = 'test-{0}.conf'.format(common.get_test_id())
         self.tmp_file = os.path.join(os.path.dirname(self.conf), 'tmp', name)
         results = Config.make_config(self.tmp_file)
         self.assertEqual(self.tmp_file, results)
         # Check formatting
         expected = Config.parse_config(self.conf)
         settings = Config.parse_config(results)
-        self.assertListEqual(settings.keys(), expected.keys())
+        self.assertListEqual(list(settings.keys()), list(expected.keys()))
 
     def get_owner(self, filename):
         return getpwuid(os.stat(filename).st_uid).pw_uid

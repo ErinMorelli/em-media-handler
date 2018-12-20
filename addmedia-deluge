@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # EM MEDIA HANDLER
-# Copyright (c) 2014-2015 Erin Morelli
+# Copyright (c) 2014-2018 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -17,4 +18,4 @@
 import mediahandler.handler
 
 if __name__ == '__main__':
-    mediahandler.handler.main(True)
+    mediahandler.handler.deluge()
