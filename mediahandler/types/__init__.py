@@ -37,8 +37,8 @@ Media Type Submodules:
 
 import os
 import logging
-from re import findall, search, sub
 from subprocess import Popen, PIPE
+from re import findall, search, sub, IGNORECASE
 
 import mediahandler as mh
 
@@ -193,8 +193,8 @@ class MHMediaType(mh.MHObject):
             output = output.decode('utf-8')
 
         # Look for content
-        added_data = findall(self.query.added, output)
-        skip_data = findall(self.query.skip, output)
+        added_data = findall(self.query.added, output, IGNORECASE)
+        skip_data = findall(self.query.skip, output, IGNORECASE)
 
         # Check return
         results = []

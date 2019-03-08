@@ -17,6 +17,7 @@
 """Initialize module"""
 
 import os
+import ntpath
 from re import escape
 
 from tests.common import unittest
@@ -36,15 +37,15 @@ class TVMediaObjectTests(MediaObjectTests):
         self.episode = TV.MHTv(self.settings, self.push)
 
     def test_new_tv_object(self):
-        form = os.sep.join(
+        form = os.path.sep.join(
             ['{n}', 'Season {s}', '{n.space(".")}.{"S"+s.pad(2)}E{e.pad(2)}'])
         expected = os.path.join(self.folder, form)
         self.assertEqual(self.episode.cmd.db, 'thetvdb')
         self.assertEqual(self.episode.cmd.format, expected)
 
     def test_tv_output_good(self):
-        fro = os.path.join(os.sep, 'Downloaded', 'TV', 'Greys.Anatomy.S10E24.720p.HDTV.X264.mkv')
-        to = os.path.join(os.sep, self.folder, "Grey's Anatomy", "Season 10", "Grey's.Anatomy.S10E24.mkv")
+        fro = os.path.join(os.path.sep, 'Downloaded', 'TV', 'Greys.Anatomy.S10E24.720p.HDTV.X264.mkv')
+        to = os.path.join(os.path.sep, self.folder, "Grey's Anatomy", "Season 10", "Grey's.Anatomy.S10E24.mkv")
         output = """Rename episodes using [TheTVDB]
 Auto-detected query: [Greys Anatomy]
 Fetching episode data for [Grey's Anatomy]
@@ -59,18 +60,18 @@ Done ?(?????)?
         self.assertEqual(skipped, [])
 
     def test_tv_output_good_multi(self):
-        one = os.path.join(os.sep, "Downloaded", "Grey's Anatomy Season 1", "greys.anatomy.s01e01.avi")
-        one_to = os.path.join(os.sep, self.folder, "Grey's Anatomy", "Season 1", "Grey's.Anatomy.S01E01.avi")
-        two = os.path.join(os.sep, "Downloaded", "Grey's Anatomy Season 1", "greys.anatomy.s01e02.avi")
-        two_to = os.path.join(os.sep, self.folder, "Grey's Anatomy", "Season 1", "Grey's.Anatomy.S01E02.avi")
-        three = os.path.join(os.sep, "Downloaded", "Grey's Anatomy Season 1", "greys.anatomy.s01e03.avi")
-        three_to = os.path.join(os.sep, self.folder, "Grey's Anatomy", "Season 1", "Grey's.Anatomy.S01E03.avi")
-        four = os.path.join(os.sep, "Downloaded", "Grey's Anatomy Season 1", "greys.anatomy.s01e04.avi")
-        four_to = os.path.join(os.sep, self.folder, "Grey's Anatomy", "Season 1", "Grey's.Anatomy.S01E04.avi")
-        five = os.path.join(os.sep, "Downloaded", "Grey's Anatomy Season 1", "greys.anatomy.s01e05.avi")
-        five_to = os.path.join(os.sep, self.folder, "Grey's Anatomy", "Season 1", "Grey's.Anatomy.S01E05.avi")
-        six = os.path.join(os.sep, "Downloaded", "Grey's Anatomy Season 1", "greys.anatomy.s01e06.avi")
-        six_to = os.path.join(os.sep, self.folder, "Grey's Anatomy", "Season 1", "Grey's.Anatomy.S01E06.avi")
+        one = os.path.join(os.path.sep, "Downloaded", "Grey's Anatomy Season 1", "greys.anatomy.s01e01.avi")
+        one_to = os.path.join(os.path.sep, self.folder, "Grey's Anatomy", "Season 1", "Grey's.Anatomy.S01E01.avi")
+        two = os.path.join(os.path.sep, "Downloaded", "Grey's Anatomy Season 1", "greys.anatomy.s01e02.avi")
+        two_to = os.path.join(os.path.sep, self.folder, "Grey's Anatomy", "Season 1", "Grey's.Anatomy.S01E02.avi")
+        three = os.path.join(os.path.sep, "Downloaded", "Grey's Anatomy Season 1", "greys.anatomy.s01e03.avi")
+        three_to = os.path.join(os.path.sep, self.folder, "Grey's Anatomy", "Season 1", "Grey's.Anatomy.S01E03.avi")
+        four = os.path.join(os.path.sep, "Downloaded", "Grey's Anatomy Season 1", "greys.anatomy.s01e04.avi")
+        four_to = os.path.join(os.path.sep, self.folder, "Grey's Anatomy", "Season 1", "Grey's.Anatomy.S01E04.avi")
+        five = os.path.join(os.path.sep, "Downloaded", "Grey's Anatomy Season 1", "greys.anatomy.s01e05.avi")
+        five_to = os.path.join(os.path.sep, self.folder, "Grey's Anatomy", "Season 1", "Grey's.Anatomy.S01E05.avi")
+        six = os.path.join(os.path.sep, "Downloaded", "Grey's Anatomy Season 1", "greys.anatomy.s01e06.avi")
+        six_to = os.path.join(os.path.sep, self.folder, "Grey's Anatomy", "Season 1", "Grey's.Anatomy.S01E06.avi")
         output = """Rename episodes using [TheTVDB]
 Auto-detected query: [greys anatomy]
 Fetching episode data for [Grey's Anatomy]
@@ -96,10 +97,10 @@ Done ?(?????)?
         self.assertEqual(skipped, skip_expected)
 
     def test_tv_output_no_match(self):
-        one = os.path.join(os.sep, "Downloaded", "TV", "Fake.Show.S01E01.mkv")
-        one_to = os.path.join(os.sep, "TV", "Fake Show", "Fake.Show.S01E01.mkv")
-        two = os.path.join(os.sep, "Downloaded", "TV", "Fake.Show.S01E02.mkv")
-        two_to = os.path.join(os.sep, "TV", "Fake Show", "Fake.Show.S01E02.mkv")
+        one = os.path.join(os.path.sep, "Downloaded", "TV", "Fake.Show.S01E01.mkv")
+        one_to = os.path.join(os.path.sep, "TV", "Fake Show", "Fake.Show.S01E01.mkv")
+        two = os.path.join(os.path.sep, "Downloaded", "TV", "Fake.Show.S01E02.mkv")
+        two_to = os.path.join(os.path.sep, "TV", "Fake Show", "Fake.Show.S01E02.mkv")
         output = """Rename episodes using [TheTVDB]
 Auto-detected query: [Fake Show]
 Fetching episode data for [Fake Show]
@@ -116,14 +117,14 @@ Done ?(?????)?
             self.episode._process_output, output, self.tmp_file)
 
     def test_tv_output_skipped(self):
-        one = os.path.join(os.sep, "Downloaded", "Archer Season 3", "Archer.s03e01.avi")
-        one_to = os.path.join(os.sep, self.folder, "Archer", "Season 3", "Archer.S03E01.avi")
-        two = os.path.join(os.sep, "Downloaded", "Archer Season 3", "Archer.s03e02.avi")
-        two_to = os.path.join(os.sep, self.folder, "Archer", "Season 3", "Archer.S03E02.avi")
-        three = os.path.join(os.sep, "Downloaded", "Archer Season 3", "Archer.s03e03.avi")
-        three_to = os.path.join(os.sep, self.folder, "Archer", "Season 3", "Archer.S03E03.avi")
-        four = os.path.join(os.sep, "Downloaded", "Archer Season 3", "Archer.s03e03.nfo")
-        four_to = os.path.join(os.sep, self.folder, "Archer", "Season 3", "Archer.S03E03.nfo")
+        one = os.path.join(os.path.sep, "Downloaded", "Archer Season 3", "Archer.s03e01.avi")
+        one_to = os.path.join(os.path.sep, self.folder, "Archer", "Season 3", "Archer.S03E01.avi")
+        two = os.path.join(os.path.sep, "Downloaded", "Archer Season 3", "Archer.s03e02.avi")
+        two_to = os.path.join(os.path.sep, self.folder, "Archer", "Season 3", "Archer.S03E02.avi")
+        three = os.path.join(os.path.sep, "Downloaded", "Archer Season 3", "Archer.s03e03.avi")
+        three_to = os.path.join(os.path.sep, self.folder, "Archer", "Season 3", "Archer.S03E03.avi")
+        four = os.path.join(os.path.sep, "Downloaded", "Archer Season 3", "Archer.s03e03.nfo")
+        four_to = os.path.join(os.path.sep, self.folder, "Archer", "Season 3", "Archer.S03E03.nfo")
         output = """Rename episodes using [TheTVDB]
 Auto-detected query: [greys anatomy]
 Fetching episode data for [Grey's Anatomy]

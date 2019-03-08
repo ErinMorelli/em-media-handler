@@ -27,6 +27,7 @@ Module contains:
 import os
 import logging
 from re import escape, search
+import ntpath
 
 import mediahandler.types
 
@@ -81,10 +82,15 @@ class MHMovie(mediahandler.types.MHMediaType):
         if not added_files:
             return info
 
+        # Set destination path for query
+        dst_path = self.dst_path
+        if self.dst_path.endswith(os.path.sep):
+            dst_path = self.dst_path[:-1]
+
         # Set search query
-        epath = escape(self.dst_path)
+        epath = escape(dst_path)
         mov_find = r'{0}{1}(.*\(\d{{4}}\))'.format(
-            epath, escape(os.sep))
+            epath, escape(os.path.sep))
         logging.debug('Search query: %s', mov_find)
 
         # See what movies were added
