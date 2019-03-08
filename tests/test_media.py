@@ -119,8 +119,8 @@ class BaseMediaObjectTests(MediaObjectTests):
             SystemExit, regex, self.media.add, self.tmp_file)
 
     def test_process_output_good(self):
-        fro = os.path.join(os.sep, 'Downloaded', 'TV', 'At.Midnight.2015.01.08.720p.HDTV.x264.mkv')
-        to = os.path.join(os.sep, 'media', 'TV', '@midnight', 'Season 2015', '@midnight.S2015E01.mkv')
+        fro = os.path.join(os.path.sep, 'Downloaded', 'TV', 'At.Midnight.2015.01.08.720p.HDTV.x264.mkv')
+        to = os.path.join(os.path.sep, 'media', 'TV', '@midnight', 'Season 2015', '@midnight.S2015E01.mkv')
         output = """Rename episodes using [TheTVDB]
 Auto-detected query: [@midnight, At Midnight]
 Fetching episode data for [@midnight]
@@ -135,8 +135,8 @@ Done ?(?????)?
         self.assertEqual(new_file, expected)
 
     def test_process_output_skipped(self):
-        fro = os.path.join(os.sep, 'Downloaded', 'TV', 'Downton.Abbey.5x03.720p.HDTV.x264.mkv')
-        to = os.path.join(os.sep, 'Media', 'TV', 'Downton Abbey', 'Season 5', 'Downton.Abbey.S05E03.mkv')
+        fro = os.path.join(os.path.sep, 'Downloaded', 'TV', 'Downton.Abbey.5x03.720p.HDTV.x264.mkv')
+        to = os.path.join(os.path.sep, 'Media', 'TV', 'Downton Abbey', 'Season 5', 'Downton.Abbey.S05E03.mkv')
         output = """Rename episodes using [TheTVDB]
 Auto-detected query: [Downton Abbey]
 Fetching episode data for [Downton Abbey]

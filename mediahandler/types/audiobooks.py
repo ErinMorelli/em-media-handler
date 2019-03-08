@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler
-# Copyright (c) 2014-2018 Erin Morelli
+# Copyright (c) 2014-2019 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -264,7 +264,7 @@ class MHAudiobook(mh.MHObject):
         logging.info("Cleaning up path string")
 
         # Get query from folder path
-        find_book = str_path.rsplit(os.sep)[1:]
+        find_book = str_path.rsplit(os.path.sep)[1:]
         string = find_book[-1]
         logging.debug("Initial string: %s", string)
 
