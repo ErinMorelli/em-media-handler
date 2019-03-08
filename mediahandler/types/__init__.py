@@ -122,12 +122,13 @@ class MHMediaType(mh.MHObject):
         # Object defaults
         query = self.MHSettings({
             'file_types': r'(mkv|avi|m4v|mp4)',
-            'skip': r'Skipped \[(.*)\] because \[(.*)\] already exists',
             'added_i': 2,
-            'skip_i': 0,
+            'skip_i': 1,
             'reason': '{0} already exists in {1}'.format(
                 self.type, self.dst_path)
         })
+        query.skip = r'({0}) \[(.*)\] because \[(.*)\] ({1})?already exists'.format(
+            'Skipped|Failed to process', 'is an exact copy and ')
         query.added = r'\[{0}\] ({1}) \[(.*)\] to \[(.*)\.{2}\]'.format(
             self.cmd.action.upper(), 'From|Rename', query.file_types)
         self.__dict__.update({'query': query})
@@ -171,14 +172,14 @@ class MHMediaType(mh.MHObject):
         logging.debug("Query: %s", cmd)
 
         # Process query
-        query = Popen(cmd, stdout=PIPE)
+        query = Popen(cmd, stdout=PIPE, stderr=PIPE)
 
         # Get output
         (output, err) = query.communicate()
         logging.debug("Query output: %s", output)
         logging.debug("Query return errors: %s", err)
 
-        return self._process_output(output, file_path)
+        return self._process_output(output + err, file_path)
 
     def _process_output(self, output, file_path):
         """Parses response from _media_info() query.
@@ -206,9 +207,10 @@ class MHMediaType(mh.MHObject):
         skipped = []
         if skip_data:
             for skip_item in skip_data:
-                skipped.append(skip_item[self.query.skip_i])
+                skip_item_name = os.path.basename(skip_item[self.query.skip_i])
+                skipped.append(skip_item_name)
                 logging.warning("File was skipped: %s (%s)",
-                                skip_item[self.query.skip_i],
+                                skip_item_name,
                                 self.query.reason)
 
         # Return error if nothing found

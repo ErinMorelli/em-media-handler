@@ -398,8 +398,7 @@ def main(is_deluge=False):
     # Set up add media args
     added = handler.add_media(validated=True, **args)
 
-    # Print for cmd line & return
-    sys.stdout.write(added)
+    # Return formatted list of added files
     return added
 
 
