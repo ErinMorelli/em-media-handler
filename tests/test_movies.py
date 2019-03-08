@@ -45,33 +45,33 @@ class MoviesMediaObjectTests(MediaObjectTests):
         self.assertEqual(self.movies.cmd.format, expected)
 
     def test_movie_output_good(self):
-        fro = os.path.join(os.sep, 'Downloaded', 'Movies', 'Snowpiercer.2013.1080p.BluRay.x264.mp4')
+        fro = os.path.join(os.path.sep, 'Downloaded', 'Movies', 'Snowpiercer.2013.1080p.BluRay.x264.mp4')
         output = """Rename movies using [TheMovieDB]
 Auto-detect movie from context: [{fro}]
 [COPY] Rename [{fro}] to [{to}]
 Processed 1 files
 Done ?(?????)?
-""" .format(fro=fro, to=os.path.join(os.sep, self.folder, 'Snowpiercer (2013).mp4'))
+""" .format(fro=fro, to=os.path.join(os.path.sep, self.folder, 'Snowpiercer (2013).mp4'))
         (new_file, skipped) = self.movies._process_output(output, self.tmp_file)
         self.assertEqual(new_file, ['Snowpiercer (2013)'])
         self.assertEqual(skipped, [])
 
     def test_movie_output_only_skips(self):
-        one = os.path.join(os.sep, 'Downloaded', 'Movies', 'Snowpiercer.2013.1080p.BluRay.x264.mp4')
+        one = os.path.join(os.path.sep, 'Downloaded', 'Movies', 'Snowpiercer.2013.1080p.BluRay.x264.mp4')
         output = """Rename movies using [TheMovieDB]
 Auto-detect movie from context: [{one}]
 Skipped [{one}] because [{f}Snowpiercer (2013).mp4] already exists
 Processed 1 files
 Done ?(?????)?
-""".format(one=one, f=os.path.join(os.sep, self.folder, ''))
+""".format(one=one, f=os.path.join(os.path.sep, self.folder, ''))
         (new_file, skipped) = self.movies._process_output(output, self.tmp_file)
         self.assertEqual(new_file, [])
         self.assertEqual(skipped, [one])
 
     def test_movie_output_multi(self):
-        one = os.path.join(os.sep, 'Downloaded', 'Star Wars', 'star.wars.a.new.hope.1977.avi')
-        two = os.path.join(os.sep, 'Downloaded', 'Star Wars', 'star.wars.return.of.the.jedi.1983.avi')
-        three = os.path.join(os.sep, 'Downloaded', 'Star Wars', 'star.wars.the.empire.strikes.back.1980.avi')
+        one = os.path.join(os.path.sep, 'Downloaded', 'Star Wars', 'star.wars.a.new.hope.1977.avi')
+        two = os.path.join(os.path.sep, 'Downloaded', 'Star Wars', 'star.wars.return.of.the.jedi.1983.avi')
+        three = os.path.join(os.path.sep, 'Downloaded', 'Star Wars', 'star.wars.the.empire.strikes.back.1980.avi')
         output = """Rename movies using [TheMovieDB]
 Auto-detect movie from context: [{one}]
 Auto-detect movie from context: [{two}]
@@ -84,7 +84,7 @@ Stripping invalid characters from new path: {f}Star Wars: Episode IV - A New Hop
 [COPY] Rename [{three}] to [{f}Star Wars Episode IV - A New Hope (1977).avi]
 Processed 3 files
 Done ?(?????)?
-""".format(one=one, two=two, three=three, f=os.path.join(os.sep, self.folder, ''))
+""".format(one=one, two=two, three=three, f=os.path.join(os.path.sep, self.folder, ''))
         (new_files, skipped) = self.movies._process_output(
             output, self.tmp_file)
         expected = [
@@ -96,29 +96,29 @@ Done ?(?????)?
         self.assertEqual(skipped, [])
 
     def test_movie_output_no_match(self):
-        one = os.path.join(os.sep, 'Downloaded', 'Movies', 'Fake.Movie.avi')
-        two = os.path.join(os.sep, 'Downloaded', 'Movies', 'Another.Fake.Movie.avi')
+        one = os.path.join(os.path.sep, 'Downloaded', 'Movies', 'Fake.Movie.avi')
+        two = os.path.join(os.path.sep, 'Downloaded', 'Movies', 'Another.Fake.Movie.avi')
         output = """Rename movies using [TheMovieDB]
 Auto-detect movie from context: [{one}]
 [COPY] Rename [{one}] to [{f}Fake Movie.avi]
 [COPY] Rename [{two}] to [{f}Another.Fake.Movie.avi]
 Processed 1 files
 Done ?(?????)?
-""".format(one=one, two=two, f=os.path.join(os.sep, 'Movies', ''))
+""".format(one=one, two=two, f=os.path.join(os.path.sep, 'Movies', ''))
         regex = r'Unable to match movie files: {f}{one}, {f}{two}'.format(
-            f=escape(os.path.join(os.sep, 'Movies', '')),
+            f=escape(os.path.join(os.path.sep, 'Movies', '')),
             one='Fake Movie', two='Another.Fake.Movie')
         self.assertRaisesRegexp(
             SystemExit, regex,
             self.movies._process_output, output, self.tmp_file)
 
     def test_movie_output_skips(self):
-        one = os.path.join(os.sep, 'Downloaded', 'Star Wars', 'star.wars.a.new.hope.1977.avi')
-        two = os.path.join(os.sep, 'Downloaded', 'Star Wars', 'star.wars.attack.of.the.clones.2002.avi')
-        three = os.path.join(os.sep, 'Downloaded', 'Star Wars', 'star.wars.return.of.the.jedi.1983.avi')
-        four = os.path.join(os.sep, 'Downloaded', 'Star Wars', 'star.wars.revenge.of.the.sith.2005.avi')
-        five = os.path.join(os.sep, 'Downloaded', 'Star Wars', 'star.wars.the.empire.strikes.back.1980.avi')
-        six = os.path.join(os.sep, 'Downloaded', 'Star Wars', 'star.wars.the.phantom.menace.1999.avi')
+        one = os.path.join(os.path.sep, 'Downloaded', 'Star Wars', 'star.wars.a.new.hope.1977.avi')
+        two = os.path.join(os.path.sep, 'Downloaded', 'Star Wars', 'star.wars.attack.of.the.clones.2002.avi')
+        three = os.path.join(os.path.sep, 'Downloaded', 'Star Wars', 'star.wars.return.of.the.jedi.1983.avi')
+        four = os.path.join(os.path.sep, 'Downloaded', 'Star Wars', 'star.wars.revenge.of.the.sith.2005.avi')
+        five = os.path.join(os.path.sep, 'Downloaded', 'Star Wars', 'star.wars.the.empire.strikes.back.1980.avi')
+        six = os.path.join(os.path.sep, 'Downloaded', 'Star Wars', 'star.wars.the.phantom.menace.1999.avi')
         output = """Rename movies using [TheMovieDB]
 Auto-detect movie from context: [{one}]
 Auto-detect movie from context: [{two}]
@@ -141,7 +141,7 @@ Skipped [{one}] because [{f}Star Wars Episode IV - A New Hope (1977).avi] alread
 Processed 6 files
 Done ?(?????)?
 """.format(one=one, two=two, three=three, four=four, five=five, six=six,
-           f=os.path.join(os.sep, self.folder, ''))
+           f=os.path.join(os.path.sep, self.folder, ''))
         (new_files, skipped) = self.movies._process_output(
             output, self.tmp_file)
         new_expected = [

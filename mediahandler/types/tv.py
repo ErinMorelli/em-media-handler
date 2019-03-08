@@ -26,7 +26,7 @@ Module contains:
 
 import os
 import logging
-from re import escape, search, sub
+from re import escape, search, sub, IGNORECASE
 
 import mediahandler.types
 
@@ -81,10 +81,15 @@ class MHTv(mediahandler.types.MHMediaType):
         if not added_files:
             return info
 
+        # Set destination path for query
+        dst_path = self.dst_path
+        if self.dst_path.endswith(os.path.sep):
+            dst_path = self.dst_path[:-1]
+
         # Set search query
-        epath = escape(self.dst_path)
+        epath = escape(dst_path)
         tv_find = r'{path}{s}(.*){s}(.*){s}.*\.S\d{{2,4}}E(\d{{2,3}})'.format(
-            path=epath, s=escape(os.sep))
+            path=epath, s=escape(os.path.sep))
         logging.debug("Search query: %s", tv_find)
 
         # See what TV files were added
@@ -92,7 +97,7 @@ class MHTv(mediahandler.types.MHMediaType):
         for added_file in added_files:
 
             # Extract info
-            ep_info = search(tv_find, added_file)
+            ep_info = search(tv_find, added_file, IGNORECASE)
             if ep_info is None:
                 continue
 
