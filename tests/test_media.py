@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler Testing Module
-# Copyright (c) 2014-2018 Erin Morelli
+# Copyright (c) 2014-2019 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -145,7 +145,7 @@ Processed 1 files
 Done ?(?????)?
 """.format(fro=fro, to=to)
         (new_file, skipped) = self.media._process_output(output, self.tmp_file)
-        expected = [fro]
+        expected = [os.path.basename(fro)]
         self.assertEqual(skipped, expected)
         self.assertEqual(new_file, [])
 

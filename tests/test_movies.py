@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler Testing Module
-# Copyright (c) 2014-2018 Erin Morelli
+# Copyright (c) 2014-2019 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -66,7 +66,7 @@ Done ?(?????)?
 """.format(one=one, f=os.path.join(os.path.sep, self.folder, ''))
         (new_file, skipped) = self.movies._process_output(output, self.tmp_file)
         self.assertEqual(new_file, [])
-        self.assertEqual(skipped, [one])
+        self.assertEqual(skipped, [os.path.basename(one)])
 
     def test_movie_output_multi(self):
         one = os.path.join(os.path.sep, 'Downloaded', 'Star Wars', 'star.wars.a.new.hope.1977.avi')
@@ -149,7 +149,7 @@ Done ?(?????)?
             'Star Wars Episode II - Attack of the Clones (2002)',
             'Star Wars Episode III - Revenge of the Sith (2005)',
         ]
-        skip_expected = [five, three, one]
+        skip_expected = [os.path.basename(five), os.path.basename(three), os.path.basename(one)]
         self.assertEqual(new_files, new_expected)
         self.assertEqual(skipped, skip_expected)
 
