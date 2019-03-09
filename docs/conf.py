@@ -48,7 +48,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'EM Media Handler'
-copyright = u'2014-2018, Erin Morelli'
+copyright = u'2014-2019, Erin Morelli'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -113,7 +113,10 @@ if not on_rtd:
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = {
+    'analytics_id': 'UA-13167457-1',
+    'style_external_links': True
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []

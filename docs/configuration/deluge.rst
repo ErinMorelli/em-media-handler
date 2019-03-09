@@ -24,6 +24,14 @@ To set up the event, all you will need the full path to ``addmedia-deluge`` scri
 
 Which should print something similar to ``/usr/local/bin/addmedia-deluge``. Copy and paste this path value into the "Command" text box when adding a new "Torrent Complete" event, save it, and you're done!
 
+.. admonition:: Using Deluge on Windows
+
+    The ``addmedia-deluge.exe`` script will not work with Deluge on Windows. Instead, use the ``addmedia-deluge.bat`` file in your Deluge preferences.
+
+    Run this command in a Windows command prompt or PowerShell to find the full path: ::
+
+        Get-Command addmedia-deluge.bat
+
 
 Advanced Set-up
 ***************

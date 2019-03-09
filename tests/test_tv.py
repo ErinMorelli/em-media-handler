@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is a part of EM Media Handler Testing Module
-# Copyright (c) 2014-2018 Erin Morelli
+# Copyright (c) 2014-2019 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -17,7 +17,6 @@
 """Initialize module"""
 
 import os
-import ntpath
 from re import escape
 
 from tests.common import unittest
@@ -92,7 +91,7 @@ Done ?(?????)?
             "Grey's Anatomy (Season 1, Episode 5)",
             "Grey's Anatomy (Season 1, Episode 6)",
         ]
-        skip_expected = [one, two, three]
+        skip_expected = [os.path.basename(one), os.path.basename(two), os.path.basename(three)]
         self.assertEqual(new_files, new_expected)
         self.assertEqual(skipped, skip_expected)
 
@@ -138,7 +137,7 @@ Done ?(?????)?
            three=three, three_to=three_to, four=four, four_to=four_to)
         (new_files, skipped) = self.episode._process_output(
             output, self.tmp_file)
-        expected = [one, two, three]
+        expected = [os.path.basename(one), os.path.basename(two), os.path.basename(three)]
         self.assertEqual(new_files, [])
         self.assertEqual(skipped, expected)
 
