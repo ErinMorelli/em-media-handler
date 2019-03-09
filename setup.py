@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # EM MEDIA HANDLER
-# Copyright (c) 2014-2018 Erin Morelli
+# Copyright (c) 2014-2019 Erin Morelli
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -17,9 +17,14 @@
 """Media handler module setup
 """
 
+import os
 from setuptools import setup
 from mediahandler.util.config import make_config
 
+# Set up extra scripts
+_extra_scripts = []
+if os.name == 'nt':
+    _extra_scripts.append('addmedia-deluge.bat')
 
 # Set up mediahandler package
 setup(
@@ -47,6 +52,7 @@ setup(
             'addmedia-deluge=mediahandler.handler:deluge'
         ]
     },
+    scripts=_extra_scripts,
 
     install_requires=[
         'pyyaml',
