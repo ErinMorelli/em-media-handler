@@ -31,7 +31,7 @@ Module contains:
 import os
 from os.path import join, dirname
 
-__version__ = '1.1'
+__version__ = '1.2'
 __author__ = 'Erin Morelli <erin@erinmorelli.com>'
 
 # Check for Windows
