@@ -1,27 +1,20 @@
+os: linux
 language: python
 dist: trusty
 
 python:
-  - 2.7
-  - 3.4
   - 3.5
   - 3.6
 
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get upgrade -qq
 
   # Add needed repositories
   - sudo add-apt-repository ppa:gambas-team/gambas3 -y
-  # - sudo add-apt-repository ppa:webupd8team/java -y
-  - sudo add-apt-repository ppa:linuxuprising/java -y
   - sudo add-apt-repository ppa:mc3man/gstffmpeg-keep -y
   - sudo apt-get update -qq
 
-  # Install and upgrade java to v11 (for Filebot)
-  - sudo apt-get install -y oracle-java11-installer oracle-java11-set-default -qq
-  - echo oracle-java11-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
-  - sudo update-java-alternatives -s java-11-oracle
+  # Install java for Filebot
+  - sudo apt-get install openjdk-8-jdk
 
   # DBUS fixes for ABC
   - sudo apt-get install -y dbus -qq
@@ -78,10 +71,10 @@ before_script:
   - sudo apt-get -f install
   - cd ~/build/ErinMorelli/em-media-handler
 
-script:
-
   # Install mediahandler
   - python ./setup.py install
+
+script:
 
   # Run test suite
   - coverage run --source=mediahandler setup.py test

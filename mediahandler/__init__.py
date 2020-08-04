@@ -32,7 +32,7 @@ import os
 from os.path import join, dirname
 
 __version__ = '1.2'
-__author__ = 'Erin Morelli <erin@erinmorelli.com>'
+__author__ = 'Erin Morelli <me@erin.dev>'
 
 # Check for Windows
 __iswin__ = os.name == 'nt'

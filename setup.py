@@ -31,7 +31,7 @@ setup(
     name='em-media-handler',
     version='1.2',
     author='Erin Morelli',
-    author_email='erin@erinmorelli.com',
+    author_email='me@erin.dev',
     url='http://www.erinmorelli.com/projects/em-media-handler/',
     license='MIT',
     platforms='Linux, OSX, Windows',
@@ -58,8 +58,9 @@ setup(
         'pyyaml',
         'google-api-python-client',
         'mutagen',
-        'oauth2client<=3.0.0'
-        'requests',
+        'oauth2client<=3.0.0',
+        'setuptools>=40.3.0',
+        'requests'
     ],
 
     extras_require={

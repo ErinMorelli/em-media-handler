@@ -12,4 +12,5 @@ Then check out the [Getting Started](https://em-media-handler.readthedocs.io/en/
 
 ## Authors
 
-EM Media Handler is by [Erin Morelli](mailto:erin@erinmorelli.com>).
+EM Media Handler is by [Erin Morelli](mailto:me@erin.dev).
+
