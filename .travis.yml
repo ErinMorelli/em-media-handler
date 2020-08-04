@@ -11,14 +11,15 @@ before_install:
 
   # Add needed repositories
   - sudo add-apt-repository ppa:gambas-team/gambas3 -y
-  - sudo add-apt-repository ppa:webupd8team/java -y
+  # - sudo add-apt-repository ppa:webupd8team/java -y
+  - sudo add-apt-repository ppa:linuxuprising/java -y
   - sudo add-apt-repository ppa:mc3man/gstffmpeg-keep -y
   - sudo apt-get update -qq
 
-  # Install and upgrade java to v8 (for Filebot)
-  - sudo apt-get install -y oracle-java8-installer oracle-java8-set-default -qq
-  - echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
-  - sudo update-java-alternatives -s java-8-oracle
+  # Install and upgrade java to v11 (for Filebot)
+  - sudo apt-get install -y oracle-java11-installer oracle-java11-set-default -qq
+  - echo oracle-java11-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
+  - sudo update-java-alternatives -s java-11-oracle
 
   # DBUS fixes for ABC
   - sudo apt-get install -y dbus -qq
