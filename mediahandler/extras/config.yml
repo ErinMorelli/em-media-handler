@@ -4,10 +4,9 @@ General:
 
 Deluge:
     enabled: no
-    host: 127.0.0.1
-    port: 58846
-    user:
-    pass:
+    ssl: no
+    host: localhost
+    endpoint: /json
 
 Logging:
     enabled: yes

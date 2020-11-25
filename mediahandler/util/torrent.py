@@ -23,7 +23,9 @@ Module contains:
 
 """
 
+import random
 import logging
+import requests
 
 
 def remove_deluge_torrent(settings, torrent_hash):
@@ -35,89 +37,38 @@ def remove_deluge_torrent(settings, torrent_hash):
         - torrent_hash
             Valid hash of active torrent to be removed.
 
-    This is a Twisted Deferred object which hooks into the Deluge UI client.
-    For more information, visit:
-    http://dev.deluge-torrent.org/wiki/Development/UiClient1.2
+    Makes an API request to the Deluge client.
     """
 
     logging.info("Removing torrent from Deluge")
 
-    # Import modules
-    from twisted.internet import reactor
-    from deluge.ui.client import client
-
-    # Connect to Deluge daemon
-    deluge = client.connect(
+    # Set up request URL
+    url = '{ssl}://{host}{endpoint}'.format(
+        ssl='https' if settings['ssl'] else 'http',
         host=settings['host'],
-        port=settings['port'],
-        username=settings['user'],
-        password=settings['pass']
+        endpoint=settings['endpoint']
     )
 
-    # We create a callback function to be called upon a successful connection
-    def on_connect_success(result):
-        """Connect success callback.
-        """
+    # Get a unique request ID
+    req_id = random.getrandbits(10)
 
-        logging.debug("Connection was successful: %s", result)
-
-        def on_remove_torrent(success):
-            """On remove callback.
-            """
-
-            if success:
-                logging.debug("Torrent remove successful")
-            else:
-                logging.warning("Torrent remove unsuccessful")
-
-            # Disconnect from the daemon & exit
-            client.disconnect()
-            reactor.stop()
-
-        def on_get_session_state(torrents):
-            """On session state callback.
-            """
-
-            # Look for completed torrent in list
-            found = False
-            for tor in torrents:
-                if tor == torrent_hash:
-
-                    # Set as found and call remove function
-                    logging.debug("Torrent found")
-                    found = True
-                    client.core.remove_torrent(
-                        torrent_hash,
-                        False).addCallback(
-                            on_remove_torrent)
-                    break
-
-            if not found:
-                logging.warning("Torrent not found")
-
-                # Disconnect from the daemon & exit
-                client.disconnect()
-                reactor.stop()
-
-        # Get list of current torrent hashes
-        client.core.get_session_state().addCallback(on_get_session_state)
-
-    # We add the callback to the Deferred object we got from connect()
-    deluge.addCallback(on_connect_success)
-
-    # To be called when an error is encountered
-    def on_connect_fail(result):
-        """Connect fail callback.
-        """
-
-        logging.error("Connection failed: %s", result)
-
-        # Disconnect from the daemon & exit
-        client.disconnect()
-        reactor.stop()
-
-    # We add the callback (in this case it's an errback, for error)
-    deluge.addErrback(on_connect_fail)
-
-    # Run the twisted main loop to make everything go
-    reactor.run()
+    # Make the request
+    try:
+        res = requests.post(
+            url=url,
+            json={
+                'id': req_id,
+                'method': 'core.remove_torrent',
+                'params': [torrent_hash, False]
+            }
+        )
+        res.raise_for_status()
+    except requests.RequestException as exc:
+        logging.warning("Torrent remove unsuccessful: %s", exc)
+        return
+    else:
+        # Check result
+        if res.status_code == 200:
+            logging.warning("Torrent remove successful: %s", res.json())
+        else:
+            logging.debug("Torrent remove unsuccessful")

@@ -1,9 +1,7 @@
 Deluge:
     option: enabled
     modules: 
-        - [twisted, internet]
-        - [deluge, ui]
-        - [deluge, log]
+        - [requests, packages]
 
 Notifications:
     option: enabled

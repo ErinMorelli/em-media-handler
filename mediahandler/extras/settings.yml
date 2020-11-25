@@ -18,19 +18,17 @@ items:
                 type: bool
                 default: no
             -
+                name: ssl
+                type: bool
+                default: no
+            -
                 name: host
                 type: string
-                default: 127.0.0.1
+                default: localhost
             - 
-                name: port
-                type: number
-                default: 58846
-            -
-                name: user
+                name: endpoint
                 type: string
-            -
-                name: pass
-                type: string
+                default: /json
     -
         section: Logging
         options:
