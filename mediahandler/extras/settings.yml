@@ -24,7 +24,14 @@ items:
             -
                 name: host
                 type: string
-                default: localhost
+                default: 127.0.0.1
+            -
+                name: port
+                type: number
+                default: 8112
+            -
+                name: password
+                type: string
             - 
                 name: endpoint
                 type: string

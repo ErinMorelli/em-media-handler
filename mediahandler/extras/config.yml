@@ -5,7 +5,9 @@ General:
 Deluge:
     enabled: no
     ssl: no
-    host: localhost
+    host: 127.0.0.1
+    port: 8112
+    password:
     endpoint: /json
 
 Logging:

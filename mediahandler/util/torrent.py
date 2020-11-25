@@ -26,6 +26,10 @@ Module contains:
 import random
 import logging
 import requests
+import urllib3
+
+# Disable SSL warnings
+urllib3.disable_warnings()
 
 
 def remove_deluge_torrent(settings, torrent_hash):
@@ -42,33 +46,50 @@ def remove_deluge_torrent(settings, torrent_hash):
 
     logging.info("Removing torrent from Deluge")
 
+    def req_id():
+        """Generates a random integer for requests."""
+        return random.getrandbits(10)
+
+    # Start a new session
+    session = requests.Session()
+    session.verify = False
+
     # Set up request URL
-    url = '{ssl}://{host}{endpoint}'.format(
+    url = '{ssl}://{host}:{port}{endpoint}'.format(
         ssl='https' if settings['ssl'] else 'http',
         host=settings['host'],
+        port=settings['port'],
         endpoint=settings['endpoint']
     )
 
-    # Get a unique request ID
-    req_id = random.getrandbits(10)
-
-    # Make the request
     try:
-        res = requests.post(
-            url=url,
-            json={
-                'id': req_id,
-                'method': 'core.remove_torrent',
-                'params': [torrent_hash, False]
-            }
-        )
-        res.raise_for_status()
+        # Send login request
+        login_res = session.post(url=url, json={
+            'id': req_id(),
+            'method': 'auth.login',
+            'params': [settings['password']]
+        })
+        login_res.raise_for_status()
+
+        # Make the removal request
+        remove_res = session.post(url=url, json={
+            'id': req_id(),
+            'method': 'core.remove_torrent',
+            'params': [torrent_hash, False]
+        })
+        remove_res.raise_for_status()
     except requests.RequestException as exc:
         logging.warning("Torrent remove unsuccessful: %s", exc)
         return
     else:
         # Check result
-        if res.status_code == 200:
-            logging.warning("Torrent remove successful: %s", res.json())
+        if (
+                remove_res.status_code != 200 or
+                (
+                    'error' in remove_res.json().keys() and
+                    remove_res.json()['error'] is not  None
+                )
+        ):
+            logging.warning("Torrent remove unsuccessful: %s", remove_res.json())
         else:
-            logging.debug("Torrent remove unsuccessful")
+            logging.debug("Torrent remove successful")
