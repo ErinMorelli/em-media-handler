@@ -30,6 +30,7 @@ TV:
     ignore_subs: yes
     format: '{n}/Season {s}/{n.space(".")}.{"S"+s.pad(2)}E{e.pad(2)}'
     log_file:
+    filebot:
 
 Movies:
     enabled: yes
@@ -37,10 +38,12 @@ Movies:
     ignore_subs: yes
     format: '{n} ({y})'
     log_file:
+    filebot:
 
 Music:
     enabled: no
     log_file:
+    beets:
 
 Audiobooks:
     enabled: no
@@ -48,3 +51,5 @@ Audiobooks:
     api_key:
     make_chapters: off
     chapter_length: 8
+    abc:
+    php:

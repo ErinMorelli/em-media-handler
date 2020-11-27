@@ -292,7 +292,7 @@ def _get_yaml(yaml_file):
         yaml_contents = yaml_io.read()
 
     # Decode yaml
-    contents = yaml.load(yaml_contents)
+    contents = yaml.load(yaml_contents, Loader=yaml.FullLoader)
 
     return contents
 
@@ -390,7 +390,6 @@ def _find_module(parent_mod, sub_mod):
 
         raise ImportError(err_msg)
 
-
 def _find_app(settings, app):
     """Looks for an installed application in the user's local $PATH.
 
@@ -399,7 +398,14 @@ def _find_app(settings, app):
 
     # Save in settings
     name = app['name'].lower()
-    settings[name] = None
+
+    # Check for user-set path first
+    if name in settings.keys() and settings[name] is not None:
+        path = settings[name]
+
+        # If the path exists, return
+        if os.path.isfile(path):
+            return
 
     # Retrieve local paths
     split_token = ';' if mh.__iswin__ else ':'

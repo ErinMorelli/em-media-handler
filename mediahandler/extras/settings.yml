@@ -98,6 +98,9 @@ items:
             -
                 name: log_file
                 type: file
+            -
+                name: filebot
+                type: string
     - 
         section: Movies
         options:
@@ -119,6 +122,9 @@ items:
             -
                 name: log_file
                 type: file
+            -
+                name: filebot
+                type: string
     - 
         section: Music
         options:
@@ -129,6 +135,9 @@ items:
             -
                 name: log_file
                 type: file
+            -
+                name: beets
+                type: string
     - 
         section: Audiobooks
         options:
@@ -150,3 +159,9 @@ items:
                 name: chapter_length
                 type: number
                 default: 8
+            -
+                name: abc
+                type: string
+            -
+                name: php
+                type: string
