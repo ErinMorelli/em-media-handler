@@ -29,7 +29,7 @@ if os.name == 'nt':
 # Set up mediahandler package
 setup(
     name='em-media-handler',
-    version='1.2',
+    version='1.3',
     author='Erin Morelli',
     author_email='me@erin.dev',
     url='http://www.erinmorelli.com/projects/em-media-handler/',

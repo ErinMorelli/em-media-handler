@@ -327,14 +327,6 @@ def _init_logging(settings):
         level=log_level,
     )
 
-    # Enable deluge logging
-    if settings['Deluge']['enabled']:
-        from deluge import log
-        try:
-            log.setupLogger()
-        except AttributeError:
-            log.setup_logger()
-
 
 def _check_modules(settings):
     """Looks for modules and applications required by user-enabled options.
