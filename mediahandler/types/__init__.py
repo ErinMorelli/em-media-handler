@@ -115,7 +115,7 @@ class MHMediaType(mh.MHObject):
             'action': 'copy',
             'db': '',
             'format': os.path.join(self.dst_path, self.format),
-            'flags': ['-r', '-non-strict']
+            'flags': ['-r', '-non-strict', '-no-index']
         })
         self.__dict__.update({'cmd': cmd_info})
 

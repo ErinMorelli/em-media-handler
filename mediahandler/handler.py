@@ -395,9 +395,6 @@ def main(is_deluge=False):
     # Set up handler
     handler = MHandler(config)
 
-    from pprint import pprint
-    pprint(handler.__dict__)
-
     # Set up add media args
     added = handler.add_media(validated=True, **args)
 
