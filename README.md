@@ -1,6 +1,6 @@
 [![build](https://api.travis-ci.org/ErinMorelli/em-media-handler.svg?branch=mainline)](https://travis-ci.org/ErinMorelli/em-media-handler) [![Coverage Status](https://coveralls.io/repos/github/ErinMorelli/em-media-handler/badge.svg?branch=mainline)](https://coveralls.io/github/ErinMorelli/em-media-handler?branch=mainline) [![docs](https://readthedocs.org/projects/em-media-handler/badge/?version=latest)](https://readthedocs.org/projects/em-media-handler/?badge=latest)
 
-A comprehensive media handling automation script for use via command-line or with a torrenting program. Handles TV shows, movies, music, and audiobooks. Integrates with push notifications via Pushover and Pushbullet.
+A comprehensive media handling automation script for use via CLI or with a torrenting program. Handles TV shows, movies, music, and audiobooks. Integrates with push notifications via Pushover and Pushbullet.
 
 ## Getting Started
 
