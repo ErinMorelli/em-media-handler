@@ -119,7 +119,7 @@ class BookSaveCoverTests(BookMediaObjectTests):
         self.book.book_info = self.book.MHSettings({})
 
     def test_save_cover_new(self):
-        img_url = 'http://books.google.com/books/content?' \
+        img_url = 'https://books.google.com/books/content?' \
                   'id=4lYZAwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api'
         expected = os.path.join(self.folder, _book_cover_img)
         self.assertFalse(os.path.exists(expected))
@@ -129,7 +129,7 @@ class BookSaveCoverTests(BookMediaObjectTests):
         self.assertTrue(os.path.exists(expected))
 
     def test_save_cover_exists(self):
-        img_url = 'http://books.google.com/books/content?' \
+        img_url = 'https://books.google.com/books/content?' \
                   'id=4lYZAwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api'
         expected = os.path.join(self.folder, _book_cover_img)
         # Make file
