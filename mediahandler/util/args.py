@@ -50,8 +50,8 @@ from os import path
 from re import match, I
 
 import mediahandler as mh
-import mediahandler.util.config as Config
-import mediahandler.util.torrent as Torrent
+import mediahandler.util.config as config
+import mediahandler.util.torrent as torrent
 
 
 # Custom argparse validation
@@ -304,7 +304,7 @@ def get_parser():
 
     # Custom config file option
     options.add_argument(
-        '-c', '--config', default=Config.make_config(),
+        '-c', '--config', default=config.make_config(),
         help=(
             'Set a custom config file path.\n' +
             'Default: ~/.config/mediahandler/config.yml\n '),
@@ -372,7 +372,7 @@ def get_deluge_parser():
         epilog=(
             'For use with the "Torrent Complete" event ' +
             'in Deluge\'s "Execute" plugin.\nMore info: ' +
-            'http://em-media-handler.rtfd.org/en/latest/' +
+            'https://em-media-handler.rtfd.org/en/latest/' +
             'configuration/deluge.html'),
     )
 
@@ -425,12 +425,12 @@ def get_deluge_arguments():
     ).__dict__
 
     # Remove config to return separately
-    config = all_args.pop('config')
+    config_ = all_args.pop('config')
 
     # Remove torrent
-    settings = Config.parse_config(config)['Deluge']
+    settings = config.parse_config(config_)['Deluge']
     if settings['enabled']:
-        Torrent.remove_deluge_torrent(settings, new_args['hash'])
+        torrent.remove_deluge_torrent(settings, new_args['hash'])
 
     return config, all_args
 
@@ -459,9 +459,9 @@ def get_arguments(deluge=False):
     new_args = parser.parse_args().__dict__
 
     # Remove config to return separately
-    config = new_args.pop('config')
+    config_ = new_args.pop('config')
 
-    return config, new_args
+    return config_, new_args
 
 
 def get_add_media_args(media, **kwargs):

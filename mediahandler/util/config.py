@@ -28,17 +28,15 @@ Module contains:
 """
 
 import os
+import stat
 import shutil
 import logging
 from importlib import import_module
 
-import mediahandler as mh
-import mediahandler.util as Util
+import yaml
 
-try:
-    import yaml
-except ImportError:
-    pass
+import mediahandler as mh
+import mediahandler.util as util
 
 
 def make_config(new_file=None):
@@ -63,36 +61,81 @@ def make_config(new_file=None):
         config_file = new_file
 
     # Check that config exists
-    if os.path.isfile(config_file):
+    if os.path.isfile(config_file) and not os.access(config_file, os.R_OK):
+        raise Warning('Configuration file cannot be opened')
 
-        # Check config file permissions
-        if not os.access(config_file, os.R_OK):
-            raise Warning('Configuration file cannot be opened')
+    # Copy default config to user file
+    default_config = os.path.join(mh.__mediaextras__, 'config.yml')
 
-    else:
-        # Copy default config to user file
-        default_config = os.path.join(mh.__mediaextras__, 'config.yml')
+    # Make directories for config file
+    config_path = os.path.dirname(config_file)
+    if not os.path.exists(config_path):
+        os.makedirs(config_path)
+        if not mh.__iswin__:
+            os.chmod(config_path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IXOTH)
 
-        # Make directories for config file
-        config_path = os.path.dirname(config_file)
-        if not os.path.exists(config_path):
-            os.makedirs(config_path)
-            if not mh.__iswin__:
-                os.chmod(config_path, 0o775)
+    # Copy new configuration file to path
+    shutil.copy(default_config, config_file)
 
-        # Copy new configuration file to path
-        shutil.copy(default_config, config_file)
+    # Modify default config values for windows
+    if mh.__iswin__:
+        _modify_config_for_windows(config_file)
 
-        # Modify default config values for windows
-        if mh.__iswin__:
-            _modify_config_for_windows(config_file)
-
-        # Change permissions to current user if sudo
-        if 'SUDO_UID' in os.environ.keys():
-            with os.open(config_file, os.O_RDONLY) as filed:
-                os.fchown(filed, int(os.environ['SUDO_UID']), -1)
+    # Change permissions to current user if sudo
+    if 'SUDO_UID' in os.environ.keys():
+        with os.open(config_file, os.O_RDONLY) as filed:
+            os.fchown(filed, int(os.environ['SUDO_UID']), -1)
 
     return config_file
+
+
+def _process_section(get_section, get_options, get_parsed):
+    """Processes a section of yaml options.
+
+    Sets the default value for the option if unset. Dispatches value to
+    correct validation function.
+    """
+
+    # Make section if it doesn't exist
+    if get_section not in get_parsed.keys():
+        get_parsed[get_section] = {}
+
+    # Look through options
+    new_options = {}
+    for item_option in get_options:
+        option = item_option['name']
+
+        # Is this a section, process children
+        if item_option['type'] == 'section':
+            new_options[option] = _process_section(
+                item_option['name'],
+                item_option['options'],
+                get_parsed[get_section])
+            continue
+
+        # If option exists, get value
+        elif option in get_parsed[get_section].keys():
+            value = get_parsed[get_section][option]
+
+        # Otherwise use default
+        elif 'default' in item_option.keys():
+            value = item_option['default']
+
+            # Check for default tv format
+            if get_section == 'TV' and option == 'format' and mh.__iswin__:
+                value = os.path.join(*value.split('/'))
+
+        # Fallback to none
+        else:
+            new_options[option] = None
+            continue
+
+        # Validate values
+        valid_func = "_get_valid_{0}".format(item_option['type'])
+        validator = getattr(util.config, valid_func)
+        new_options[option] = validator(get_section, option, value)
+
+    return new_options
 
 
 def parse_config(file_path):
@@ -110,56 +153,6 @@ def parse_config(file_path):
     # Read yaml files
     parsed = _get_yaml(file_path)
     struct = _get_yaml(os.path.join(mh.__mediaextras__, 'settings.yml'))
-
-    # Define section function
-    def _process_section(get_section, get_options, get_parsed):
-        """Processes a section of yaml options.
-
-        Sets the default value for the option if unset. Dispatches value to
-        correct validation function.
-        """
-
-        # Make section if it doesn't exist
-        if get_section not in get_parsed.keys():
-            get_parsed[get_section] = {}
-
-        # Look through options
-        new_options = {}
-        for item_option in get_options:
-            option = item_option['name']
-            value = ''
-
-            # Is this a section, process children
-            if item_option['type'] == 'section':
-                new_options[option] = _process_section(
-                    item_option['name'],
-                    item_option['options'],
-                    get_parsed[get_section])
-                continue
-
-            # If option exists, get value
-            elif option in get_parsed[get_section].keys():
-                value = get_parsed[get_section][option]
-
-            # Otherwise use default
-            elif 'default' in item_option.keys():
-                value = item_option['default']
-
-                # Check for default tv format
-                if get_section == 'TV' and option == 'format' and mh.__iswin__:
-                    value = os.path.join(*value.split('/'))
-
-            # Fallback to none
-            else:
-                new_options[option] = None
-                continue
-
-            # Validate values
-            valid_func = "_get_valid_{0}".format(item_option['type'])
-            validator = getattr(Util.config, valid_func)
-            new_options[option] = validator(get_section, option, value)
-
-        return new_options
 
     # Loop through config & validate
     settings = {}
@@ -358,17 +351,18 @@ def _check_modules(settings):
         option = item['option']
 
         # Check if the requirement condition is met
-        if settings[section][option]:
+        if not settings[section][option]:
+            continue
 
-            # Check modules
-            if 'modules' in item.keys():
-                for module in item['modules']:
-                    _find_module(module[0], module[1])
+        # Check modules
+        if 'modules' in item.keys():
+            for module in item['modules']:
+                _find_module(module[0], module[1])
 
-            # Check applications
-            if 'apps' in item.keys():
-                for app in item['apps']:
-                    _find_app(settings[section], app)
+        # Check applications
+        if 'apps' in item.keys():
+            for app in item['apps']:
+                _find_app(settings[section], app)
 
 
 def _find_module(parent_mod, sub_mod):

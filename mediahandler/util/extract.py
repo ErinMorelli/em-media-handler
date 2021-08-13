@@ -60,7 +60,7 @@ def get_files(filebot, file_name):
         pass
 
     # Process output
-    file_info = search(r"extract to \[(.*)\][\r]?\n", output)
+    file_info = search(r"extract to \[(.*)][\r]?\n", output)
     if file_info is None:
         return None
 

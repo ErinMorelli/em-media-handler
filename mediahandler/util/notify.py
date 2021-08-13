@@ -33,7 +33,7 @@ import requests
 from requests.exceptions import RequestException
 
 import mediahandler as mh
-import mediahandler.util.args as Args
+import mediahandler.util.args as args
 
 
 class MHPush(mh.MHObject):
@@ -60,6 +60,11 @@ class MHPush(mh.MHObject):
             A wrapper for send_message() which sends a failure
             message and raises a SystemExit.
     """
+    enabled = False
+    notify_name = None
+
+    pushover = None
+    pushbullet = None
 
     def __init__(self, settings, disable=False):
         """Initializes the MHPush object.
@@ -82,7 +87,7 @@ class MHPush(mh.MHObject):
 
         # Set up vars
         self.disable = disable
-        self.parser = Args.get_parser()
+        self.parser = args.get_parser()
 
         # If enabled, check credentials
         if self.enabled:
@@ -194,7 +199,8 @@ class MHPush(mh.MHObject):
 
     # 3rd party API requests function
 
-    def _make_request(self, session, url, method='GET', params=None):
+    @staticmethod
+    def _make_request(session, url, method='GET', params=None):
         """Makes an API request to the provided session object
         """
 
@@ -235,6 +241,7 @@ class MHPush(mh.MHObject):
         """
 
         logging.debug("Validating Pushover credentials")
+        resp = None
 
         # Set up request params
         self.pushover.url = {
@@ -262,7 +269,7 @@ class MHPush(mh.MHObject):
             self.parser.error(error_msg)
 
         # Check result
-        if not resp['status']:
+        if not resp or not resp['status']:
             error_msg = 'Pushover: {0}'.format(resp['errors'][0])
             logging.error(error_msg)
             self.parser.error(error_msg)
@@ -277,6 +284,7 @@ class MHPush(mh.MHObject):
         """
 
         logging.debug("Validating Pushbullet credentials")
+        resp = None
 
         # Create pushover session object with credentials
         self.pushbullet.session = requests.Session()

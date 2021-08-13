@@ -37,7 +37,7 @@ def remove_deluge_torrent(settings, torrent_hash):
 
     This is a Twisted Deferred object which hooks into the Deluge UI client.
     For more information, visit:
-    http://dev.deluge-torrent.org/wiki/Development/UiClient1.2
+    https://dev.deluge-torrent.org/wiki/Development/UiClient1.2
     """
 
     logging.info("Removing torrent from Deluge")

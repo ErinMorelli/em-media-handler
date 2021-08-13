@@ -25,6 +25,10 @@ from tests.common import MHTestSuite
 import mediahandler.util.notify as Notify
 
 
+_api_endpoint_1 = 'https://api.pushbullet.com/v2'
+_api_endpoint_2 = 'https://api.pushover.net/1'
+
+
 class PushObjectTests(unittest.TestCase):
 
     def setUp(self):
@@ -41,11 +45,11 @@ class PushObjectTests(unittest.TestCase):
         self.push = None
         with responses.RequestsMock() as rsps:
             rsps.add(responses.GET,
-                     'https://api.pushbullet.com/v2/users/me',
+                     f'{_api_endpoint_1}/users/me',
                      json={'iden': 'iden', 'title': 'title', 'body': 'body'},
                      status=200)
             rsps.add(responses.POST,
-                     'https://api.pushover.net/1/users/validate.json',
+                     f'{_api_endpoint_2}/users/validate.json',
                      json={'status': 1},
                      status=200)
             self.push = Notify.MHPush(self.args)
@@ -55,7 +59,7 @@ class PushObjectTests(unittest.TestCase):
     @responses.activate
     def test_bad_po_credentials(self):
         responses.add(responses.POST,
-                      'https://api.pushover.net/1/users/validate.json',
+                      f'{_api_endpoint_2}/users/validate.json',
                       json={
                           'errors': [
                               'application token is invalid'
@@ -72,7 +76,7 @@ class PushObjectTests(unittest.TestCase):
     @responses.activate
     def test_bad_pb_credentials(self):
         responses.add(responses.GET,
-                      'https://api.pushbullet.com/v2/users/me',
+                      f'{_api_endpoint_1}/users/me',
                       json={
                           'error': {
                               'message': 'Access token is missing or invalid.'
@@ -100,7 +104,7 @@ class PushObjectTests(unittest.TestCase):
     @responses.activate
     def test_send_pomsg_bad(self):
         responses.add(responses.POST,
-                      'https://api.pushover.net/1/messages.json',
+                      f'{_api_endpoint_2}/messages.json',
                       json={'errors': ['not found'], 'status': 0},
                       status=400)
         # Bad API settings
@@ -118,7 +122,7 @@ class PushObjectTests(unittest.TestCase):
     @responses.activate
     def test_send_pomsg_good(self):
         responses.add(responses.POST,
-                      'https://api.pushover.net/1/messages.json',
+                      f'{_api_endpoint_2}/messages.json',
                       json={'status': 1},
                       status=200)
         # Message
@@ -132,7 +136,7 @@ class PushObjectTests(unittest.TestCase):
     @responses.activate
     def test_send_pbmsg_bad(self):
         responses.add(responses.POST,
-                      'https://api.pushbullet.com/v2/pushes',
+                      f'{_api_endpoint_1}/pushes',
                       json={'error': 'not found'},
                       status=400)
         # Bad API settings
@@ -152,7 +156,7 @@ class PushObjectTests(unittest.TestCase):
         title = common.random_string(10)
         # Set up response
         responses.add(responses.POST,
-                      'https://api.pushbullet.com/v2/pushes',
+                      f'{_api_endpoint_1}/pushes',
                       json={'iden': 'iden', 'title': title, 'body': msg},
                       status=200)
         # Send message
@@ -182,11 +186,11 @@ class PushObjectTests(unittest.TestCase):
     @responses.activate
     def test_success_empty_skips(self):
         responses.add(responses.POST,
-                      'https://api.pushbullet.com/v2/pushes',
+                      f'{_api_endpoint_1}/pushes',
                       json={'iden': 'iden', 'title': 'title', 'body': 'body'},
                       status=200)
         responses.add(responses.POST,
-                      'https://api.pushover.net/1/messages.json',
+                      f'{_api_endpoint_2}/messages.json',
                       json={'status': 1},
                       status=200)
         # Set up test
@@ -200,11 +204,11 @@ class PushObjectTests(unittest.TestCase):
     @responses.activate
     def test_success_empty_files(self):
         responses.add(responses.POST,
-                      'https://api.pushbullet.com/v2/pushes',
+                      f'{_api_endpoint_1}/pushes',
                       json={'iden': 'iden', 'title': 'title', 'body': 'body'},
                       status=200)
         responses.add(responses.POST,
-                      'https://api.pushover.net/1/messages.json',
+                      f'{_api_endpoint_2}/messages.json',
                       json={'status': 1},
                       status=200)
         # Set up test
@@ -219,11 +223,11 @@ class PushObjectTests(unittest.TestCase):
     def test_success_all(self):
         # Set up responses
         responses.add(responses.POST,
-                      'https://api.pushbullet.com/v2/pushes',
+                      f'{_api_endpoint_1}/pushes',
                       json={'iden': 'iden', 'title': 'title', 'body': 'body'},
                       status=200)
         responses.add(responses.POST,
-                      'https://api.pushover.net/1/messages.json',
+                      f'{_api_endpoint_2}/messages.json',
                       json={'status': 1},
                       status=200)
         # Enable push

@@ -32,9 +32,8 @@ import mediahandler.util.config as Config
 SKIP_PWD = False
 try:
     from pwd import getpwuid
-except:
+except ImportError:
     SKIP_PWD = True
-    pass
 
 IS_WIN = os.name == 'nt'
 
@@ -85,7 +84,7 @@ class CheckModulesTests(unittest.TestCase):
         result = Config._check_modules(self.settings)
         self.assertIsNone(result)
 
-    @common.skipUnlessHasMod('deluge', 'ui')
+    @common.skip_unless_has_mod('deluge', 'ui')
     def test_check_deluge(self):
         # Modify settings
         self.settings['Deluge']['enabled'] = True
@@ -141,7 +140,7 @@ class CheckModulesTests(unittest.TestCase):
         self.assertRaisesRegexp(
             ImportError, regex, Config._check_modules, self.settings)
 
-    @common.skipUnlessHasMod('beets', 'util')
+    @common.skip_unless_has_mod('beets', 'util')
     def test_music_modules(self):
         # Modify settings
         self.settings['Music']['enabled'] = True
@@ -168,7 +167,7 @@ class InitLoggingTests(unittest.TestCase):
         if os.path.exists(self.log_file):
             common.remove_file(self.log_file)
 
-    @common.skipUnlessHasMod('deluge', 'log')
+    @common.skip_unless_has_mod('deluge', 'log')
     def test_init_logging(self):
         # Use custom settings
         settings = {

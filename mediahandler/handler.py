@@ -36,8 +36,8 @@ from shutil import rmtree
 from os import path, listdir, remove
 
 import mediahandler as mh
-import mediahandler.util.args as Args
-import mediahandler.util.notify as Notify
+import mediahandler.util.args as args
+import mediahandler.util.notify as notify
 from mediahandler.util.config import make_config, parse_config
 
 
@@ -64,6 +64,17 @@ class MHandler(mh.MHObject):
             Wrapper function for accessing the
             mediahandler.util.extract module
     """
+    media = None
+    name = None
+    stype = None
+    general = None
+    query = None
+    notifications = None
+
+    tv = None
+    music = None
+    movies = None
+    audiobooks = None
 
     def __init__(self, config):
         """Initialize the MHandler class.
@@ -85,7 +96,7 @@ class MHandler(mh.MHObject):
         self.set_settings(parse_config(self.config))
 
         # Set up notify instance
-        self.push = Notify.MHPush(self.notifications)
+        self.push = notify.MHPush(self.notifications)
 
         # Placeholders members
         self.single_file = False
@@ -126,6 +137,7 @@ class MHandler(mh.MHObject):
                 True/False. Disable push notifications. Overrides
                 the "enabled" config file setting.
         """
+        new_files = None
 
         # Set object info from input
         self._parse_args_from_dict(media, **kwargs)
@@ -167,14 +179,14 @@ class MHandler(mh.MHObject):
 
         # Send args to parser for validation
         else:
-            new_args = Args.get_add_media_args(media, **kwargs)
+            new_args = args.get_add_media_args(media, **kwargs)
 
         # Update MHandler object
         self.set_settings(new_args)
 
         # Update MHPush object, if necessary
         if hasattr(self, 'no_push') and getattr(self, 'no_push'):
-            self.push = Notify.MHPush(self.notifications, self.no_push)
+            self.push = notify.MHPush(self.notifications, self.no_push)
 
     def _file_handler(self, files):
         """A wrapper function for _add_media_files().
@@ -239,6 +251,7 @@ class MHandler(mh.MHObject):
 
         logging.info("Extracting files from compressed file")
         self.extracted = raw
+        filebot = None
 
         # Look for filebot
         if hasattr(self.tv, 'filebot'):
@@ -250,10 +263,10 @@ class MHandler(mh.MHObject):
                 "Filebot required to extract: {0}".format(self.name))
 
         # Import extract module
-        import mediahandler.util.extract as Extract
+        import mediahandler.util.extract as extract
 
         # Send to handler
-        extracted = Extract.get_files(filebot, raw)
+        extracted = extract.get_files(filebot, raw)
         if extracted is None:
             self.push.failure(
                 "Unable to extract files: {0}".format(self.name))
@@ -373,8 +386,6 @@ class MHandler(mh.MHObject):
                 logging.debug("Removing extra files folder")
                 rmtree(files)
 
-        return
-
     def __repr__(self):
         return '<MHandler {0}>'.format(self.__dict__)
 
@@ -390,13 +401,13 @@ def main(is_deluge=False):
     """
 
     # Get arguments
-    (config, args) = Args.get_arguments(is_deluge)
+    (config, args_) = args.get_arguments(is_deluge)
 
     # Set up handler
     handler = MHandler(config)
 
     # Set up add media args
-    added = handler.add_media(validated=True, **args)
+    added = handler.add_media(validated=True, **args_)
 
     # Return formatted list of added files
     return added
