@@ -82,13 +82,13 @@ class DelugeTests(unittest.TestCase):
 
 class RemoveTorrentTests(unittest.TestCase):
 
-    @common.skipUnlessHasMod('twisted', 'internet')
+    @common.skip_unless_has_mod('twisted', 'internet')
     def setUp(self):
         from twisted.internet import reactor
         self.conf = common.get_conf_file()
         self.settings = parse_config(self.conf)['Deluge']
 
-    @common.skipUnlessHasMod('deluge', 'ui')
+    @common.skip_unless_has_mod('deluge', 'ui')
     def test_remove_torrent(self):
         Torrent.remove_deluge_torrent(self.settings, 'hash')
 

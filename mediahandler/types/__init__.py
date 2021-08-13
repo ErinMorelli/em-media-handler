@@ -89,10 +89,9 @@ class MHMediaType(mh.MHObject):
                 os.path.expanduser("~"), 'Media', self.ptype)
 
             # Check for custom path in settings
-            if hasattr(self, 'folder'):
-                if self.folder is not None:
-                    self.dst_path = self.folder
-                    logging.debug("Using custom path: %s", self.dst_path)
+            if hasattr(self, 'folder') and self.folder is not None:
+                self.dst_path = self.folder
+                logging.debug("Using custom path: %s", self.dst_path)
 
             # Check destination exists
             if not os.path.exists(self.dst_path):

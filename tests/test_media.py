@@ -72,9 +72,9 @@ class BaseMediaObjectTests(MediaObjectTests):
         # Call super
         super(BaseMediaObjectTests, self).tearDown()
         # Remove extra
-        if self.settings['log_file'] is not None:
-            if os.path.exists(self.settings['log_file']):
-                os.unlink(self.settings['log_file'])
+        if self.settings['log_file'] is not None \
+                and os.path.exists(self.settings['log_file']):
+            os.unlink(self.settings['log_file'])
 
     def test_new_media_object(self):
         # Check results

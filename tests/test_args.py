@@ -102,9 +102,9 @@ class ArgsTests(unittest.TestCase):
 
     def test_cli_default_args(self):
         sys.argv = ['', self.folder,
-            '--type', '4',
-            '--query', 'this is my query',
-            '-n',]
+                    '--type', '4',
+                    '--query', 'this is my query',
+                    '-n']
         (config, args) = Args.get_arguments()
         expected = {
             'media': self.folder,
@@ -163,7 +163,7 @@ class ParseDirTests(unittest.TestCase):
             shutil.rmtree(self.tmp_folder)
 
     def test_bad_parse_path(self):
-        regex = r"Detected media type '.*' not recognized".format(self.folder)
+        regex = r"Detected media type '.*' not recognized"
         self.assertRaisesRegexp(
             SystemExit, regex, self.parser.parse_args, [self.folder])
 

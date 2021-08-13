@@ -193,6 +193,8 @@ htmlhelp_basename = 'EMMediaHandlerdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
+__custom_doc_name = u'EM Media Handler Documentation'
+__dev_name = u'Erin Morelli'
 
 latex_elements = {
 # The paper size ('letterpaper' or 'a4paper').
@@ -209,8 +211,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'EMMediaHandler.tex', u'EM Media Handler Documentation',
-   u'Erin Morelli', 'manual'),
+  ('index', 'EMMediaHandler.tex', __custom_doc_name, __dev_name, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -239,8 +240,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'emmediahandler', u'EM Media Handler Documentation',
-     [u'Erin Morelli'], 1)
+    ('index', 'emmediahandler', __custom_doc_name, [__dev_name], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -253,9 +253,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'EMMediaHandler', u'EM Media Handler Documentation',
-   u'Erin Morelli', 'EMMediaHandler', 'A comprehensive media handling automation script.',
-   'Miscellaneous'),
+  ('index', 'EMMediaHandler', __custom_doc_name, __dev_name, 'EMMediaHandler',
+   'A comprehensive media handling automation script.', 'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.

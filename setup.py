@@ -32,7 +32,7 @@ setup(
     version='1.2',
     author='Erin Morelli',
     author_email='me@erin.dev',
-    url='http://www.erinmorelli.com/projects/em-media-handler/',
+    url='https://www.erinmorelli.com/projects/em-media-handler/',
     license='MIT',
     platforms='Linux, OSX, Windows',
     description='A comprehensive media handling automation script.',

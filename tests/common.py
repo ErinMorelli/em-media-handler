@@ -21,7 +21,7 @@ import shutil
 import string
 import tempfile
 import warnings
-from random import choice
+from random import randrange, choice
 
 try:
     import unittest2 as unittest
@@ -60,7 +60,7 @@ class MHTestSuite(unittest.TestSuite):
         self.tearDownSuite()
 
 
-def skipUnlessHasMod(module, submodule):
+def skip_unless_has_mod(module, submodule):
     try:
         Config._find_module(module, submodule)
     except ImportError:
@@ -73,7 +73,7 @@ def skipUnlessHasMod(module, submodule):
 def get_test_id(size=4):
     num = []
     while size > 0:
-        x = choice('0123456789')
+        x = randrange(10)
         num.append(x)
         size -= 1
     return ''.join(num)
@@ -81,7 +81,7 @@ def get_test_id(size=4):
 
 def random_string(size=5):
     chars = string.ascii_uppercase + string.digits
-    return ''.join(choice(chars) for x in range(size))
+    return ''.join(choice(chars) for _ in range(size))
 
 
 def temp_file(name=None):
@@ -157,9 +157,9 @@ def get_google_api():
 
 
 def remove_file(file_path):
-    for retry in range(100):
+    for _ in range(100):
         try:
             os.unlink(file_path)
             break
-        except:
+        except Exception:
             pass

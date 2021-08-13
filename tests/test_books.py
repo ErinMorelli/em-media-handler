@@ -30,6 +30,20 @@ from mediahandler.util.config import _find_app
 import mediahandler.types.audiobooks as Books
 
 
+_book_author_1 = 'Alice Sebold'
+_book_author_2 = 'Arnaldur Indridason'
+
+_book_title_1 = 'The Lovely Bones'
+_book_title_2 = 'Outrage'
+_book_title_3 = 'Voices'
+
+_book_subtitle_1 = 'An Inspector Erlendur Novel'
+
+_book_cover_img = 'cover.jpg'
+
+_book_track_mp3 = '0{0}-track.mp3'
+
+
 class BookMediaObjectTests(MediaObjectTests):
 
     def setUp(self):
@@ -78,8 +92,8 @@ class BookCleanStringTests(BookMediaObjectTests):
 
     def test_bracket_string(self):
         string = os.path.join(
-            self.folder, 'The Lovely Bones [A Novel] (Mp3) {TKP}')
-        expected = 'The Lovely Bones'
+            self.folder, _book_title_1 + ' [A Novel] (Mp3) {TKP}')
+        expected = _book_title_1
         self.assertEqual(self.book._clean_string(string), expected)
 
     def test_non_alphanum_string(self):
@@ -105,8 +119,9 @@ class BookSaveCoverTests(BookMediaObjectTests):
         self.book.book_info = self.book.MHSettings({})
 
     def test_save_cover_new(self):
-        img_url = 'http://books.google.com/books/content?id=4lYZAwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api'
-        expected = os.path.join(self.folder, 'cover.jpg')
+        img_url = 'https://books.google.com/books/content?' \
+                  'id=4lYZAwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api'
+        expected = os.path.join(self.folder, _book_cover_img)
         self.assertFalse(os.path.exists(expected))
         result = self.book._save_cover(self.folder, img_url)
         self.assertEqual(result, expected)
@@ -114,11 +129,11 @@ class BookSaveCoverTests(BookMediaObjectTests):
         self.assertTrue(os.path.exists(expected))
 
     def test_save_cover_exists(self):
-        img_url = 'http://books.google.com/books/content?id=4lYZAwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api'
-        expected = os.path.join(self.folder, 'cover.jpg')
+        img_url = 'https://books.google.com/books/content?' \
+                  'id=4lYZAwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api'
+        expected = os.path.join(self.folder, _book_cover_img)
         # Make file
-        with open(expected, 'w'):
-            pass
+        open(expected, 'a').close()
         # Run test
         self.assertTrue(os.path.exists(expected))
         result = self.book._save_cover(self.folder, img_url)
@@ -128,19 +143,19 @@ class BookSaveCoverTests(BookMediaObjectTests):
 
 class BookCalculateChunkTests(BookMediaObjectTests):
 
-    def test_chunks_mulipart(self):
+    def test_chunks_multipart(self):
         # Set max length to 30 mins
         self.book.max_length = 1800
         # Copy files into folder
         for x in range(0, 6):
-            dst = os.path.join(self.folder, '0{0}-track.mp3'.format(str(x+1)))
+            dst = os.path.join(self.folder, _book_track_mp3.format(str(x+1)))
             shutil.copy(self.audio_file, dst)
         # Set up query
         file_array = sorted(os.listdir(self.folder))
         expected = [
-            ['01-track.mp3', '02-track.mp3'],
-            ['03-track.mp3', '04-track.mp3'],
-            ['05-track.mp3', '06-track.mp3']
+            [_book_track_mp3.format('1'), _book_track_mp3.format('2')],
+            [_book_track_mp3.format('3'), _book_track_mp3.format('4')],
+            [_book_track_mp3.format('5'), _book_track_mp3.format('6')]
         ]
         # Run test
         result = self.book._calculate_chunks(self.folder, file_array, 'mp3')
@@ -152,11 +167,11 @@ class BookCalculateChunkTests(BookMediaObjectTests):
         # Set max length to 15 mins
         self.book.smax_length = 900
         # Copy file into folder
-        dst = os.path.join(self.folder, '01-track.mp3')
+        dst = os.path.join(self.folder, _book_track_mp3.format('1'))
         shutil.copy(self.audio_file, dst)
         # Set up query
         file_array = sorted(os.listdir(self.folder))
-        expected = [['01-track.mp3']]
+        expected = [[_book_track_mp3.format('1')]]
         # Run test
         result = self.book._calculate_chunks(self.folder, file_array, 'mp3')
         # Check results
@@ -167,11 +182,11 @@ class BookCalculateChunkTests(BookMediaObjectTests):
         # Set max length to 10 mins
         self.book.max_length = 600
         # Copy file into folder
-        dst = os.path.join(self.folder, '01-track.mp3')
+        dst = os.path.join(self.folder, _book_track_mp3.format('1'))
         shutil.copy(self.audio_file, dst)
         # Set up query
         file_array = sorted(os.listdir(self.folder))
-        expected = [['01-track.mp3']]
+        expected = [[_book_track_mp3.format('1')]]
         # Run test
         result = self.book._calculate_chunks(self.folder, file_array, 'mp3')
         # Check results
@@ -184,15 +199,15 @@ class GetChaptersTests(BookMediaObjectTests):
     def make_cover(self):
         # Make dummy cover image
         tmp_img = common.make_tmp_file('.jpg')
-        cover_img = os.path.join(self.folder, 'cover.jpg')
+        cover_img = os.path.join(self.folder, _book_cover_img)
         shutil.move(tmp_img, cover_img)
 
-    def test_chapters_mulipart(self):
+    def test_chapters_multipart(self):
         # Set max length to 30 mins
         self.book.max_length = 1800
         # Copy files into folder
         for x in range(0, 6):
-            dst = os.path.join(self.folder, '0{0}-track.mp3'.format(str(x+1)))
+            dst = os.path.join(self.folder, _book_track_mp3.format(str(x+1)))
             shutil.copy(self.audio_file, dst)
         # Set up query
         file_array = sorted(os.listdir(self.folder))
@@ -213,7 +228,7 @@ class GetChaptersTests(BookMediaObjectTests):
         # Set max length to 15 mins
         self.book.max_length = 900
         # Copy file into folder
-        dst = os.path.join(self.folder, '01-track.mp3')
+        dst = os.path.join(self.folder, _book_track_mp3.format('1'))
         shutil.copy(self.audio_file, dst)
         # Set up query
         file_array = sorted(os.listdir(self.folder))
@@ -241,7 +256,7 @@ class AddBookTest(BookMediaObjectTests):
         self.book.custom_search = 'Paul Doiron Bone Orchard'
         # Copy files into folder
         for x in range(0, 2):
-            dst = os.path.join(self.folder, '0{0}-track.mp3'.format(str(x+1)))
+            dst = os.path.join(self.folder, _book_track_mp3.format(str(x+1)))
             shutil.copy(self.audio_file, dst)
         # Run test
         (added, skipped) = self.book.add(self.folder)
@@ -299,7 +314,7 @@ class GetFilesTests(BookMediaObjectTests):
         self.assertListEqual(sorted(expected), sorted(result))
         self.assertEqual(self.book.file_type, 'mp3')
 
-    @common.skipUnlessHasMod('mutagen', 'mp3')
+    @common.skip_unless_has_mod('mutagen', 'mp3')
     def test_get_files_bad_chaptered(self):
         # Set up folder
         common.make_tmp_file('.mp3', self.folder)
@@ -336,15 +351,15 @@ class MoveFilesBookTests(BookMediaObjectTests):
                     {
                         'id': 'IklPK8m8M44C',
                         'volumeInfo': {
-                            'title': 'Outrage',
-                            'subtitle': 'An Inspector Erlendur Novel',
-                            'authors': ['Arnaldur Indridason'],
+                            'title': _book_title_2,
+                            'subtitle': _book_subtitle_1,
+                            'authors': [_book_author_2],
                             'publishedDate': '2012-09-18',
                             'categories': ['Fiction'],
                             'imageLinks': {'thumbnail': ''}
                         }
                     }]
-            self.book.set_book_info('Outrage Arnaldur')
+            self.book.set_book_info(_book_title_2 + ' Arnaldur')
         # Settings
         self.book.orig_path = self.folder
 
@@ -355,14 +370,14 @@ class MoveFilesBookTests(BookMediaObjectTests):
             {
                 'id': 'int6DwAAQBAJ',
                 'volumeInfo': {
-                    'title': 'The Lovely Bones',
-                    'authors': ['Alice Sebold'],
+                    'title': _book_title_1,
+                    'authors': [_book_author_1],
                     'publishedDate': '2018-11-17',
                     'categories': ['Drama'],
                     'imageLinks': {'thumbnail': ''}
                 }
             }]
-        self.book.set_book_info('The Lovely Bones Alice Sebold')
+        self.book.set_book_info(_book_title_1 + ' ' + _book_author_1)
         # Make dummy file
         book_file = common.make_tmp_file('.m4b', self.folder)
         # Set up file array
@@ -370,10 +385,9 @@ class MoveFilesBookTests(BookMediaObjectTests):
         # Run test
         (added, skipped) = self.book._move_files(file_array, True)
         # Check results
-        expected = ['The Lovely Bones']
+        expected = [_book_title_1]
         new_file = os.path.join(
-            self.folder, 'Alice Sebold',
-            'The Lovely Bones', 'The Lovely Bones.m4b')
+            self.folder, _book_author_1, _book_title_1, _book_title_1 + '.m4b')
         self.assertListEqual(skipped, [])
         self.assertListEqual(expected, added)
         self.assertTrue(os.path.exists(new_file))
@@ -388,7 +402,7 @@ class MoveFilesBookTests(BookMediaObjectTests):
         # Run test
         (added, skipped) = self.book._move_files(file_array, False)
         # Check results
-        expected = ['01 - Outrage.mp3', '02 - Outrage.mp3']
+        expected = [f'01 - {_book_title_2}.mp3', f'02 - {_book_title_2}.mp3']
         self.assertListEqual(skipped, [])
         self.assertListEqual(expected, added)
 
@@ -401,12 +415,11 @@ class MoveFilesBookTests(BookMediaObjectTests):
         # Run test
         (added, skipped) = self.book._move_files(file_array, True)
         # Set expected values
-        expected = ['Outrage, Part 1', 'Outrage, Part 2']
+        expected = [_book_title_2 + ', Part 1', _book_title_2 + ', Part 2']
         new_path = os.path.join(
-            self.folder, 'Arnaldur Indridason',
-            'Outrage_ An Inspector Erlendur Novel')
-        new_file1 = os.path.join(new_path, 'Outrage, Part 1.m4b')
-        new_file2 = os.path.join(new_path, 'Outrage, Part 2.m4b')
+            self.folder, _book_author_2, _book_title_2 + '_ ' + _book_subtitle_1)
+        new_file1 = os.path.join(new_path, _book_title_2 + ', Part 1.m4b')
+        new_file2 = os.path.join(new_path, _book_title_2 + ', Part 2.m4b')
         # Check results
         self.assertListEqual(skipped, [])
         self.assertListEqual(expected, added)
@@ -416,10 +429,9 @@ class MoveFilesBookTests(BookMediaObjectTests):
     def test_move_duplicates(self):
         # Make existing files
         new_path = os.path.join(
-            self.folder, 'Arnaldur Indridason',
-            'Outrage_ An Inspector Erlendur Novel')
-        new_file1 = os.path.join(new_path, 'Outrage, Part 1.m4b')
-        new_file2 = os.path.join(new_path, 'Outrage, Part 2.m4b')
+            self.folder, _book_author_2, _book_title_2 + '_ ' + _book_subtitle_1)
+        new_file1 = os.path.join(new_path, _book_title_2 + ', Part 1.m4b')
+        new_file2 = os.path.join(new_path, _book_title_2 + ', Part 2.m4b')
         dummy_file = common.make_tmp_file('.m4b', self.folder)
         # Make directories & files
         os.makedirs(new_path)
@@ -448,8 +460,8 @@ class SingleFileBookTests(BookMediaObjectTests):
             {
                 'id': 'int6DwAAQBAJ',
                 'volumeInfo': {
-                    'title': 'The Lovely Bones',
-                    'authors': ['Alice Sebold'],
+                    'title': _book_title_1,
+                    'authors': [_book_author_1],
                     'publishedDate': '2018-11-17',
                     'categories': ['Drama'],
                     'imageLinks': {'thumbnail': ''}
@@ -459,9 +471,9 @@ class SingleFileBookTests(BookMediaObjectTests):
         self.book.orig_path = self.folder
         book_file = common.make_tmp_file('.m4b', self.folder)
         # Run test
-        result = self.book._single_file(book_file, 'The Lovely Bones')
+        result = self.book._single_file(book_file, _book_title_1)
         # Check results
-        expected_path = os.path.join(self.folder, 'The Lovely Bones')
+        expected_path = os.path.join(self.folder, _book_title_1)
         expected_file = os.path.join(
             expected_path, os.path.basename(book_file))
         self.assertEqual(expected_path, result)
@@ -474,24 +486,24 @@ class SingleFileBookTests(BookMediaObjectTests):
         {
             'id': 'BDgMX4r2efUC',
             'volumeInfo': {
-                'title': 'Voices',
-                'subtitle': 'An Inspector Erlendur Novel',
-                'authors': ['Arnaldur Indridason'],
+                'title': _book_title_3,
+                'subtitle': _book_subtitle_1,
+                'authors': [_book_author_2],
                 'publishedDate': '2008-09-02',
                 'categories': ['Fiction'],
                 'imageLinks': {'thumbnail': ''}
             }
         }]
         # Run test
-        result = Books.get_book_info(self.book.api_key, 'Voices Arnaldur')
+        result = Books.get_book_info(self.book.api_key, _book_title_3 + ' Arnaldur')
         # Check result
         expected = {
-            'author': 'Arnaldur Indridason',
+            'author': _book_author_2,
             'genre': 'Fiction',
             'id': 'BDgMX4r2efUC',
-            'long_title': 'Voices: An Inspector Erlendur Novel',
-            'short_title': 'Voices',
-            'subtitle': 'An Inspector Erlendur Novel',
+            'long_title': _book_title_3 + ': ' + _book_subtitle_1,
+            'short_title': _book_title_3,
+            'subtitle': _book_subtitle_1,
             'year': '2008'
         }
         self.assertDictContainsSubset(expected, result)

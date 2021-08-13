@@ -162,6 +162,7 @@ class MHAudiobook(mh.MHObject):
         self.orig_path = None
         self.file_type = None
         self.type = re.sub(r'^mh', '', type(self).__name__.lower())
+        self.cover_img_name = 'cover.jpg'
 
         # Set up book settings
         self.set_settings({
@@ -356,7 +357,7 @@ class MHAudiobook(mh.MHObject):
         logging.info("Saving audiobook cover image")
 
         # Set new image file path
-        img_path = path.join(img_dir, 'cover.jpg')
+        img_path = path.join(img_dir, self.cover_img_name)
         logging.debug("Image URL: %s", img_url)
         logging.debug("Image Path: %s", img_path)
 
@@ -545,8 +546,8 @@ class MHAudiobook(mh.MHObject):
                 copy(start_path, end_path)
 
             # Copy over cover image
-            cover_start = path.join(file_path, 'cover.jpg')
-            cover_end = path.join(part_path, 'cover.jpg')
+            cover_start = path.join(file_path, self.cover_img_name)
+            cover_end = path.join(part_path, self.cover_img_name)
             copy(cover_start, cover_end)
 
             # Add new part folder to array
