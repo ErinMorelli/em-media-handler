@@ -1,4 +1,4 @@
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ErinMorelli_em-media-handler&metric=alert_status)](https://sonarcloud.io/dashboard?id=ErinMorelli_em-media-handler) [![docs](https://readthedocs.org/projects/em-media-handler/badge/?version=latest)](https://readthedocs.org/projects/em-media-handler/?badge=latest)
+[![CodeFactor](https://www.codefactor.io/repository/github/erinmorelli/em-media-handler/badge/mainline)](https://www.codefactor.io/repository/github/erinmorelli/em-media-handler/overview/mainline) [![docs](https://readthedocs.org/projects/em-media-handler/badge/?version=latest)](https://readthedocs.org/projects/em-media-handler/?badge=latest)
 
 A comprehensive media handling automation script for use via CLI or with a torrenting program. Handles TV shows, movies, music, and audiobooks. Integrates with push notifications via Pushover and Pushbullet.
 

@@ -32,7 +32,7 @@ import mediahandler.util.config as Config
 SKIP_PWD = False
 try:
     from pwd import getpwuid
-except:
+except ImportError:
     SKIP_PWD = True
     pass
 
@@ -48,7 +48,7 @@ class FindModulesTests(unittest.TestCase):
     def test_find_module_failure(self):
         module = common.random_string(8)
         submod = common.random_string(5)
-        regex = r'Module {0}.{1} is not installed'.format(module, submod)
+        regex = fr'Module {module}.{submod} is not installed'
         self.assertRaisesRegexp(ImportError, regex,
                                 Config._find_module, module, submod)
 
@@ -156,11 +156,11 @@ class InitLoggingTests(unittest.TestCase):
         # Conf
         self.conf = common.get_conf_file()
         # Unique test ID
-        self.name = 'test-{0}'.format(common.get_test_id())
+        self.name = f'test-{common.get_test_id()}'
         self.folder = common.random_string(9)
         # Set logfile
         self.dir = os.path.join(os.path.dirname(self.conf), self.folder)
-        self.log_file = os.path.join(self.dir, '{0}.log'.format(self.name))
+        self.log_file = os.path.join(self.dir, f'{self.name}.log')
 
     def tearDown(self):
         if os.path.exists(self.dir):
@@ -321,7 +321,7 @@ class MissingSectionConfigTest(unittest.TestCase):
         with open(self.new_conf) as conf_file:
                 conf_content = conf_file.read()
         # Parse YAML
-        conf = yaml.load(conf_content)
+        conf = yaml.load(conf_content, Loader=yaml.SafeLoader)
         # Make updates
         del conf['Notifications']
         # Write to file
@@ -351,7 +351,7 @@ class MissingOptionConfigTest(unittest.TestCase):
         with open(self.conf) as conf_file:
                 conf_content = conf_file.read()
         # Parse YAML
-        conf = yaml.load(conf_content)
+        conf = yaml.load(conf_content, Loader=yaml.SafeLoader)
         # Make updates
         del conf['Deluge']['host']
         # Write to file
@@ -381,7 +381,7 @@ class MissingOptionSectionConfigTest(unittest.TestCase):
         with open(self.conf) as conf_file:
                 conf_content = conf_file.read()
         # Parse YAML
-        conf = yaml.load(conf_content)
+        conf = yaml.load(conf_content, Loader=yaml.SafeLoader)
         # Make updates
         del conf['Notifications']
         # Write to file
@@ -424,13 +424,13 @@ class MakeConfigTests(unittest.TestCase):
     @unittest.skipIf(SKIP_PWD, 'for non-Windows systems')
     def test_conf_permissions(self):
         self.tmp_file = os.path.join(
-            os.path.dirname(self.conf), '{0}.yml'.format(self.name))
+            os.path.dirname(self.conf), f'{self.name}.yml')
         file_path = Config.make_config(self.tmp_file)
         self.assertEqual(
             int(os.environ['SUDO_UID']), self.get_owner(file_path))
 
     def test_custom_conf(self):
-        name = 'test-{0}.conf'.format(common.get_test_id())
+        name = f'test-{common.get_test_id()}.conf'
         self.tmp_file = os.path.join(os.path.dirname(self.conf), 'tmp', name)
         results = Config.make_config(self.tmp_file)
         self.assertEqual(self.tmp_file, results)
