@@ -78,7 +78,7 @@ def make_config(new_file=None):
         if not os.path.exists(config_path):
             os.makedirs(config_path)
             if not mh.__iswin__:
-                os.chmod(config_path, 0o775)
+                os.chmod(config_path, 0o664)
 
         # Copy new configuration file to path
         shutil.copy(default_config, config_file)
@@ -292,7 +292,7 @@ def _get_yaml(yaml_file):
         yaml_contents = yaml_io.read()
 
     # Decode yaml
-    contents = yaml.load(yaml_contents)
+    contents = yaml.load(yaml_contents, Loader=yaml.SafeLoader)
 
     return contents
 

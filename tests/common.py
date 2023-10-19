@@ -157,9 +157,9 @@ def get_google_api():
 
 
 def remove_file(file_path):
-    for retry in range(100):
+    for _ in range(100):
         try:
             os.unlink(file_path)
             break
-        except:
+        except (OSError, FileNotFoundError):
             pass
