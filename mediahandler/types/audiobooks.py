@@ -73,7 +73,7 @@ def get_book_info(api_key, query):
     request = service.volumes().list(
         q=query,
         orderBy="relevance",
-        printType="books",
+        printType="BOOKS",
         maxResults=5
     )
 
